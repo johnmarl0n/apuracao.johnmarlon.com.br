@@ -16,8 +16,6 @@
     bool cand1Lider = cand1 != null && (cand2 == null || cand1.Votos >= cand2.Votos);
     string cor1 = cand1?.CorPartido ?? "#c4122d";
     string cor2 = cand2?.CorPartido ?? "#2563eb";
-    string cor1Text = "#f87171"; // Vermelho vívido com alto contraste
-    string cor2Text = "#60a5fa"; // Azul vívido com alto contraste
 }
 
 @section Styles {
@@ -35,6 +33,18 @@
             line-height: 1.15;
         }
 
+        .cand-headline-name-c1 {
+            color: var(--cand1-text-color);
+        }
+
+        .cand-headline-name-c2 {
+            color: var(--cand2-text-color);
+        }
+
+        .cand-headline-connector {
+            color: var(--text-title);
+        }
+
         .leaflet-tooltip-dark {
             background: rgba(11, 15, 25, 0.94) !important;
             border: 1px solid rgba(56, 189, 248, 0.45) !important;
@@ -46,9 +56,9 @@
         }
 
         .filter-chip {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #d1d5db;
+            background: var(--chip-bg);
+            border: 1px solid var(--chip-border);
+            color: var(--chip-text);
             padding: 0.4rem 0.85rem;
             border-radius: 9999px;
             text-decoration: none;
@@ -62,24 +72,25 @@
         }
 
         .filter-chip:hover {
-            background: rgba(255, 255, 255, 0.12);
-            color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.25);
+            background: var(--primary);
+            color: #ffffff !important;
+            border-color: var(--primary);
         }
 
         .filter-chip.active {
-            background: #2563eb;
-            color: #ffffff;
-            border-color: #3b82f6;
+            background: var(--primary);
+            color: #ffffff !important;
+            border-color: var(--primary-light);
             box-shadow: 0 0 12px rgba(37, 99, 235, 0.45);
         }
 
-        /* Card Duelo Presidencial (Estilo Pandora / SeuImposto) */
+        /* Card Duelo Presidencial */
         .duel-side-card {
-            background: #10141d;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
             border-radius: 1rem;
-            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
+            box-shadow: var(--card-shadow);
+            color: var(--text-main);
         }
 
         .cand-square-avatar {
@@ -97,9 +108,18 @@
             overflow: hidden;
         }
 
+        .cand-percent-display {
+            color: var(--text-title);
+            line-height: 1;
+        }
+
+        .cand-title-name {
+            color: var(--text-title);
+        }
+
         .duel-split-bar {
             height: 8px;
-            background: rgba(255, 255, 255, 0.06);
+            background: var(--border-card-subtle);
             border-radius: 9999px;
             position: relative;
             display: flex;
@@ -112,51 +132,66 @@
             top: -4px;
             bottom: -4px;
             width: 2px;
-            background: #ffffff;
-            box-shadow: 0 0 8px #ffffff;
+            background: var(--text-title);
+            box-shadow: 0 0 8px var(--text-title);
             z-index: 10;
         }
 
         /* Gráfico "Ao longo da apuração" */
         .chart-box {
-            background: #0b0f19;
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: var(--bg-card-subtle);
+            border: 1px solid var(--border-card-subtle);
             border-radius: 0.85rem;
             padding: 0.85rem;
         }
 
         /* Sidebar Regiões e Feed */
         .sidebar-card {
-            background: #10141d;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
             border-radius: 1rem;
+            box-shadow: var(--card-shadow);
+            color: var(--text-main);
+        }
+
+        .region-row {
+            background: var(--bg-card-subtle);
+            border: 1px solid var(--border-card-subtle);
+        }
+
+        .region-name {
+            color: var(--text-title);
         }
 
         .news-item {
-            border-left: 2px solid #38bdf8;
+            border-left: 2px solid var(--primary);
             padding-left: 0.75rem;
             margin-bottom: 0.75rem;
             position: relative;
         }
 
         .news-item .news-title {
-            color: #e2e8f0;
+            color: var(--text-main);
             font-size: 0.82rem;
-            line-height: 1.25;
+            line-height: 1.35;
             font-weight: 500;
         }
 
         .news-item .news-meta {
-            color: #94a3b8;
+            color: var(--text-secondary);
             font-size: 0.7rem;
-            margin-bottom: 0.15rem;
+            margin-bottom: 0.2rem;
         }
 
         /* Countdown Compacto */
         .countdown-strip {
             background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
-            border: 1px solid rgba(56, 189, 248, 0.25);
+            border: 1px solid var(--border-card);
             border-radius: 0.75rem;
+        }
+
+        .border-themed {
+            border-color: var(--border-card-subtle) !important;
         }
     </style>
 }
@@ -198,7 +233,7 @@
     <!-- Indicador de Status & Última Atualização -->
     <div class="d-flex align-items-center gap-2 ms-auto small">
         <span class="text-secondary" style="font-size: 0.72rem;">Atualização TSE:</span>
-        <span class="font-mono text-white fw-bold" id="lblDataTse">@(Model.DataHoraTse ?? "Aguardando totalização")</span>
+        <span class="font-mono fw-bold" style="color: var(--text-title);" id="lblDataTse">@(Model.DataHoraTse ?? "Aguardando totalização")</span>
     </div>
 </div>
 
@@ -222,14 +257,14 @@
             </div>
 
             <!-- Título em Serif com Nomes dos Candidatos Coloridos -->
-            <h2 class="h5 font-serif-headline text-white mb-3" id="lblHeadlineDuelo">
+            <h2 class="h5 font-serif-headline mb-3" id="lblHeadlineDuelo">
                 @if (cand1 != null && cand2 != null)
                 {
-                    <span style="color: @cor2Text;">@cand2.NomeUrna</span><span class="text-white"> e </span><span style="color: @cor1Text;">@cand1.NomeUrna</span><span class="text-white"> vão ao 2º turno</span>
+                    <span class="cand-headline-name-c2">@cand2.NomeUrna</span><span class="cand-headline-connector"> e </span><span class="cand-headline-name-c1">@cand1.NomeUrna</span><span class="cand-headline-connector"> vão ao 2º turno</span>
                 }
                 else
                 {
-                    <span>Apuração Presidencial 2º Turno</span>
+                    <span class="cand-headline-connector">Apuração Presidencial 2º Turno</span>
                 }
             </h2>
 
@@ -255,7 +290,7 @@
                             }
                         </div>
                         <div>
-                            <div class="fw-bold text-white small lh-1 mb-1">@cand1.NomeUrna</div>
+                            <div class="cand-title-name fw-bold small lh-1 mb-1">@cand1.NomeUrna</div>
                             <div class="small font-mono fw-bold" style="font-size: 0.72rem; color: @cor1;">@cand1.Partido @cand1.Numero</div>
                         </div>
                     </div>
@@ -266,7 +301,7 @@
                 {
                     <div class="d-flex align-items-center justify-content-end gap-2 flex-grow-1 text-end">
                         <div>
-                            <div class="fw-bold text-white small lh-1 mb-1">@cand2.NomeUrna</div>
+                            <div class="cand-title-name fw-bold small lh-1 mb-1">@cand2.NomeUrna</div>
                             <div class="small font-mono fw-bold" style="font-size: 0.72rem; color: @cor2;">@cand2.Partido @cand2.Numero</div>
                         </div>
                         <div class="cand-square-avatar" style="background: @cor2;">
@@ -291,7 +326,7 @@
             <!-- Percentuais Grandes -->
             <div class="d-flex align-items-baseline justify-content-between mb-2">
                 <div class="text-start">
-                    <div class="display-6 fw-bold font-display" style="color: #ffffff; line-height: 1;" id="cand1Perc">
+                    <div class="display-6 fw-bold font-display cand-percent-display" id="cand1Perc">
                         @(cand1?.Percentual.ToString("F2") ?? "0,00")<span class="fs-6 text-secondary">%</span>
                     </div>
                     <div class="small font-mono text-secondary" style="font-size: 0.75rem;" id="cand1Votos">
@@ -300,7 +335,7 @@
                 </div>
 
                 <div class="text-end">
-                    <div class="display-6 fw-bold font-display" style="color: #ffffff; line-height: 1;" id="cand2Perc">
+                    <div class="display-6 fw-bold font-display cand-percent-display" id="cand2Perc">
                         @(cand2?.Percentual.ToString("F2") ?? "0,00")<span class="fs-6 text-secondary">%</span>
                     </div>
                     <div class="small font-mono text-secondary" style="font-size: 0.75rem;" id="cand2Votos">
@@ -317,24 +352,24 @@
             </div>
 
             <!-- Diferença e Meta -->
-            <div class="d-flex align-items-center justify-content-between text-secondary small py-2 border-top border-secondary border-opacity-25 mt-2" style="font-size: 0.75rem;">
-                <span>Diferença: <strong class="text-white font-mono" id="lblDiffPontos">@Math.Abs((cand1?.Percentual ?? 0) - (cand2?.Percentual ?? 0)).ToString("F2") pts</strong> (@diffVotos.ToString("N0") votos)</span>
+            <div class="d-flex align-items-center justify-content-between text-secondary small py-2 border-top border-themed mt-2" style="font-size: 0.75rem;">
+                <span>Diferença: <strong class="font-mono" style="color: var(--text-title);" id="lblDiffPontos">@Math.Abs((cand1?.Percentual ?? 0) - (cand2?.Percentual ?? 0)).ToString("F2") pts</strong> (@diffVotos.ToString("N0") votos)</span>
                 <span>2º turno: <strong class="text-warning">25/10</strong></span>
             </div>
 
             <!-- Resumo dos Votos Válidos, Comparecimento e Brancos/Nulos -->
-            <div class="row g-2 pt-2 border-top border-secondary border-opacity-25 text-center" style="font-size: 0.75rem;">
+            <div class="row g-2 pt-2 border-top border-themed text-center" style="font-size: 0.75rem;">
                 <div class="col-4">
                     <div class="text-secondary" style="font-size: 0.68rem;">Votos válidos</div>
-                    <div class="fw-bold font-mono text-white" id="lblVotosValidos">@Model.VotosValidos.ToString("N0")</div>
+                    <div class="fw-bold font-mono" style="color: var(--text-title);" id="lblVotosValidos">@Model.VotosValidos.ToString("N0")</div>
                 </div>
                 <div class="col-4">
                     <div class="text-secondary" style="font-size: 0.68rem;">Comparecimento</div>
-                    <div class="fw-bold font-mono text-white" id="lblPercComparecimento">@Model.PercentualComparecimento.ToString("F1")%</div>
+                    <div class="fw-bold font-mono" style="color: var(--text-title);" id="lblPercComparecimento">@Model.PercentualComparecimento.ToString("F1")%</div>
                 </div>
                 <div class="col-4">
                     <div class="text-secondary" style="font-size: 0.68rem;">Brancos e nulos</div>
-                    <div class="fw-bold font-mono text-white" id="lblPercBrancosNulos">@((Model.PercentualVotosBrancos + Model.PercentualVotosNulos).ToString("F1"))%</div>
+                    <div class="fw-bold font-mono" style="color: var(--text-title);" id="lblPercBrancosNulos">@((Model.PercentualVotosBrancos + Model.PercentualVotosNulos).ToString("F1"))%</div>
                 </div>
             </div>
         </div>
@@ -342,7 +377,7 @@
         <!-- Card "Ao longo da apuração" (Gráfico de Linha Interativo) -->
         <div class="sidebar-card p-3 mb-3">
             <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="small fw-bold text-white">Ao longo da apuração</span>
+                <span class="small fw-bold" style="color: var(--text-title);">Ao longo da apuração</span>
                 <div class="d-flex align-items-center gap-2 small" style="font-size: 0.7rem;">
                     <span style="color: @cor1;">■ @(cand1?.NomeUrna ?? "C1")</span>
                     <span style="color: @cor2;">■ @(cand2?.NomeUrna ?? "C2")</span>
@@ -353,17 +388,17 @@
             <div class="chart-box">
                 <svg viewBox="0 0 300 130" style="width: 100%; height: auto; overflow: visible;">
                     <!-- Linhas horizontais de grade (38% a 54%) -->
-                    <line x1="25" y1="20" x2="295" y2="20" stroke="rgba(255,255,255,0.08)" stroke-dasharray="2,2" />
-                    <text x="5" y="23" fill="#64748b" font-size="8" font-family="monospace">54%</text>
+                    <line x1="25" y1="20" x2="295" y2="20" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="23" fill="var(--chart-text)" font-size="8" font-family="monospace">54%</text>
 
-                    <line x1="25" y1="45" x2="295" y2="45" stroke="rgba(255,255,255,0.08)" stroke-dasharray="2,2" />
-                    <text x="5" y="48" fill="#64748b" font-size="8" font-family="monospace">50%</text>
+                    <line x1="25" y1="45" x2="295" y2="45" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="48" fill="var(--chart-text)" font-size="8" font-family="monospace">50%</text>
 
-                    <line x1="25" y1="70" x2="295" y2="70" stroke="rgba(255,255,255,0.08)" stroke-dasharray="2,2" />
-                    <text x="5" y="73" fill="#64748b" font-size="8" font-family="monospace">46%</text>
+                    <line x1="25" y1="70" x2="295" y2="70" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="73" fill="var(--chart-text)" font-size="8" font-family="monospace">46%</text>
 
-                    <line x1="25" y1="95" x2="295" y2="95" stroke="rgba(255,255,255,0.08)" stroke-dasharray="2,2" />
-                    <text x="5" y="98" fill="#64748b" font-size="8" font-family="monospace">42%</text>
+                    <line x1="25" y1="95" x2="295" y2="95" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="98" fill="var(--chart-text)" font-size="8" font-family="monospace">42%</text>
 
                     <!-- Curva Cand 2 (Azul/PL) -->
                     <path d="M 30,50 Q 80,30 150,42 T 290,62" fill="none" stroke="@cor2" stroke-width="2.5" />
@@ -374,9 +409,9 @@
                     <circle cx="290" cy="75" r="3.5" fill="@cor1" />
 
                     <!-- Eixo X (0% a 100%) -->
-                    <text x="30" y="120" fill="#64748b" font-size="8">0% das seções</text>
-                    <text x="145" y="120" fill="#64748b" font-size="8" text-anchor="middle">50%</text>
-                    <text x="290" y="120" fill="#64748b" font-size="8" text-anchor="end">100%</text>
+                    <text x="30" y="120" fill="var(--chart-text)" font-size="8">0% das seções</text>
+                    <text x="145" y="120" fill="var(--chart-text)" font-size="8" text-anchor="middle">50%</text>
+                    <text x="290" y="120" fill="var(--chart-text)" font-size="8" text-anchor="end">100%</text>
                 </svg>
             </div>
         </div>
@@ -386,7 +421,7 @@
             <div class="small text-secondary mb-1" style="font-size: 0.72rem;">
                 <i class="bi bi-alarm text-info me-1"></i> Abertura das urnas do 2º turno (25/10):
             </div>
-            <div class="d-flex align-items-center justify-content-center gap-2 font-mono fw-bold text-white fs-5" id="timerDigitsContainer">
+            <div class="d-flex align-items-center justify-content-center gap-2 font-mono fw-bold fs-5" style="color: var(--text-title);" id="timerDigitsContainer">
                 <span id="cdDias">00</span><small class="text-secondary fs-6">d</small>
                 <span id="cdHoras">00</span><small class="text-secondary fs-6">h</small>
                 <span id="cdMinutos">00</span><small class="text-secondary fs-6">m</small>
@@ -409,15 +444,15 @@
         <!-- Card 1: Por Região (Quem lidera para presidente) -->
         <div class="sidebar-card p-3 mb-3">
             <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="small fw-bold text-white">Por região</span>
+                <span class="small fw-bold" style="color: var(--text-title);">Por região</span>
                 <span class="text-secondary" style="font-size: 0.7rem;">Quem lidera</span>
             </div>
 
             <div class="d-flex flex-column gap-2" style="font-size: 0.78rem;">
                 <!-- Norte -->
-                <div class="d-flex align-items-center justify-content-between p-1 rounded" style="background: rgba(255,255,255,0.02);">
+                <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="text-white fw-semibold" style="width: 75px;">Norte</span>
+                        <span class="fw-semibold region-name" style="width: 75px;">Norte</span>
                         <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
                     </div>
                     <div class="d-flex align-items-center gap-1 font-mono">
@@ -427,9 +462,9 @@
                 </div>
 
                 <!-- Nordeste -->
-                <div class="d-flex align-items-center justify-content-between p-1 rounded" style="background: rgba(255,255,255,0.02);">
+                <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="text-white fw-semibold" style="width: 75px;">Nordeste</span>
+                        <span class="fw-semibold region-name" style="width: 75px;">Nordeste</span>
                         <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
                     </div>
                     <div class="d-flex align-items-center gap-1 font-mono">
@@ -439,9 +474,9 @@
                 </div>
 
                 <!-- Centro-Oeste -->
-                <div class="d-flex align-items-center justify-content-between p-1 rounded" style="background: rgba(255,255,255,0.02);">
+                <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="text-white fw-semibold" style="width: 75px;">Centro-O.</span>
+                        <span class="fw-semibold region-name" style="width: 75px;">Centro-O.</span>
                         <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
                     </div>
                     <div class="d-flex align-items-center gap-1 font-mono">
@@ -451,9 +486,9 @@
                 </div>
 
                 <!-- Sudeste -->
-                <div class="d-flex align-items-center justify-content-between p-1 rounded" style="background: rgba(255,255,255,0.02);">
+                <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="text-white fw-semibold" style="width: 75px;">Sudeste</span>
+                        <span class="fw-semibold region-name" style="width: 75px;">Sudeste</span>
                         <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
                     </div>
                     <div class="d-flex align-items-center gap-1 font-mono">
@@ -463,9 +498,9 @@
                 </div>
 
                 <!-- Sul -->
-                <div class="d-flex align-items-center justify-content-between p-1 rounded" style="background: rgba(255,255,255,0.02);">
+                <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="text-white fw-semibold" style="width: 75px;">Sul</span>
+                        <span class="fw-semibold region-name" style="width: 75px;">Sul</span>
                         <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
                     </div>
                     <div class="d-flex align-items-center gap-1 font-mono">
@@ -475,9 +510,9 @@
                 </div>
 
                 <!-- Exterior (ZZ) -->
-                <div class="d-flex align-items-center justify-content-between p-1 rounded" style="background: rgba(255,255,255,0.02);">
+                <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="text-white fw-semibold" style="width: 75px;">Exterior</span>
+                        <span class="fw-semibold region-name" style="width: 75px;">Exterior</span>
                         <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
                     </div>
                     <div class="d-flex align-items-center gap-1 font-mono">
@@ -491,51 +526,51 @@
         <!-- Card 2: Últimas Atualizações (Feed em Tempo Real) -->
         <div class="sidebar-card p-3">
             <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="small fw-bold text-white"><i class="bi bi-clock-history me-1 text-primary"></i> Últimas atualizações</span>
+                <span class="small fw-bold" style="color: var(--text-title);"><i class="bi bi-clock-history me-1 text-primary"></i> Últimas atualizações</span>
                 <span class="badge bg-success-subtle text-success small py-0 px-1 font-mono" style="font-size: 0.65rem;">Ao vivo</span>
             </div>
 
             <div class="d-flex flex-column" style="max-height: 380px; overflow-y: auto;">
                 <div class="news-item">
-                    <div class="d-flex align-items-center gap-1 text-secondary" style="font-size: 0.68rem;">
-                        <span class="font-mono text-white">12h51</span> • <span>Rio de Janeiro</span>
+                    <div class="d-flex align-items-center gap-1 news-meta">
+                        <span class="font-mono fw-semibold" style="color: var(--text-title);">12h51</span> • <span>Rio de Janeiro</span>
                     </div>
-                    <div class="small text-white fw-medium">Douglas Ruas é eleito governador no 1º turno com 58,4%.</div>
+                    <div class="small fw-medium news-title">Douglas Ruas é eleito governador no 1º turno com 58,4%.</div>
                 </div>
 
                 <div class="news-item">
-                    <div class="d-flex align-items-center gap-1 text-secondary" style="font-size: 0.68rem;">
-                        <span class="font-mono text-white">03h00</span> • <span>Amazonas</span>
+                    <div class="d-flex align-items-center gap-1 news-meta">
+                        <span class="font-mono fw-semibold" style="color: var(--text-title);">03h00</span> • <span>Amazonas</span>
                     </div>
-                    <div class="small text-white fw-medium">Eduardo Braga e Plínio Valério são eleitos para o Senado Federal.</div>
+                    <div class="small fw-medium news-title">Eduardo Braga e Plínio Valério são eleitos para o Senado Federal.</div>
                 </div>
 
                 <div class="news-item">
-                    <div class="d-flex align-items-center gap-1 text-secondary" style="font-size: 0.68rem;">
-                        <span class="font-mono text-white">03h00</span> • <span>Totalização Nacional</span>
+                    <div class="d-flex align-items-center gap-1 news-meta">
+                        <span class="font-mono fw-semibold" style="color: var(--text-title);">03h00</span> • <span>Totalização Nacional</span>
                     </div>
-                    <div class="small text-white fw-medium">+1 seção apurada: Flávio Bolsonaro 47,0% · Lula 45,2%.</div>
+                    <div class="small fw-medium news-title">+1 seção apurada: Flávio Bolsonaro 47,0% · Lula 45,2%.</div>
                 </div>
 
                 <div class="news-item">
-                    <div class="d-flex align-items-center gap-1 text-secondary" style="font-size: 0.68rem;">
-                        <span class="font-mono text-white">01h55</span> • <span>São Paulo</span>
+                    <div class="d-flex align-items-center gap-1 news-meta">
+                        <span class="font-mono fw-semibold" style="color: var(--text-title);">01h55</span> • <span>São Paulo</span>
                     </div>
-                    <div class="small text-white fw-medium">Tarcísio lidera com 62,7% dos votos válidos para governador.</div>
+                    <div class="small fw-medium news-title">Tarcísio lidera com 62,7% dos votos válidos para governador.</div>
                 </div>
 
                 <div class="news-item">
-                    <div class="d-flex align-items-center gap-1 text-secondary" style="font-size: 0.68rem;">
-                        <span class="font-mono text-white">00h47</span> • <span>Minas Gerais</span>
+                    <div class="d-flex align-items-center gap-1 news-meta">
+                        <span class="font-mono fw-semibold" style="color: var(--text-title);">00h47</span> • <span>Minas Gerais</span>
                     </div>
-                    <div class="small text-white fw-medium">Domingos Sávio e Marília Campos confirmados para o Senado.</div>
+                    <div class="small fw-medium news-title">Domingos Sávio e Marília Campos confirmados para o Senado.</div>
                 </div>
 
                 <div class="news-item">
-                    <div class="d-flex align-items-center gap-1 text-secondary" style="font-size: 0.68rem;">
-                        <span class="font-mono text-white">00h12</span> • <span>Exterior (ZZ)</span>
+                    <div class="d-flex align-items-center gap-1 news-meta">
+                        <span class="font-mono fw-semibold" style="color: var(--text-title);">00h12</span> • <span>Exterior (ZZ)</span>
                     </div>
-                    <div class="small text-white fw-medium">Urnas 100% totalizadas em Lisboa, Porto, Paris e Tóquio.</div>
+                    <div class="small fw-medium news-title">Urnas 100% totalizadas em Lisboa, Porto, Paris e Tóquio.</div>
                 </div>
             </div>
         </div>

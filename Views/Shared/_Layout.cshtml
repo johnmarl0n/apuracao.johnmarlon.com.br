@@ -35,46 +35,72 @@
     </script>
     
     <style>
-        :root {
+        :root, [data-theme="dark"] {
             --bg-body: #090d16;
-            --bg-surface: #111827;
-            --bg-card: rgba(17, 24, 39, 0.75);
+            --bg-surface: #101726;
+            --bg-card: #10141d;
+            --bg-card-subtle: #0b0f19;
             --border-card: rgba(255, 255, 255, 0.08);
-            --primary: #2563eb;
+            --border-card-subtle: rgba(255, 255, 255, 0.05);
+            --primary: #3b82f6;
             --primary-light: #60a5fa;
             --accent-green: #10b981;
             --accent-yellow: #f59e0b;
-            --text-main: #f9fafb;
-            --text-secondary: #9ca3af;
-            --navbar-bg: rgba(15, 23, 42, 0.85);
-            --chip-bg: rgba(255, 255, 255, 0.05);
-            --chip-border: rgba(255, 255, 255, 0.1);
-            --chip-text: #d1d5db;
-            --cand-card-bg: rgba(23, 31, 50, 0.65);
+            --text-main: #f1f5f9;
+            --text-title: #ffffff;
+            --text-muted: #94a3b8;
+            --text-secondary: #94a3b8;
+            --navbar-bg: rgba(15, 23, 42, 0.9);
+            --chip-bg: rgba(255, 255, 255, 0.06);
+            --chip-border: rgba(255, 255, 255, 0.12);
+            --chip-text: #e2e8f0;
+            --input-bg: #0b0f19;
+            --input-border: #334155;
+            --input-text: #f8fafc;
+            --cand-card-bg: #10141d;
             --code-bg: #0b0f19;
             --map-ocean-bg: #0d1527;
             --map-border: #38bdf8;
+            --card-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
+            --card-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --cand1-text-color: #f87171;
+            --cand2-text-color: #60a5fa;
+            --chart-grid: rgba(255, 255, 255, 0.08);
+            --chart-text: #64748b;
         }
 
-        :root[data-theme="light"] {
-            --bg-body: #f1f5f9;
+        [data-theme="light"] {
+            --bg-body: #f8fafc;
             --bg-surface: #ffffff;
-            --bg-card: rgba(255, 255, 255, 0.94);
-            --border-card: rgba(0, 0, 0, 0.1);
+            --bg-card: #ffffff;
+            --bg-card-subtle: #f1f5f9;
+            --border-card: #e2e8f0;
+            --border-card-subtle: #cbd5e1;
             --primary: #2563eb;
             --primary-light: #1d4ed8;
             --accent-green: #059669;
             --accent-yellow: #d97706;
-            --text-main: #0f172a;
-            --text-secondary: #475569;
-            --navbar-bg: rgba(255, 255, 255, 0.92);
-            --chip-bg: rgba(0, 0, 0, 0.05);
-            --chip-border: rgba(0, 0, 0, 0.12);
-            --chip-text: #334155;
+            --text-main: #1e293b;
+            --text-title: #0f172a;
+            --text-muted: #475569;
+            --text-secondary: #64748b;
+            --navbar-bg: rgba(255, 255, 255, 0.96);
+            --chip-bg: #ffffff;
+            --chip-border: #cbd5e1;
+            --chip-text: #1e293b;
+            --input-bg: #ffffff;
+            --input-border: #cbd5e1;
+            --input-text: #0f172a;
             --cand-card-bg: #ffffff;
             --code-bg: #f8fafc;
-            --map-ocean-bg: #e2e8f0;
+            --map-ocean-bg: #f1f5f9;
             --map-border: #0284c7;
+            --card-shadow: 0 6px 20px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.04);
+            --card-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --cand1-text-color: #b91c1c; /* Crimson PT com alto contraste em branco */
+            --cand2-text-color: #1d4ed8; /* Azul Royal PL com alto contraste em branco */
+            --chart-grid: rgba(0, 0, 0, 0.08);
+            --chart-text: #475569;
         }
 
         html, body {
@@ -214,6 +240,25 @@
             color: #ffffff;
         }
 
+        .btn-header-action {
+            background: var(--chip-bg);
+            border: 1px solid var(--chip-border);
+            color: var(--text-main);
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-header-action:hover {
+            background: var(--primary);
+            color: #ffffff !important;
+            border-color: var(--primary);
+        }
+
+        .btn-header-action:hover i {
+            color: #ffffff !important;
+        }
+
         .btn-logout {
             background: rgba(239, 68, 68, 0.12);
             color: #f87171;
@@ -279,41 +324,16 @@
             }
         }
         /* Global Light Mode High-Contrast Rules (uiux-designer) */
-        [data-theme="light"] {
-            --bg-body: #f8fafc;
-            --bg-surface: #ffffff;
-            --bg-card: #ffffff;
-            --border-card: #e2e8f0;
-            --primary: #2563eb;
-            --primary-light: #1d4ed8;
-            --accent-green: #059669;
-            --accent-yellow: #d97706;
-            --text-main: #0f172a;
-            --text-secondary: #475569;
-            --navbar-bg: rgba(255, 255, 255, 0.96);
-            --chip-bg: #f1f5f9;
-            --chip-border: #cbd5e1;
-            --chip-text: #1e293b;
-            --cand-card-bg: #ffffff;
-            --code-bg: #f8fafc;
-            --map-ocean-bg: #f1f5f9;
-            --map-border: #0284c7;
-        }
-
         [data-theme="light"] body {
-            background-color: #f8fafc;
+            background-color: var(--bg-body);
             background-image: 
                 radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.05) 0px, transparent 40%),
                 radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.04) 0px, transparent 40%);
-            color: #0f172a;
+            color: var(--text-main);
         }
 
         [data-theme="light"] .brand-logo {
-            color: #0f172a !important;
-        }
-
-        [data-theme="light"] .text-white:not(.badge):not(.btn):not(.cand-badge-num):not([style*="background-color"]) {
-            color: #0f172a !important;
+            color: var(--text-title) !important;
         }
 
         /* Ensure all solid badges and pills always have crisp white text */
@@ -330,11 +350,11 @@
         }
 
         [data-theme="light"] .text-secondary {
-            color: #475569 !important;
+            color: var(--text-secondary) !important;
         }
 
         [data-theme="light"] .text-muted {
-            color: #64748b !important;
+            color: var(--text-muted) !important;
         }
 
         [data-theme="light"] h1, 
@@ -343,13 +363,27 @@
         [data-theme="light"] h4, 
         [data-theme="light"] h5, 
         [data-theme="light"] h6 {
-            color: #0f172a !important;
+            color: var(--text-title) !important;
         }
 
-        [data-theme="light"] .glass-card {
+        [data-theme="light"] .glass-card,
+        [data-theme="light"] .duel-side-card,
+        [data-theme="light"] .sidebar-card {
             background: #ffffff !important;
-            border-color: #e2e8f0 !important;
-            box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.03) !important;
+            border-color: var(--border-card) !important;
+            box-shadow: var(--card-shadow) !important;
+            color: var(--text-main) !important;
+        }
+
+        [data-theme="light"] .chart-box {
+            background: var(--bg-card-subtle) !important;
+            border-color: var(--border-card-subtle) !important;
+        }
+
+        [data-theme="light"] .countdown-strip {
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%) !important;
+            border-color: var(--border-card) !important;
+            box-shadow: var(--card-shadow-sm) !important;
         }
 
         [data-theme="light"] .badge-pill-tse {
@@ -380,6 +414,18 @@
             color: #1e40af;
         }
 
+        [data-theme="light"] .btn-header-action {
+            background: #ffffff;
+            color: #1e293b;
+            border-color: #cbd5e1;
+        }
+
+        [data-theme="light"] .btn-header-action:hover {
+            background: #2563eb;
+            color: #ffffff !important;
+            border-color: #2563eb;
+        }
+
         [data-theme="light"] .modal-content {
             background: #ffffff !important;
             border-color: #e2e8f0 !important;
@@ -394,6 +440,84 @@
             filter: invert(1) grayscale(100%) brightness(20%) !important;
         }
 
+        [data-theme="light"] .form-control,
+        [data-theme="light"] .input-group-text {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            border-color: #cbd5e1 !important;
+        }
+
+        [data-theme="light"] .form-control::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        [data-theme="light"] .filter-chip {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            color: #1e293b;
+        }
+
+        [data-theme="light"] .filter-chip:hover {
+            background: #2563eb;
+            color: #ffffff !important;
+            border-color: #2563eb;
+        }
+
+        [data-theme="light"] .filter-chip.active {
+            background: #2563eb;
+            color: #ffffff !important;
+            border-color: #1d4ed8;
+        }
+
+        [data-theme="light"] .cand-percent-display {
+            color: #0f172a !important;
+        }
+
+        [data-theme="light"] .cand-text-subtle {
+            color: #475569 !important;
+        }
+
+        [data-theme="light"] .cand-headline-name-c1 {
+            color: #b91c1c !important; /* Vermelho escuro nítido no branco */
+        }
+
+        [data-theme="light"] .cand-headline-name-c2 {
+            color: #1d4ed8 !important; /* Azul royal nítido no branco */
+        }
+
+        [data-theme="light"] .cand-headline-connector {
+            color: #0f172a !important;
+        }
+
+        [data-theme="light"] .news-item .news-title {
+            color: #1e293b !important;
+        }
+
+        [data-theme="light"] .news-item .news-meta {
+            color: #64748b !important;
+        }
+
+        [data-theme="light"] .region-row {
+            background: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+
+        [data-theme="light"] .region-name {
+            color: #0f172a !important;
+        }
+
+        [data-theme="light"] .timeline-bar-box,
+        [data-theme="light"] .search-panel-box {
+            background: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05) !important;
+        }
+
+        [data-theme="light"] .timeline-clock-text,
+        [data-theme="light"] .search-panel-title {
+            color: #0f172a !important;
+        }
+
         [data-theme="light"] .footer-custom {
             background: #ffffff;
             border-color: #e2e8f0;
@@ -403,6 +527,7 @@
         [data-theme="light"] .footer-custom strong {
             color: #0f172a;
         }
+
     </style>
     @await RenderSectionAsync("Styles", required: false)
 </head>
@@ -456,7 +581,7 @@
                     </a>
 
                     <!-- Botão Compartilhar -->
-                    <button class="btn btn-sm btn-outline-light border-opacity-25 d-inline-flex align-items-center gap-1 py-1 px-2 small rounded-pill" 
+                    <button class="btn btn-sm btn-header-action d-inline-flex align-items-center gap-1 py-1 px-2 small rounded-pill" 
                             onclick="compartilharDashboard()" 
                             title="Compartilhar link da apuração">
                         <i class="bi bi-share-fill text-primary"></i>
@@ -464,11 +589,11 @@
                     </button>
 
                     <!-- Botão Tela Cheia -->
-                    <button class="btn btn-sm btn-outline-light border-opacity-25 d-inline-flex align-items-center gap-1 py-1 px-2 small rounded-pill" 
+                    <button class="btn btn-sm btn-header-action d-inline-flex align-items-center gap-1 py-1 px-2 small rounded-pill" 
                             id="btnFullscreen" 
                             onclick="toggleFullscreen()" 
                             title="Alternar Modo Tela Cheia">
-                        <i class="bi bi-fullscreen" id="iconFullscreen"></i>
+                        <i class="bi bi-fullscreen text-secondary" id="iconFullscreen"></i>
                         <span class="d-none d-md-inline">Tela cheia</span>
                     </button>
 

@@ -419,7 +419,7 @@ const MapaEleicoesLeaflet = {
 
                 htmlZonas += `
                     <tr>
-                        <td class="fw-semibold text-white">
+                        <td class="fw-semibold" style="color: var(--text-title);">
                             <i class="bi bi-building-check text-primary me-1"></i> ${zonaNum}ª Zona Eleitoral
                         </td>
                         <td class="font-mono text-secondary small">${secoesZona} seções</td>
@@ -427,7 +427,7 @@ const MapaEleicoesLeaflet = {
                         <td>
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge bg-danger-subtle text-danger font-mono">${v1.toFixed(1)}%</span>
-                                <div class="progress flex-grow-1" style="height: 6px; width: 60px; background: rgba(255,255,255,0.08);">
+                                <div class="progress flex-grow-1" style="height: 6px; width: 60px; background: var(--border-card-subtle);">
                                     <div class="progress-bar bg-danger" style="width: ${v1}%;"></div>
                                 </div>
                             </div>
@@ -435,7 +435,7 @@ const MapaEleicoesLeaflet = {
                         <td>
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge bg-primary-subtle text-primary font-mono">${v2.toFixed(1)}%</span>
-                                <div class="progress flex-grow-1" style="height: 6px; width: 60px; background: rgba(255,255,255,0.08);">
+                                <div class="progress flex-grow-1" style="height: 6px; width: 60px; background: var(--border-card-subtle);">
                                     <div class="progress-bar bg-primary" style="width: ${v2}%;"></div>
                                 </div>
                             </div>
