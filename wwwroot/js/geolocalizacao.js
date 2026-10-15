@@ -73,6 +73,20 @@ const GeoLocalizacaoService = {
         }
     },
 
+    async carregarIndiceMunicipios() {
+        if (window._municipiosData) return window._municipiosData;
+        try {
+            const res = await fetch('/data/municipios.json');
+            if (!res.ok) return null;
+            const data = await res.json();
+            window._municipiosData = data;
+            return data;
+        } catch (e) {
+            console.warn("Não foi possível carregar índice de municípios:", e);
+            return null;
+        }
+    },
+
     async detectarLocalidade() {
         // 1. Tentar ler do cache rápido
         const cached = this.obterCache();
@@ -92,7 +106,26 @@ const GeoLocalizacaoService = {
             let codigoMunTse = null;
             let nomeMunTse = cidade;
 
-            if (estado === 'sp' && this.CidadesSpTse[cidadeNorm]) {
+            const lista = await this.carregarIndiceMunicipios();
+            if (lista && cidadeNorm) {
+                const estadoUpper = estado.toUpperCase();
+                const match = lista.find(item => {
+                    const itemUf = item[1];
+                    const itemNomeNorm = this.normalizarTexto(item[2]);
+                    if (pais !== 'BR') {
+                        return itemUf === 'ZZ' && (itemNomeNorm.includes(cidadeNorm) || cidadeNorm.includes(itemNomeNorm));
+                    }
+                    return itemUf === estadoUpper && (itemNomeNorm === cidadeNorm || itemNomeNorm.startsWith(cidadeNorm));
+                });
+
+                if (match) {
+                    codigoMunTse = match[0];
+                    nomeMunTse = match[2];
+                }
+            }
+
+            // Fallback SP legado se não encontrou no JSON
+            if (!codigoMunTse && estado === 'sp' && this.CidadesSpTse[cidadeNorm]) {
                 codigoMunTse = this.CidadesSpTse[cidadeNorm].codigo;
                 nomeMunTse = this.CidadesSpTse[cidadeNorm].nome;
             }

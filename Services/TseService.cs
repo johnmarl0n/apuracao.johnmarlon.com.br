@@ -267,6 +267,145 @@ namespace apuracao.johnmarlon.com.br.Services
             }
         };
 
+        private static readonly object _municipiosLock = new();
+        private static List<MunicipioItem>? _todosMunicipios;
+        private static Dictionary<string, MunicipioItem>? _municipiosPorCodigo;
+        private static Dictionary<string, List<MunicipioItem>>? _municipiosPorUf;
+
+        public static void GarantirMunicipiosCarregados(string? basePath = null)
+        {
+            if (_todosMunicipios != null) return;
+            lock (_municipiosLock)
+            {
+                if (_todosMunicipios != null) return;
+
+                var lista = new List<MunicipioItem>();
+                var porCodigo = new Dictionary<string, MunicipioItem>(StringComparer.OrdinalIgnoreCase);
+                var porUf = new Dictionary<string, List<MunicipioItem>>(StringComparer.OrdinalIgnoreCase);
+
+                try
+                {
+                    var pathsToTry = new[]
+                    {
+                        Path.Combine(basePath ?? "", "wwwroot", "data", "municipios.json"),
+                        Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "municipios.json"),
+                        Path.Combine(AppContext.BaseDirectory, "wwwroot", "data", "municipios.json"),
+                        @"e:\99.Projetos\CSharp\VS2022\apuracao.johnmarlon.com.br\wwwroot\data\municipios.json"
+                    };
+
+                    string? jsonFile = pathsToTry.FirstOrDefault(File.Exists);
+                    if (jsonFile != null)
+                    {
+                        var json = File.ReadAllText(jsonFile);
+                        using var doc = JsonDocument.Parse(json);
+                        foreach (var el in doc.RootElement.EnumerateArray())
+                        {
+                            var cod = el[0].GetString() ?? "";
+                            var uf = el[1].GetString() ?? "";
+                            var nome = el[2].GetString() ?? "";
+                            var cap = el[3].GetInt32() == 1;
+
+                            var item = new MunicipioItem
+                            {
+                                Codigo = cod,
+                                Uf = uf.ToUpperInvariant(),
+                                Nome = nome,
+                                Destaque = cap || cod == "62910"
+                            };
+
+                            lista.Add(item);
+                            if (!porCodigo.ContainsKey(cod))
+                            {
+                                porCodigo[cod] = item;
+                            }
+
+                            if (!porUf.TryGetValue(item.Uf, out var listaUf))
+                            {
+                                listaUf = new List<MunicipioItem>();
+                                porUf[item.Uf] = listaUf;
+                            }
+                            listaUf.Add(item);
+                        }
+                    }
+                }
+                catch
+                {
+                    // Fallback
+                }
+
+                if (lista.Count == 0)
+                {
+                    lista.AddRange(CidadesSp);
+                    foreach (var c in CidadesSp)
+                    {
+                        porCodigo[c.Codigo] = c;
+                    }
+                }
+
+                _todosMunicipios = lista;
+                _municipiosPorCodigo = porCodigo;
+                _municipiosPorUf = porUf;
+            }
+        }
+
+        public static string RemoverAcentos(string texto)
+        {
+            if (string.IsNullOrWhiteSpace(texto)) return string.Empty;
+            var normalizedString = texto.Normalize(System.Text.NormalizationForm.FormD);
+            var stringBuilder = new System.Text.StringBuilder(normalizedString.Length);
+
+            for (int i = 0; i < normalizedString.Length; i++)
+            {
+                char c = normalizedString[i];
+                var unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder.ToString().Normalize(System.Text.NormalizationForm.FormC).ToLowerInvariant();
+        }
+
+        public List<MunicipioItem> ObterMunicipios(string? uf = null, bool apenasDestaque = false)
+        {
+            GarantirMunicipiosCarregados();
+            if (string.IsNullOrWhiteSpace(uf) || uf.Equals("br", StringComparison.OrdinalIgnoreCase))
+            {
+                if (apenasDestaque)
+                {
+                    return _todosMunicipios?.Where(m => m.Destaque).ToList() ?? CidadesSp;
+                }
+                return _todosMunicipios ?? CidadesSp;
+            }
+
+            var ufUpper = uf.Trim().ToUpperInvariant();
+            if (_municipiosPorUf != null && _municipiosPorUf.TryGetValue(ufUpper, out var listaUf))
+            {
+                return apenasDestaque ? listaUf.Where(m => m.Destaque).ToList() : listaUf;
+            }
+
+            return _todosMunicipios ?? CidadesSp;
+        }
+
+        public MunicipioItem? ObterMunicipioPorCodigo(string? codigo)
+        {
+            if (string.IsNullOrWhiteSpace(codigo)) return null;
+            GarantirMunicipiosCarregados();
+            if (_municipiosPorCodigo != null && _municipiosPorCodigo.TryGetValue(codigo.Trim(), out var m))
+            {
+                return m;
+            }
+            return null;
+        }
+
+        public string? ObterNomeMunicipio(string? codigo, string? uf = null)
+        {
+            if (string.IsNullOrWhiteSpace(codigo)) return null;
+            var mun = ObterMunicipioPorCodigo(codigo);
+            return mun?.Nome;
+        }
+
         public TseService(
             HttpClient http,
             IMemoryCache cache,
@@ -413,8 +552,8 @@ namespace apuracao.johnmarlon.com.br.Services
                 CargoNome = ObterNomeCargo(cargo),
                 Uf = uf,
                 CodigoMunicipio = municipio,
-                NomeMunicipio = CidadesSp.FirstOrDefault(c => c.Codigo == municipio)?.Nome,
-                MunicipiosDisponiveis = CidadesSp,
+                NomeMunicipio = ObterNomeMunicipio(municipio, uf),
+                MunicipiosDisponiveis = ObterMunicipios(uf, apenasDestaque: string.IsNullOrWhiteSpace(uf) || uf.Equals("br", StringComparison.OrdinalIgnoreCase)),
                 EleicoesDisponiveis = ObterEleicoesConfiguradas(),
                 EleicoesHistoricas = ObterEleicoesHistoricas(),
                 AoVivo = eleicao.AoVivo
@@ -471,6 +610,23 @@ namespace apuracao.johnmarlon.com.br.Services
             {
                 vm.InformacoesCidade = info;
             }
+            else if (!string.IsNullOrWhiteSpace(municipio) && ObterMunicipioPorCodigo(municipio) is { } mInfo)
+            {
+                vm.InformacoesCidade = new CidadeDetalhesInfo
+                {
+                    Nome = mInfo.Nome,
+                    CodigoTse = mInfo.Codigo,
+                    CodigoIbge = "-",
+                    PopulacaoIbge = 0,
+                    EleitoradoTotalApto = 0,
+                    ZonasEleitorais = $"Cartório Eleitoral - {mInfo.Uf}",
+                    TotalSecoes = 0,
+                    AreaKm2 = "-",
+                    RegiaoMetropolitana = $"{mInfo.Uf} - Brasil",
+                    Idhm = "-",
+                    PercentualBiometria = "-"
+                };
+            }
             else if (uf == "sp")
             {
                 vm.InformacoesCidade = new CidadeDetalhesInfo
@@ -486,6 +642,24 @@ namespace apuracao.johnmarlon.com.br.Services
                     RegiaoMetropolitana = "Macro-Metrópole Paulista",
                     Idhm = "0,806 (Muito Alto)",
                     PercentualBiometria = "87,3%"
+                };
+            }
+            else if (uf != "br")
+            {
+                var ufUpper = uf.ToUpperInvariant();
+                vm.InformacoesCidade = new CidadeDetalhesInfo
+                {
+                    Nome = ufUpper == "ZZ" ? "Eleitores no Exterior (Consulados)" : $"Estado ({ufUpper})",
+                    CodigoTse = ufUpper,
+                    CodigoIbge = ufUpper,
+                    PopulacaoIbge = 0,
+                    EleitoradoTotalApto = 0,
+                    ZonasEleitorais = $"TRE-{ufUpper}",
+                    TotalSecoes = 0,
+                    AreaKm2 = "-",
+                    RegiaoMetropolitana = ufUpper,
+                    Idhm = "-",
+                    PercentualBiometria = "-"
                 };
             }
             else

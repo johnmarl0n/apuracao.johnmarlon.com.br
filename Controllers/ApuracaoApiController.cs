@@ -69,6 +69,24 @@ namespace apuracao.johnmarlon.com.br.Controllers
             });
         }
 
+        [HttpGet("municipios")]
+        public IActionResult ObterMunicipios([FromQuery] string? uf = null, [FromQuery] string? q = null)
+        {
+            var lista = _tseService.ObterMunicipios(uf, apenasDestaque: false);
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var termo = TseService.RemoverAcentos(q);
+                lista = lista.Where(m => TseService.RemoverAcentos(m.Nome).Contains(termo) || m.Codigo == q.Trim()).ToList();
+            }
+
+            return Ok(new
+            {
+                sucesso = true,
+                total = lista.Count,
+                municipios = lista.Take(100)
+            });
+        }
+
         [HttpGet("importar-historico")]
         [HttpPost("importar-historico")]
         [HttpGet("historico/importar")]

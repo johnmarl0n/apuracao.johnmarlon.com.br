@@ -99,6 +99,7 @@ namespace apuracao.johnmarlon.com.br.Models
     public class MunicipioItem
     {
         public string Codigo { get; set; } = "";
+        public string Uf { get; set; } = "";
         public string Nome { get; set; } = "";
         public bool Destaque { get; set; }
     }

@@ -74,40 +74,68 @@
         </div>
     </div>
 
-    <!-- Painel de Busca Instantânea de Cidades de SP -->
+    <!-- Painel de Busca Instantânea Nacional (5.570+ Municípios + Exterior) -->
     <div class="mt-3 p-3 rounded-3" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08);">
-        <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
             <span class="small text-white fw-bold">
-                <i class="bi bi-search me-1 text-primary"></i> Filtrar Município de SP:
+                <i class="bi bi-search me-1 text-primary"></i> Pesquisar Município ou Exterior:
             </span>
-            <span class="badge bg-secondary-subtle text-secondary small" id="lblTotalCidadesFiltradas">@Model.MunicipiosDisponiveis.Count cidades</span>
-        </div>
-        <div class="input-group input-group-sm mb-2">
-            <span class="input-group-text bg-transparent border-secondary text-secondary"><i class="bi bi-search"></i></span>
-            <input type="text" id="filtroCidadesInput" class="form-control bg-dark text-white border-secondary" placeholder="Digite o nome (ex: Campinas, Santos, Bauru...)" oninput="filtrarListaCidades(this.value)" autocomplete="off" />
-            <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('filtroCidadesInput').value=''; filtrarListaCidades('');">Limpar</button>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">
+                    5.570+ Cidades (Brasil & Exterior)
+                </span>
+            </div>
         </div>
 
-        <div id="listaCidadesScroll" class="d-flex flex-wrap gap-2" style="max-height: 140px; overflow-y: auto;">
+        <div class="position-relative mb-2">
+            <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
+                <input type="text" id="buscaGlobalMunicipioInput" class="form-control bg-dark text-white border-secondary" 
+                       placeholder="Digite o nome de qualquer cidade (ex: Campinas, Belo Horizonte, Salvador, Lisboa, Miami...)" 
+                       autocomplete="off" 
+                       oninput="BuscaMunicipiosGlobal.pesquisar(this.value)"
+                       onkeydown="BuscaMunicipiosGlobal.aoTeclar(event)" />
+                <button class="btn btn-outline-secondary" type="button" onclick="BuscaMunicipiosGlobal.limpar()">Limpar</button>
+            </div>
+
+            <!-- Dropdown Flutuante de Resultados do Autocomplete -->
+            <div id="dropdownResultadosMunicipios" 
+                 class="position-absolute start-0 w-100 mt-1 rounded-3 shadow-lg p-2" 
+                 style="display: none; max-height: 280px; overflow-y: auto; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.15); z-index: 1050; backdrop-filter: blur(16px);">
+            </div>
+        </div>
+
+        <!-- Atalhos Rápidos da Localidade Selecionada (Capitais / Destaques) -->
+        <div class="d-flex align-items-center justify-content-between mt-3 mb-1">
+            <span class="text-secondary small fw-semibold" style="font-size: 0.75rem;">
+                <i class="bi bi-pin-angle text-warning me-1"></i> Principais Cidades & Polos:
+            </span>
+            <span class="badge bg-secondary-subtle text-secondary small" id="lblTotalCidadesAtalhos">
+                @Model.MunicipiosDisponiveis.Count cidades
+            </span>
+        </div>
+
+        <div id="listaCidadesScroll" class="d-flex flex-wrap gap-2" style="max-height: 120px; overflow-y: auto;">
             <button type="button" 
                     class="btn btn-sm @(string.IsNullOrEmpty(Model.CodigoMunicipio) ? "btn-primary" : "btn-outline-secondary") py-1 px-2 small item-cidade-pill"
-                    data-nome="todo o estado de sp"
-                    onclick="selecionarCidadePin('', 'Todo o Estado de SP')">
-                <i class="bi bi-map-fill me-1"></i> Todo o Estado de SP
+                    onclick="BuscaMunicipiosGlobal.selecionar('', '@Model.Uf')">
+                <i class="bi bi-map-fill me-1"></i> @(Model.Uf == "br" ? "Brasil (Total Geral)" : $"Todo o Estado ({Model.Uf.ToUpperInvariant()})")
             </button>
-            @foreach (var c in Model.MunicipiosDisponiveis)
+            @foreach (var c in Model.MunicipiosDisponiveis.Take(60))
             {
                 bool isSelected = Model.CodigoMunicipio == c.Codigo;
                 <button type="button" 
                         class="btn btn-sm @(isSelected ? "btn-primary" : (c.Destaque ? "btn-outline-primary" : "btn-outline-secondary")) py-1 px-2 small item-cidade-pill"
-                        data-codigo="@c.Codigo"
-                        data-nome="@c.Nome.ToLowerInvariant()"
-                        onclick="selecionarCidadePin('@c.Codigo', '@c.Nome')">
+                        onclick="BuscaMunicipiosGlobal.selecionar('@c.Codigo', '@(string.IsNullOrEmpty(c.Uf) ? Model.Uf : c.Uf.ToLowerInvariant())')">
                     @if (c.Destaque)
                     {
-                        <i class="bi bi-star-fill text-warning me-1"></i>
+                        <i class="bi bi-star-fill text-warning me-1" style="font-size: 0.7rem;"></i>
                     }
                     @c.Nome
+                    @if (!string.IsNullOrEmpty(c.Uf) && c.Uf != Model.Uf.ToUpperInvariant())
+                    {
+                        <span class="badge bg-secondary-subtle text-secondary ms-1" style="font-size: 0.65rem;">@c.Uf</span>
+                    }
                 </button>
             }
         </div>
@@ -115,33 +143,194 @@
 </div>
 
 <script>
-    function filtrarListaCidades(termo) {
-        const query = (termo || '').toLowerCase().trim();
-        const pills = document.querySelectorAll('#listaCidadesScroll .item-cidade-pill');
-        let visiveis = 0;
-        pills.forEach(pill => {
-            const nome = pill.getAttribute('data-nome') || '';
-            if (!query || nome.includes(query)) {
-                pill.style.display = 'inline-flex';
-                visiveis++;
-            } else {
-                pill.style.display = 'none';
-            }
-        });
-        const lbl = document.getElementById('lblTotalCidadesFiltradas');
-        if (lbl) lbl.innerText = visiveis + ' cidades';
-    }
+    const BuscaMunicipiosGlobal = {
+        indice: null,
+        indiceCarregando: false,
+        indiceIndexado: [],
+        selecionadoIndex: -1,
 
-    function selecionarCidadePin(codigo, nome) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('ano', '@Model.Ano');
-        url.searchParams.set('cargo', '@Model.CargoCodigo');
-        url.searchParams.set('uf', 'sp');
-        if (codigo) {
-            url.searchParams.set('municipio', codigo);
-        } else {
-            url.searchParams.delete('municipio');
+        normalizar(str) {
+            if (!str) return '';
+            return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        },
+
+        async carregar() {
+            if (this.indice) return this.indice;
+            if (this.indiceCarregando) return null;
+            this.indiceCarregando = true;
+            try {
+                const res = await fetch('/data/municipios.json');
+                if (!res.ok) throw new Error("Erro ao carregar lista de municípios");
+                const data = await res.json();
+                this.indice = data;
+                // Precomputar nomes normalizados para busca ultra-rápida
+                this.indiceIndexado = data.map(item => ({
+                    cod: item[0],
+                    uf: item[1],
+                    nome: item[2],
+                    cap: item[3],
+                    nomeNorm: this.normalizar(item[2]),
+                    ufNorm: item[1].toLowerCase()
+                }));
+                this.indiceCarregando = false;
+                return this.indice;
+            } catch (e) {
+                console.error(e);
+                this.indiceCarregando = false;
+                return null;
+            }
+        },
+
+        async pesquisar(valor) {
+            const dropdown = document.getElementById("dropdownResultadosMunicipios");
+            if (!dropdown) return;
+
+            const q = this.normalizar(valor);
+            if (!q || q.length < 2) {
+                dropdown.style.display = 'none';
+                dropdown.innerHTML = '';
+                this.selecionadoIndex = -1;
+                return;
+            }
+
+            await this.carregar();
+            if (!this.indiceIndexado || !this.indiceIndexado.length) return;
+
+            // Filtragem rápida
+            const matches = [];
+            for (let i = 0; i < this.indiceIndexado.length; i++) {
+                const item = this.indiceIndexado[i];
+                if (item.nomeNorm.includes(q) || item.cod === q) {
+                    matches.push(item);
+                    if (matches.length >= 25) break; // Máximo 25 sugestões instantâneas
+                }
+            }
+
+            if (matches.length === 0) {
+                dropdown.innerHTML = `
+                    <div class="p-3 text-center text-secondary small">
+                        <i class="bi bi-geo-alt-fill text-muted me-1"></i> Nenhuma cidade encontrada para "<strong>${valor}</strong>".
+                    </div>
+                `;
+                dropdown.style.display = 'block';
+                return;
+            }
+
+            this.selecionadoIndex = -1;
+            let html = '<div class="list-group list-group-flush">';
+            matches.forEach((m, idx) => {
+                const isExterior = m.uf === 'ZZ';
+                const badgeUf = isExterior 
+                    ? '<span class="badge bg-info-subtle text-info border border-info-subtle">Exterior</span>' 
+                    : `<span class="badge bg-primary-subtle text-primary border border-primary-subtle">${m.uf}</span>`;
+                const star = m.cap ? '<i class="bi bi-star-fill text-warning ms-1" title="Capital"></i>' : '';
+
+                html += `
+                    <div class="list-group-item list-group-item-action bg-transparent text-white border-0 rounded-2 py-2 px-3 d-flex align-items-center justify-content-between item-sugestao-mun"
+                         data-index="${idx}"
+                         style="cursor: pointer; transition: background 0.15s ease;"
+                         onmouseover="this.style.background='rgba(59, 130, 246, 0.2)'"
+                         onmouseout="this.style.background='transparent'"
+                         onclick="BuscaMunicipiosGlobal.selecionar('${m.cod}', '${m.uf.toLowerCase()}')">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-geo-alt text-secondary"></i>
+                            <span class="fw-medium">${m.nome}</span>
+                            ${star}
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="small font-mono text-secondary" style="font-size: 0.72rem;">Cód: ${m.cod}</span>
+                            ${badgeUf}
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            dropdown.innerHTML = html;
+            dropdown.style.display = 'block';
+        },
+
+        aoTeclar(event) {
+            const dropdown = document.getElementById("dropdownResultadosMunicipios");
+            if (!dropdown || dropdown.style.display === 'none') return;
+
+            const itens = dropdown.querySelectorAll('.item-sugestao-mun');
+            if (!itens.length) return;
+
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                this.selecionadoIndex = Math.min(this.selecionadoIndex + 1, itens.length - 1);
+                this.destacarItem(itens);
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                this.selecionadoIndex = Math.max(this.selecionadoIndex - 1, 0);
+                this.destacarItem(itens);
+            } else if (event.key === 'Enter') {
+                event.preventDefault();
+                if (this.selecionadoIndex >= 0 && this.selecionadoIndex < itens.length) {
+                    itens[this.selecionadoIndex].click();
+                } else if (itens.length > 0) {
+                    itens[0].click();
+                }
+            } else if (event.key === 'Escape') {
+                this.limpar();
+            }
+        },
+
+        destacarItem(itens) {
+            itens.forEach((el, i) => {
+                if (i === this.selecionadoIndex) {
+                    el.style.background = 'rgba(59, 130, 246, 0.35)';
+                    el.scrollIntoView({ block: 'nearest' });
+                } else {
+                    el.style.background = 'transparent';
+                }
+            });
+        },
+
+        limpar() {
+            const input = document.getElementById("buscaGlobalMunicipioInput");
+            if (input) input.value = '';
+            const dropdown = document.getElementById("dropdownResultadosMunicipios");
+            if (dropdown) {
+                dropdown.style.display = 'none';
+                dropdown.innerHTML = '';
+            }
+            this.selecionadoIndex = -1;
+        },
+
+        selecionar(codigo, uf) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('ano', '@Model.Ano');
+            url.searchParams.set('cargo', '@Model.CargoCodigo');
+            
+            if (uf) {
+                url.searchParams.set('uf', uf.toLowerCase());
+            }
+
+            if (codigo) {
+                url.searchParams.set('municipio', codigo);
+            } else {
+                url.searchParams.delete('municipio');
+            }
+
+            window.location.href = url.toString();
         }
-        window.location.href = url.toString();
+    };
+
+    // Fechar dropdown ao clicar fora
+    document.addEventListener('click', (e) => {
+        const box = document.getElementById('buscaGlobalMunicipioInput');
+        const dropdown = document.getElementById('dropdownResultadosMunicipios');
+        if (dropdown && box && !box.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+
+    // Pré-carregar o índice em background após o carregamento da página
+    if (window.requestIdleCallback) {
+        window.requestIdleCallback(() => BuscaMunicipiosGlobal.carregar());
+    } else {
+        setTimeout(() => BuscaMunicipiosGlobal.carregar(), 1500);
     }
 </script>
