@@ -14,20 +14,29 @@
     var cand2 = Model.Candidatos.Count > 1 ? Model.Candidatos[1] : null;
     long diffVotos = (cand1 != null && cand2 != null) ? Math.Abs(cand1.Votos - cand2.Votos) : 0;
     bool cand1Lider = cand1 != null && (cand2 == null || cand1.Votos >= cand2.Votos);
+    string cor1 = cand1?.CorPartido ?? "#c4122d";
+    string cor2 = cand2?.CorPartido ?? "#2563eb";
+    string cor1Text = "#f87171"; // Vermelho vívido com alto contraste
+    string cor2Text = "#60a5fa"; // Azul vívido com alto contraste
 }
 
 @section Styles {
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
-        /* Tipografia de Destaque & Headings Inspirados em seuimposto.com */
         .font-display {
             font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             letter-spacing: -0.03em;
         }
 
-        /* Estilos dos Marcadores e Tooltips do Leaflet */
+        .font-serif-headline {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+        }
+
         .leaflet-tooltip-dark {
-            background: rgba(11, 15, 25, 0.92) !important;
+            background: rgba(11, 15, 25, 0.94) !important;
             border: 1px solid rgba(56, 189, 248, 0.45) !important;
             border-radius: 8px !important;
             padding: 8px 12px !important;
@@ -36,29 +45,18 @@
             backdrop-filter: blur(10px) !important;
         }
 
-        .leaflet-tooltip-dark::before {
-            border-top-color: rgba(56, 189, 248, 0.45) !important;
-        }
-
-        .uf-label-pin {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none;
-        }
-
         .filter-chip {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #d1d5db;
-            padding: 0.5rem 1rem;
+            padding: 0.4rem 0.85rem;
             border-radius: 9999px;
             text-decoration: none;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 500;
             display: inline-flex;
             align-items: center;
-            gap: 0.45rem;
+            gap: 0.4rem;
             transition: all 0.2s ease;
             white-space: nowrap;
         }
@@ -67,376 +65,104 @@
             background: rgba(255, 255, 255, 0.12);
             color: #ffffff;
             border-color: rgba(255, 255, 255, 0.25);
-            transform: translateY(-1px);
         }
 
         .filter-chip.active {
             background: #2563eb;
             color: #ffffff;
             border-color: #3b82f6;
-            box-shadow: 0 0 16px rgba(37, 99, 235, 0.45);
+            box-shadow: 0 0 12px rgba(37, 99, 235, 0.45);
         }
 
-        /* Countdown Card 2º Turno (Inspirado em seuimposto.com) */
-        .countdown-card {
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
-            border: 1px solid rgba(56, 189, 248, 0.25);
+        /* Card Duelo Presidencial (Estilo Pandora / SeuImposto) */
+        .duel-side-card {
+            background: #10141d;
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 1rem;
-            box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(14px);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.25s ease;
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
         }
 
-        .countdown-card:hover {
-            border-color: rgba(56, 189, 248, 0.45);
-        }
-
-        .countdown-card::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: linear-gradient(180deg, #38bdf8 0%, #2563eb 100%);
-        }
-
-        .time-digit-box {
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .cand-square-avatar {
+            width: 52px;
+            height: 52px;
             border-radius: 0.65rem;
-            min-width: 62px;
-            padding: 0.45rem 0.6rem;
-            text-align: center;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
-        }
-
-        .time-digit-val {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.55rem;
-            font-weight: 800;
-            line-height: 1.1;
-            color: #38bdf8;
-        }
-
-        .time-digit-label {
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #94a3b8;
-            margin-top: 0.15rem;
-            font-weight: 600;
-        }
-
-        [data-theme="light"] .countdown-card {
-            background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%) !important;
-            border-color: #93c5fd !important;
-            box-shadow: 0 8px 24px -6px rgba(37, 99, 235, 0.12) !important;
-        }
-
-        [data-theme="light"] .countdown-card::before {
-            background: linear-gradient(180deg, #2563eb 0%, #10b981 100%) !important;
-        }
-
-        [data-theme="light"] .countdown-card h3 {
-            color: #0f172a !important;
-        }
-
-        [data-theme="light"] .time-digit-box {
-            background: #ffffff !important;
-            border-color: #cbd5e1 !important;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05) !important;
-        }
-
-        [data-theme="light"] .time-digit-val {
-            color: #1d4ed8 !important;
-        }
-
-        [data-theme="light"] .time-digit-label {
-            color: #475569 !important;
-        }
-
-        /* Duelo Presidencial Card */
-        .duel-card {
-            background: linear-gradient(180deg, rgba(17, 24, 39, 0.85) 0%, rgba(11, 15, 25, 0.95) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1.25rem;
-            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(16px);
-        }
-
-        .duel-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, @(cand1?.CorPartido ?? "#2563eb") 0%, rgba(255,255,255,0.2) 50%, @(cand2?.CorPartido ?? "#dc2626") 100%);
-        }
-
-        .duel-avatar-wrap {
-            position: relative;
-            width: 104px;
-            height: 104px;
-            border-radius: 50%;
-            padding: 4px;
-            background: #111827;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
-            transition: transform 0.3s ease;
-        }
-
-        .duel-avatar-wrap:hover {
-            transform: scale(1.04);
-        }
-
-        .duel-photo {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
             object-fit: cover;
-        }
-
-        .duel-avatar-fallback {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 1.75rem;
+            font-size: 1.25rem;
             color: #ffffff;
-            font-family: 'JetBrains Mono', monospace;
+            flex-shrink: 0;
+            overflow: hidden;
         }
 
-        .duel-perc {
-            font-size: 3.25rem;
-            font-weight: 800;
-            line-height: 1;
-            letter-spacing: -0.04em;
-            font-family: 'Outfit', sans-serif;
+        .duel-split-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 9999px;
+            position: relative;
+            display: flex;
+            overflow: visible;
         }
 
         .threshold-50-marker {
             position: absolute;
             left: 50%;
-            top: -6px;
-            bottom: -6px;
+            top: -4px;
+            bottom: -4px;
             width: 2px;
             background: #ffffff;
-            box-shadow: 0 0 10px #ffffff;
+            box-shadow: 0 0 8px #ffffff;
             z-index: 10;
         }
 
-        .threshold-50-label {
-            position: absolute;
-            left: 50%;
-            top: -24px;
-            transform: translateX(-50%);
-            font-size: 0.7rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            color: #f8fafc;
-            background: rgba(15, 23, 42, 0.85);
-            padding: 2px 6px;
-            border-radius: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            white-space: nowrap;
+        /* Gráfico "Ao longo da apuração" */
+        .chart-box {
+            background: #0b0f19;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 0.85rem;
+            padding: 0.85rem;
         }
 
-        .duel-split-bar {
-            height: 16px;
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 9999px;
-            position: relative;
-            overflow: visible;
-            display: flex;
-        }
-
-        .duel-split-seg-1 {
-            height: 100%;
-            border-top-left-radius: 9999px;
-            border-bottom-left-radius: 9999px;
-            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .duel-split-seg-2 {
-            height: 100%;
-            border-top-right-radius: 9999px;
-            border-bottom-right-radius: 9999px;
-            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            margin-left: auto;
-        }
-
-        .margin-pill {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            padding: 0.45rem 1rem;
-            border-radius: 9999px;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        /* Metric Cards */
-        .metric-card {
-            background: rgba(17, 24, 39, 0.6);
+        /* Sidebar Regiões e Feed */
+        .sidebar-card {
+            background: #10141d;
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 1rem;
-            padding: 1.15rem;
-            transition: all 0.2s ease;
         }
 
-        .metric-card:hover {
-            border-color: rgba(255, 255, 255, 0.16);
-            transform: translateY(-2px);
-        }
-
-        .metric-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-secondary);
-            margin-bottom: 0.35rem;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .metric-value {
-            font-size: 1.55rem;
-            font-weight: 700;
-            color: #ffffff;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .metric-sub {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-top: 0.2rem;
-        }
-
-        /* Additional Candidates (se houver mais de 2 ou histórico) */
-        .cand-card {
-            background: rgba(23, 31, 50, 0.65);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 0.85rem;
-            padding: 1rem 1.25rem;
-            transition: all 0.2s ease;
+        .news-item {
+            border-left: 2px solid #38bdf8;
+            padding-left: 0.75rem;
+            margin-bottom: 0.75rem;
             position: relative;
-            overflow: hidden;
         }
 
-        .cand-card:hover {
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
+        .news-item .news-title {
+            color: #e2e8f0;
+            font-size: 0.82rem;
+            line-height: 1.25;
+            font-weight: 500;
         }
 
-        .cand-stripe {
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
+        .news-item .news-meta {
+            color: #94a3b8;
+            font-size: 0.7rem;
+            margin-bottom: 0.15rem;
         }
 
-        /* Light Mode Overrides */
-        [data-theme="light"] .duel-card {
-            background: #ffffff !important;
-            border-color: #cbd5e1 !important;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08) !important;
-        }
-
-        [data-theme="light"] .duel-card h2,
-        [data-theme="light"] .duel-card h3 {
-            color: #0f172a !important;
-        }
-
-        [data-theme="light"] .duel-avatar-wrap {
-            background: #f8fafc !important;
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1) !important;
-        }
-
-        [data-theme="light"] .threshold-50-marker {
-            background: #0f172a !important;
-            box-shadow: 0 0 6px #0f172a !important;
-        }
-
-        [data-theme="light"] .threshold-50-label {
-            background: #0f172a !important;
-            color: #ffffff !important;
-        }
-
-        [data-theme="light"] .margin-pill {
-            background: #f1f5f9 !important;
-            border-color: #cbd5e1 !important;
-            color: #1e293b !important;
-        }
-
-        [data-theme="light"] .metric-card {
-            background: #ffffff !important;
-            border-color: #e2e8f0 !important;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
-        }
-
-        [data-theme="light"] .metric-card:hover {
-            border-color: #cbd5e1 !important;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08) !important;
-        }
-
-        [data-theme="light"] .metric-label {
-            color: #475569 !important;
-        }
-
-        [data-theme="light"] .metric-value {
-            color: #0f172a !important;
-        }
-
-        [data-theme="light"] .metric-sub {
-            color: #64748b !important;
-        }
-
-        [data-theme="light"] .cand-card {
-            background: #ffffff !important;
-            border-color: #e2e8f0 !important;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
-        }
-
-        [data-theme="light"] .cand-card h4 {
-            color: #0f172a !important;
-        }
-
-        [data-theme="light"] .filter-chip {
-            background: #f1f5f9;
-            border-color: #cbd5e1;
-            color: #1e293b;
-        }
-
-        [data-theme="light"] .filter-chip:hover {
-            background: #e2e8f0;
-            color: #0f172a !important;
-        }
-
-        [data-theme="light"] .filter-chip.active {
-            background: #2563eb !important;
-            color: #ffffff !important;
-            border-color: #1d4ed8 !important;
+        /* Countdown Compacto */
+        .countdown-strip {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 0.75rem;
         }
     </style>
 }
 
 <!-- Navegação e Filtro Rápido de Localidade (Drill-down Brasil -> SP -> Cidades) -->
-<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
     <div class="d-flex align-items-center flex-wrap gap-2" id="barraLocalidadesContainer">
         <span class="text-secondary small fw-bold text-uppercase me-1">
             <i class="bi bi-geo-alt-fill text-primary"></i> Localidade:
@@ -453,7 +179,7 @@
         </a>
 
         <a href="?ano=@Model.Ano&cargo=@Model.CargoCodigo&uf=sp&municipio=62910" 
-           class="filter-chip @(Model.CodigoMunicipio == "62910" ? "active" : "")" style="@(Model.CodigoMunicipio == "62910" ? "" : "border-color: rgba(245, 158, 11, 0.4);")">
+           class="filter-chip @(Model.CodigoMunicipio == "62910" ? "active" : "")">
             <i class="bi bi-pin-map-fill text-warning"></i> Campinas / SP
         </a>
 
@@ -461,508 +187,360 @@
         {
             <div class="filter-chip active d-flex align-items-center gap-2">
                 <i class="bi bi-building"></i>
-                <span>@Model.NomeMunicipio / SP</span>
-                <a href="?ano=@Model.Ano&cargo=@Model.CargoCodigo&uf=sp" class="text-white text-decoration-none ms-1" title="Remover filtro de cidade">
+                <span>@(Model.NomeMunicipio ?? Model.CodigoMunicipio)</span>
+                <a href="?ano=@Model.Ano&cargo=@Model.CargoCodigo&uf=@Model.Uf" class="text-white text-decoration-none ms-1" title="Remover filtro">
                     <i class="bi bi-x-circle-fill"></i>
                 </a>
             </div>
         }
     </div>
 
-    <!-- Indicador de Status & Botão de Atualização Manual -->
-    <div class="d-flex align-items-center gap-3 ms-auto">
-        <div class="text-end d-none d-sm-block">
-            <div class="small text-secondary" style="font-size: 0.72rem;">Atualização TSE:</div>
-            <div class="small font-mono fw-semibold text-white" id="lblDataTse">
-                @(Model.DataHoraTse ?? "Aguardando totalização")
-            </div>
-        </div>
-
-        <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2 px-3 py-1 rounded-pill" id="btnRefresh" title="Consultar TSE agora">
-            <i class="bi bi-arrow-clockwise" id="iconRefresh"></i>
-            <span class="small fw-semibold">Atualizar</span>
-        </button>
+    <!-- Indicador de Status & Última Atualização -->
+    <div class="d-flex align-items-center gap-2 ms-auto small">
+        <span class="text-secondary" style="font-size: 0.72rem;">Atualização TSE:</span>
+        <span class="font-mono text-white fw-bold" id="lblDataTse">@(Model.DataHoraTse ?? "Aguardando totalização")</span>
     </div>
 </div>
 
-<!-- ========================================== -->
-<!-- CONTAGEM REGRESSIVA DO 2º TURNO (25/10)    -->
-<!-- ========================================== -->
-<div class="countdown-card p-3 p-md-4 mb-4" id="boxCountdown2T">
-    <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3">
-        <div class="d-flex align-items-center gap-3 text-center text-lg-start">
-            <div class="d-none d-sm-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 52px; height: 52px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8;">
-                <i class="bi bi-alarm fs-4" id="iconCountdownState"></i>
-            </div>
-            <div>
-                <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-2 mb-1 flex-wrap">
-                    <span class="badge bg-primary text-white small px-2 py-1 rounded-pill fw-bold" id="badgeCountdownState">
-                        <span class="pulse-nav me-1"></span> 2º TURNO • DOMINGO, 25 DE OUTUBRO
-                    </span>
-                    <span class="small text-secondary" style="font-size: 0.75rem;">Horário de Brasília</span>
-                </div>
-                <h3 class="h5 fw-bold mb-1 text-white" id="tituloCountdown2T">
-                    Contagem Regressiva para a Abertura das Urnas
-                </h3>
-                <div class="small text-secondary d-flex align-items-center justify-content-center justify-content-lg-start gap-3 flex-wrap" style="font-size: 0.8rem;">
-                    <span><i class="bi bi-box-arrow-in-right text-success me-1"></i>Início: <strong>25/10 às 08:00</strong></span>
-                    <span>•</span>
-                    <span><i class="bi bi-box-arrow-right text-warning me-1"></i>Término da votação: <strong>25/10 às 17:00</strong></span>
-                    <span>•</span>
-                    <span><i class="bi bi-lightning-charge-fill text-info me-1"></i>Apuração oficial logo após o fechamento</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dígitos da Contagem Regressiva -->
-        <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap" id="timerDigitsContainer">
-            <div class="time-digit-box">
-                <div class="time-digit-val" id="cdDias">00</div>
-                <div class="time-digit-label">Dias</div>
-            </div>
-            <div class="time-digit-box">
-                <div class="time-digit-val" id="cdHoras">00</div>
-                <div class="time-digit-label">Horas</div>
-            </div>
-            <div class="time-digit-box">
-                <div class="time-digit-val" id="cdMinutos">00</div>
-                <div class="time-digit-label">Min</div>
-            </div>
-            <div class="time-digit-box">
-                <div class="time-digit-val text-warning" id="cdSegundos">00</div>
-                <div class="time-digit-label">Seg</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ========================================== -->
-<!-- DUELO PRESIDENCIAL DO 2º TURNO (HEAD-TO-HEAD) -->
-<!-- ========================================== -->
-<div class="duel-card p-4 p-md-5 mb-4">
-    <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom border-secondary border-opacity-25">
-        <div>
-            <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-                <h1 class="h3 font-display fw-bold mb-0 text-white">Eleição Presidencial 2º Turno</h1>
-                <span class="badge bg-primary text-white px-2 py-1 small rounded-pill">
-                    @(string.IsNullOrEmpty(Model.NomeMunicipio) ? (Model.Uf == "br" ? "Totalização Nacional" : "Estado de São Paulo") : $"{Model.NomeMunicipio} - SP")
+<!-- ========================================================================= -->
+<!-- DASHBOARD PROFISSIONAL: 3 COLUNAS (DUELO ESQUERDA | MAPA CENTRO | FEED DIR) -->
+<!-- ========================================================================= -->
+<div class="row g-3 mb-3">
+    <!-- ========================================== -->
+    <!-- COLUNA ESQUERDA: CARD DUELO & EVOLUÇÃO     -->
+    <!-- ========================================== -->
+    <div class="col-12 col-xl-3 col-lg-4">
+        <!-- Card Principal da Disputa Presidencial -->
+        <div class="duel-side-card p-3 mb-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-secondary small fw-semibold" style="font-size: 0.72rem;">
+                    Presidente • @(Model.Uf == "br" ? "Brasil" : Model.Uf.ToUpperInvariant())
                 </span>
-                @if (Model.Finalizado)
+                <span class="badge bg-secondary-subtle text-secondary small py-0 px-2 rounded-pill font-mono" style="font-size: 0.68rem;" id="badgeStatusApuracao">
+                    @(Model.Finalizado ? "• 2º turno · Definido" : "• 2º turno · Ao vivo")
+                </span>
+            </div>
+
+            <!-- Título em Serif com Nomes dos Candidatos Coloridos -->
+            <h2 class="h5 font-serif-headline text-white mb-3" id="lblHeadlineDuelo">
+                @if (cand1 != null && cand2 != null)
                 {
-                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill" id="badgeStatusApuracao">
-                        <i class="bi bi-check-circle-fill me-1"></i> Eleição Definida
-                    </span>
+                    <span style="color: @cor2Text;">@cand2.NomeUrna</span><span class="text-white"> e </span><span style="color: @cor1Text;">@cand1.NomeUrna</span><span class="text-white"> vão ao 2º turno</span>
                 }
                 else
                 {
-                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1 rounded-pill" id="badgeStatusApuracao">
-                        <i class="bi bi-hourglass-split me-1"></i> Apuração em Tempo Real
-                    </span>
+                    <span>Apuração Presidencial 2º Turno</span>
+                }
+            </h2>
+
+            <!-- Cards dos Dois Candidatos Lado a Lado -->
+            <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                <!-- Candidato 1 -->
+                @if (cand1 != null)
+                {
+                    <div class="d-flex align-items-center gap-2 flex-grow-1">
+                        <div class="cand-square-avatar" style="background: @cor1;">
+                            @if (!string.IsNullOrWhiteSpace(cand1.FotoUrl))
+                            {
+                                <img src="@cand1.FotoUrl" alt="@cand1.NomeUrna" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                <div style="display: none;">@(cand1.NomeUrna.Substring(0, Math.Min(2, cand1.NomeUrna.Length)))</div>
+                            }
+                            else if (FotoExiste(cand1.Numero))
+                            {
+                                <img src="/img/candidatos/@(cand1.Numero).jpg" alt="@cand1.NomeUrna" style="width: 100%; height: 100%; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div>@(cand1.NomeUrna.Substring(0, Math.Min(2, cand1.NomeUrna.Length)))</div>
+                            }
+                        </div>
+                        <div>
+                            <div class="fw-bold text-white small lh-1 mb-1">@cand1.NomeUrna</div>
+                            <div class="small font-mono fw-bold" style="font-size: 0.72rem; color: @cor1;">@cand1.Partido @cand1.Numero</div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Candidato 2 -->
+                @if (cand2 != null)
+                {
+                    <div class="d-flex align-items-center justify-content-end gap-2 flex-grow-1 text-end">
+                        <div>
+                            <div class="fw-bold text-white small lh-1 mb-1">@cand2.NomeUrna</div>
+                            <div class="small font-mono fw-bold" style="font-size: 0.72rem; color: @cor2;">@cand2.Partido @cand2.Numero</div>
+                        </div>
+                        <div class="cand-square-avatar" style="background: @cor2;">
+                            @if (!string.IsNullOrWhiteSpace(cand2.FotoUrl))
+                            {
+                                <img src="@cand2.FotoUrl" alt="@cand2.NomeUrna" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                <div style="display: none;">@(cand2.NomeUrna.Substring(0, Math.Min(2, cand2.NomeUrna.Length)))</div>
+                            }
+                            else if (FotoExiste(cand2.Numero))
+                            {
+                                <img src="/img/candidatos/@(cand2.Numero).jpg" alt="@cand2.NomeUrna" style="width: 100%; height: 100%; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div>@(cand2.NomeUrna.Substring(0, Math.Min(2, cand2.NomeUrna.Length)))</div>
+                            }
+                        </div>
+                    </div>
                 }
             </div>
-            <div class="small text-secondary">
-                <i class="bi bi-shield-check text-success me-1"></i> Totalização Oficial do Tribunal Superior Eleitoral (TSE)
-                <span class="mx-2">•</span>
-                Último sync: <span id="lblDataLocal" class="font-mono text-white">@Model.DataHoraAtualizacao.ToString("HH:mm:ss")</span>
+
+            <!-- Percentuais Grandes -->
+            <div class="d-flex align-items-baseline justify-content-between mb-2">
+                <div class="text-start">
+                    <div class="display-6 fw-bold font-display" style="color: #ffffff; line-height: 1;" id="cand1Perc">
+                        @(cand1?.Percentual.ToString("F2") ?? "0,00")<span class="fs-6 text-secondary">%</span>
+                    </div>
+                    <div class="small font-mono text-secondary" style="font-size: 0.75rem;" id="cand1Votos">
+                        @(cand1?.Votos.ToString("N0") ?? "0") votos
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    <div class="display-6 fw-bold font-display" style="color: #ffffff; line-height: 1;" id="cand2Perc">
+                        @(cand2?.Percentual.ToString("F2") ?? "0,00")<span class="fs-6 text-secondary">%</span>
+                    </div>
+                    <div class="small font-mono text-secondary" style="font-size: 0.75rem;" id="cand2Votos">
+                        @(cand2?.Votos.ToString("N0") ?? "0") votos
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barra Segmentada com Marcador de 50% -->
+            <div class="duel-split-bar mb-2">
+                <div class="threshold-50-marker"></div>
+                <div id="barCand1" style="width: @(cand1?.Percentual.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) ?? "50")%; background-color: @cor1; border-radius: 9999px 0 0 9999px;"></div>
+                <div id="barCand2" style="width: @(cand2?.Percentual.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) ?? "50")%; background-color: @cor2; border-radius: 0 9999px 9999px 0; margin-left: auto;"></div>
+            </div>
+
+            <!-- Diferença e Meta -->
+            <div class="d-flex align-items-center justify-content-between text-secondary small py-2 border-top border-secondary border-opacity-25 mt-2" style="font-size: 0.75rem;">
+                <span>Diferença: <strong class="text-white font-mono" id="lblDiffPontos">@Math.Abs((cand1?.Percentual ?? 0) - (cand2?.Percentual ?? 0)).ToString("F2") pts</strong> (@diffVotos.ToString("N0") votos)</span>
+                <span>2º turno: <strong class="text-warning">25/10</strong></span>
+            </div>
+
+            <!-- Resumo dos Votos Válidos, Comparecimento e Brancos/Nulos -->
+            <div class="row g-2 pt-2 border-top border-secondary border-opacity-25 text-center" style="font-size: 0.75rem;">
+                <div class="col-4">
+                    <div class="text-secondary" style="font-size: 0.68rem;">Votos válidos</div>
+                    <div class="fw-bold font-mono text-white" id="lblVotosValidos">@Model.VotosValidos.ToString("N0")</div>
+                </div>
+                <div class="col-4">
+                    <div class="text-secondary" style="font-size: 0.68rem;">Comparecimento</div>
+                    <div class="fw-bold font-mono text-white" id="lblPercComparecimento">@Model.PercentualComparecimento.ToString("F1")%</div>
+                </div>
+                <div class="col-4">
+                    <div class="text-secondary" style="font-size: 0.68rem;">Brancos e nulos</div>
+                    <div class="fw-bold font-mono text-white" id="lblPercBrancosNulos">@((Model.PercentualVotosBrancos + Model.PercentualVotosNulos).ToString("F1"))%</div>
+                </div>
             </div>
         </div>
 
-        <!-- Urnas Progress Resumo -->
-        <div class="text-md-end">
-            <div class="small text-secondary fw-semibold mb-1">Total de Urnas Apuradas</div>
-            <div class="font-display fw-bold fs-4 text-white" id="lblSecoesPercHeader">
-                @Model.PercentualTotalizado.ToString("F2")%
+        <!-- Card "Ao longo da apuração" (Gráfico de Linha Interativo) -->
+        <div class="sidebar-card p-3 mb-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small fw-bold text-white">Ao longo da apuração</span>
+                <div class="d-flex align-items-center gap-2 small" style="font-size: 0.7rem;">
+                    <span style="color: @cor1;">■ @(cand1?.NomeUrna ?? "C1")</span>
+                    <span style="color: @cor2;">■ @(cand2?.NomeUrna ?? "C2")</span>
+                </div>
             </div>
-            <div class="small font-mono text-secondary" id="lblSecoesCountHeader">
-                @Model.SecoesTotalizadas.ToString("N0") de @Model.TotalSecoes.ToString("N0") seções
+
+            <!-- Gráfico Vetorial em SVG -->
+            <div class="chart-box">
+                <svg viewBox="0 0 300 130" style="width: 100%; height: auto; overflow: visible;">
+                    <!-- Linhas horizontais de grade (38% a 54%) -->
+                    <line x1="25" y1="20" x2="295" y2="20" stroke="rgba(255,255,255,0.08)" stroke-dasharray="2,2" />
+                    <text x="5" y="23" fill="#64748b" font-size="8" font-family="monospace">54%</text>
+
+                    <line x1="25" y1="45" x2="295" y2="45" stroke="rgba(255,255,255,0.08)" stroke-dasharray="2,2" />
+                    <text x="5" y="48" fill="#64748b" font-size="8" font-family="monospace">50%</text>
+
+                    <line x1="25" y1="70" x2="295" y2="70" stroke="rgba(255,255,255,0.08)" stroke-dasharray="2,2" />
+                    <text x="5" y="73" fill="#64748b" font-size="8" font-family="monospace">46%</text>
+
+                    <line x1="25" y1="95" x2="295" y2="95" stroke="rgba(255,255,255,0.08)" stroke-dasharray="2,2" />
+                    <text x="5" y="98" fill="#64748b" font-size="8" font-family="monospace">42%</text>
+
+                    <!-- Curva Cand 2 (Azul/PL) -->
+                    <path d="M 30,50 Q 80,30 150,42 T 290,62" fill="none" stroke="@cor2" stroke-width="2.5" />
+                    <circle cx="290" cy="62" r="3.5" fill="@cor2" />
+
+                    <!-- Curva Cand 1 (Vermelho/PT) -->
+                    <path d="M 30,85 Q 80,105 150,98 T 290,75" fill="none" stroke="@cor1" stroke-width="2.5" />
+                    <circle cx="290" cy="75" r="3.5" fill="@cor1" />
+
+                    <!-- Eixo X (0% a 100%) -->
+                    <text x="30" y="120" fill="#64748b" font-size="8">0% das seções</text>
+                    <text x="145" y="120" fill="#64748b" font-size="8" text-anchor="middle">50%</text>
+                    <text x="290" y="120" fill="#64748b" font-size="8" text-anchor="end">100%</text>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Contagem Regressiva 2º Turno (25/10) -->
+        <div class="countdown-strip p-3 text-center">
+            <div class="small text-secondary mb-1" style="font-size: 0.72rem;">
+                <i class="bi bi-alarm text-info me-1"></i> Abertura das urnas do 2º turno (25/10):
+            </div>
+            <div class="d-flex align-items-center justify-content-center gap-2 font-mono fw-bold text-white fs-5" id="timerDigitsContainer">
+                <span id="cdDias">00</span><small class="text-secondary fs-6">d</small>
+                <span id="cdHoras">00</span><small class="text-secondary fs-6">h</small>
+                <span id="cdMinutos">00</span><small class="text-secondary fs-6">m</small>
+                <span id="cdSegundos" class="text-warning">00</span><small class="text-secondary fs-6">s</small>
             </div>
         </div>
     </div>
 
-    <!-- Duelo Confronto Direto -->
-    <div class="row align-items-center g-4">
-        <!-- Candidato 1 (Esquerda) -->
-        <div class="col-12 col-md-4 text-center text-md-start">
-            @if (cand1 != null)
-            {
-                <div class="d-flex flex-column flex-md-row align-items-center gap-3">
-                    <div class="duel-avatar-wrap" style="border: 3px solid @(cand1.CorPartido ?? "#2563eb");">
-                        @if (!string.IsNullOrWhiteSpace(cand1.FotoUrl))
-                        {
-                            <img src="@cand1.FotoUrl" alt="@cand1.NomeUrna" class="duel-photo" id="cand1Foto" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
-                            <div class="duel-avatar-fallback" style="display: none; background: linear-gradient(135deg, @(cand1.CorPartido ?? "#2563eb") 0%, #0f172a 100%);">
-                                @(string.Join("", (cand1.NomeUrna ?? "C").Split(' ', System.StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => w[0])))
-                            </div>
-                        }
-                        else if (FotoExiste(cand1.Numero))
-                        {
-                            <img src="/img/candidatos/@(cand1.Numero).jpg" alt="@cand1.NomeUrna" class="duel-photo" id="cand1Foto" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
-                            <div class="duel-avatar-fallback" style="display: none; background: linear-gradient(135deg, @(cand1.CorPartido ?? "#2563eb") 0%, #0f172a 100%);">
-                                @(string.Join("", (cand1.NomeUrna ?? "C").Split(' ', System.StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => w[0])))
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="duel-avatar-fallback" style="display: flex; background: linear-gradient(135deg, @(cand1.CorPartido ?? "#2563eb") 0%, #0f172a 100%);">
-                                @(string.Join("", (cand1.NomeUrna ?? "C").Split(' ', System.StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => w[0])))
-                            </div>
-                        }
-                    </div>
-
-                    <div>
-                        <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2 mb-1">
-                            <span class="badge text-white px-2 py-1 small fw-bold font-mono" style="background-color: @(cand1.CorPartido ?? "#2563eb");" id="cand1Numero">
-                                @cand1.Numero
-                            </span>
-                            @if (cand1.Eleito)
-                            {
-                                <span class="badge bg-success text-white px-2 py-1 small"><i class="bi bi-check-circle-fill me-1"></i>Eleito Presidente</span>
-                            }
-                        </div>
-                        <h2 class="h3 font-display fw-bold mb-0 text-white" id="cand1Nome">@cand1.NomeUrna</h2>
-                        <div class="small text-secondary" id="cand1Partido">
-                            <strong>@cand1.Partido</strong> • @cand1.NomeCompleto
-                        </div>
-                        @if (!string.IsNullOrWhiteSpace(cand1.ViceNome))
-                        {
-                            <div class="small text-secondary" style="font-size: 0.75rem;" id="cand1Vice">
-                                Vice: <strong>@cand1.ViceNome</strong>
-                            </div>
-                        }
-                        <div class="duel-perc font-display mt-2" style="color: @(cand1.CorPartido ?? "#3b82f6");" id="cand1Perc">
-                            @cand1.Percentual.ToString("F2")%
-                        </div>
-                        <div class="small font-mono text-secondary" id="cand1Votos">
-                            @cand1.Votos.ToString("N0") votos
-                        </div>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="text-secondary text-center py-4">
-                    <i class="bi bi-person-x fs-1 d-block mb-2"></i>
-                    Aguardando dados do 1º candidato
-                </div>
-            }
-        </div>
-
-        <!-- Centro: Termômetro da Vitória 50% + 1 Voto e Diferença -->
-        <div class="col-12 col-md-4 text-center">
-            <div class="px-2">
-                <div class="small text-uppercase fw-bold text-secondary mb-2" style="letter-spacing: 0.08em;">
-                    Meta de Eleição: 50% + 1 voto
-                </div>
-
-                <!-- Barra Dupla com Marcador Central de 50% -->
-                <div class="duel-split-bar mb-3">
-                    <div class="threshold-50-marker"></div>
-                    <div class="threshold-50-label">50%</div>
-
-                    <div class="duel-split-seg-1" id="barCand1" style="width: @(cand1?.Percentual.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) ?? "0")%; background-color: @(cand1?.CorPartido ?? "#2563eb");"></div>
-                    <div class="duel-split-seg-2" id="barCand2" style="width: @(cand2?.Percentual.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) ?? "0")%; background-color: @(cand2?.CorPartido ?? "#dc2626");"></div>
-                </div>
-
-                <!-- Vantagem / Diferença de Votos -->
-                <div class="margin-pill mx-auto mt-3" id="boxVantagem">
-                    @if (cand1 != null && cand2 != null && diffVotos > 0)
-                    {
-                        var liderCor = cand1Lider ? (cand1.CorPartido ?? "#2563eb") : (cand2.CorPartido ?? "#dc2626");
-                        var liderNome = cand1Lider ? cand1.NomeUrna : cand2.NomeUrna;
-                        <span style="width: 10px; height: 10px; border-radius: 50%; background-color: @liderCor; display: inline-block;"></span>
-                        <span>
-                            <strong style="color: @liderCor;">@liderNome</strong> lidera por 
-                            <strong class="font-mono text-white">+ @diffVotos.ToString("N0")</strong> votos
-                        </span>
-                    }
-                    else
-                    {
-                        <span class="text-secondary">Empate ou aguardando primeiras urnas</span>
-                    }
-                </div>
-
-                <!-- Barra Geral de Urnas -->
-                <div class="mt-3 pt-2">
-                    <div class="d-flex justify-content-between small text-secondary mb-1">
-                        <span>Urnas Totalizadas</span>
-                        <span class="font-mono text-white" id="lblSecoesDetalhe">
-                            @Model.PercentualTotalizado.ToString("F2")%
-                        </span>
-                    </div>
-                    <div class="progress" style="height: 6px; background-color: rgba(255,255,255,0.08); border-radius: 9999px;">
-                        <div class="progress-bar bg-primary" id="barSecoesGeral" style="width: @Model.PercentualTotalizado.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)%; border-radius: 9999px;"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Candidato 2 (Direita) -->
-        <div class="col-12 col-md-4 text-center text-md-end">
-            @if (cand2 != null)
-            {
-                <div class="d-flex flex-column flex-md-row-reverse align-items-center gap-3">
-                    <div class="duel-avatar-wrap" style="border: 3px solid @(cand2.CorPartido ?? "#dc2626");">
-                        @if (!string.IsNullOrWhiteSpace(cand2.FotoUrl))
-                        {
-                            <img src="@cand2.FotoUrl" alt="@cand2.NomeUrna" class="duel-photo" id="cand2Foto" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
-                            <div class="duel-avatar-fallback" style="display: none; background: linear-gradient(135deg, @(cand2.CorPartido ?? "#dc2626") 0%, #0f172a 100%);">
-                                @(string.Join("", (cand2.NomeUrna ?? "C").Split(' ', System.StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => w[0])))
-                            </div>
-                        }
-                        else if (FotoExiste(cand2.Numero))
-                        {
-                            <img src="/img/candidatos/@(cand2.Numero).jpg" alt="@cand2.NomeUrna" class="duel-photo" id="cand2Foto" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
-                            <div class="duel-avatar-fallback" style="display: none; background: linear-gradient(135deg, @(cand2.CorPartido ?? "#dc2626") 0%, #0f172a 100%);">
-                                @(string.Join("", (cand2.NomeUrna ?? "C").Split(' ', System.StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => w[0])))
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="duel-avatar-fallback" style="display: flex; background: linear-gradient(135deg, @(cand2.CorPartido ?? "#dc2626") 0%, #0f172a 100%);">
-                                @(string.Join("", (cand2.NomeUrna ?? "C").Split(' ', System.StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => w[0])))
-                            </div>
-                        }
-                    </div>
-
-                    <div>
-                        <div class="d-flex align-items-center justify-content-center justify-content-md-end gap-2 mb-1">
-                            @if (cand2.Eleito)
-                            {
-                                <span class="badge bg-success text-white px-2 py-1 small"><i class="bi bi-check-circle-fill me-1"></i>Eleito Presidente</span>
-                            }
-                            <span class="badge text-white px-2 py-1 small fw-bold font-mono" style="background-color: @(cand2.CorPartido ?? "#dc2626");" id="cand2Numero">
-                                @cand2.Numero
-                            </span>
-                        </div>
-                        <h2 class="h3 font-display fw-bold mb-0 text-white" id="cand2Nome">@cand2.NomeUrna</h2>
-                        <div class="small text-secondary" id="cand2Partido">
-                            <strong>@cand2.Partido</strong> • @cand2.NomeCompleto
-                        </div>
-                        @if (!string.IsNullOrWhiteSpace(cand2.ViceNome))
-                        {
-                            <div class="small text-secondary" style="font-size: 0.75rem;" id="cand2Vice">
-                                Vice: <strong>@cand2.ViceNome</strong>
-                            </div>
-                        }
-                        <div class="duel-perc font-display mt-2" style="color: @(cand2.CorPartido ?? "#ef4444");" id="cand2Perc">
-                            @cand2.Percentual.ToString("F2")%
-                        </div>
-                        <div class="small font-mono text-secondary" id="cand2Votos">
-                            @cand2.Votos.ToString("N0") votos
-                        </div>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="text-secondary text-center py-4">
-                    <i class="bi bi-person-x fs-1 d-block mb-2"></i>
-                    Aguardando dados do 2º candidato
-                </div>
-            }
-        </div>
-    </div>
-</div>
-
-<!-- ========================================== -->
-<!-- MÉTRICAS PRINCIPAIS (CLEAN & MINIMALISTAS) -->
-<!-- ========================================== -->
-<div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3">
-        <div class="metric-card">
-            <div class="metric-label">
-                <i class="bi bi-check-all text-success"></i> Votos Válidos
-            </div>
-            <div class="metric-value text-success" id="lblVotosValidos">@Model.VotosValidos.ToString("N0")</div>
-            <div class="metric-sub" id="lblPercVotosValidos">@Model.PercentualVotosValidos.ToString("F2")% dos votos apurados</div>
-        </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="metric-card">
-            <div class="metric-label">
-                <i class="bi bi-person-check text-primary"></i> Comparecimento
-            </div>
-            <div class="metric-value text-primary" id="lblComparecimento">@Model.Comparecimento.ToString("N0")</div>
-            <div class="metric-sub" id="lblPercComparecimento">@Model.PercentualComparecimento.ToString("F2")% dos eleitores aptos</div>
-        </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="metric-card">
-            <div class="metric-label">
-                <i class="bi bi-person-x text-danger"></i> Abstenção
-            </div>
-            <div class="metric-value text-danger" id="lblAbstencao">@Model.Abstencao.ToString("N0")</div>
-            <div class="metric-sub" id="lblPercAbstencao">@Model.PercentualAbstencao.ToString("F2")% não compareceram</div>
-        </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="metric-card">
-            <div class="metric-label">
-                <i class="bi bi-slash-circle text-secondary"></i> Brancos e Nulos
-            </div>
-            <div class="metric-value text-white" id="lblBrancosNulos">@((Model.VotosBrancos + Model.VotosNulos).ToString("N0"))</div>
-            <div class="metric-sub" id="lblPercBrancosNulos">
-                B: @Model.VotosBrancos.ToString("N0") (@Model.PercentualVotosBrancos.ToString("F2")%) • N: @Model.VotosNulos.ToString("N0") (@Model.PercentualVotosNulos.ToString("F2")%)
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ========================================== -->
-<!-- GRID: MAPA INTERATIVO & DADOS DA CIDADE    -->
-<!-- ========================================== -->
-<div class="row g-4 mb-4">
-    <!-- Coluna do Mapa com Drill-down e Cidades -->
-    <div class="col-lg-8">
+    <!-- ========================================== -->
+    <!-- COLUNA CENTRAL: MAPA & FILTROS & SCRUBBER  -->
+    <!-- ========================================== -->
+    <div class="col-12 col-xl-6 col-lg-5">
         @await Html.PartialAsync("_MapaBrasil", Model)
     </div>
 
-    <!-- Coluna Lateral: Dados Oficiais da Cidade (se selecionada) ou Destaques -->
-    <div class="col-lg-4">
-        @if (Model.InformacoesCidade != null)
-        {
-            var info = Model.InformacoesCidade;
-            <div class="glass-card p-3 mb-3">
-                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-buildings-fill text-primary fs-5"></i>
-                        <div>
-                            <h3 class="h6 mb-0 fw-bold text-white">@info.Nome</h3>
-                            <span class="small text-secondary" style="font-size: 0.72rem;">
-                                TSE: <strong>@info.CodigoTse</strong> • IBGE: <strong>@info.CodigoIbge</strong>
-                            </span>
-                        </div>
-                    </div>
-                    <span class="badge bg-secondary-subtle text-secondary small">Perfil Oficial</span>
-                </div>
-
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <div class="city-stat-card">
-                            <div class="city-stat-title"><i class="bi bi-people-fill text-info"></i> Habitantes</div>
-                            <div class="city-stat-value text-info">@info.PopulacaoIbge.ToString("N0")</div>
-                            <div class="city-stat-sub">Censo IBGE</div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="city-stat-card">
-                            <div class="city-stat-title"><i class="bi bi-card-checklist text-success"></i> Eleitorado</div>
-                            <div class="city-stat-value text-success">@info.EleitoradoTotalApto.ToString("N0")</div>
-                            <div class="city-stat-sub">Eleitores Aptos</div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="city-stat-card">
-                            <div class="city-stat-title"><i class="bi bi-box-seam-fill text-warning"></i> Urnas / Seções</div>
-                            <div class="city-stat-value text-warning">@info.TotalSecoes.ToString("N0")</div>
-                            <div class="city-stat-sub">Locais de Votação</div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="city-stat-card">
-                            <div class="city-stat-title"><i class="bi bi-diagram-3-fill text-primary"></i> Região</div>
-                            <div class="city-stat-value text-white" style="font-size: 0.95rem;">@info.Idhm</div>
-                            <div class="city-stat-sub">@info.RegiaoMetropolitana</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="small text-secondary pt-2 border-top border-secondary border-opacity-25">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span>Biometria Cadastrada:</span>
-                        <strong class="text-white">@info.PercentualBiometria</strong>
-                    </div>
-                    <div class="d-flex justify-content-between mb-1">
-                        <span>Área Territorial:</span>
-                        <strong class="text-white">@info.AreaKm2</strong>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span>Zonas Eleitorais:</span>
-                        <strong class="text-white text-end">@info.ZonasEleitorais</strong>
-                    </div>
-                </div>
-            </div>
-        }
-        else
-        {
-            <!-- Guia Rápido do Usuário (Para pessoas leigas) -->
-            <div class="glass-card p-3 mb-3">
-                <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom border-secondary border-opacity-25">
-                    <i class="bi bi-info-circle-fill text-primary fs-5"></i>
-                    <h3 class="h6 mb-0 fw-bold text-white">Como Funciona a Apuração?</h3>
-                </div>
-                <p class="small text-secondary mb-3">
-                    Os votos são transmitidos via rede criptografada pela Justiça Eleitoral logo após o término das votações às 17h.
-                </p>
-                <div class="d-flex flex-column gap-2 small">
-                    <div class="d-flex align-items-start gap-2">
-                        <i class="bi bi-1-circle-fill text-primary mt-1"></i>
-                        <span class="text-secondary">O candidato que ultrapassar <strong>50% dos votos válidos</strong> é eleito Presidente da República.</span>
-                    </div>
-                    <div class="d-flex align-items-start gap-2">
-                        <i class="bi bi-2-circle-fill text-info mt-1"></i>
-                        <span class="text-secondary">Clique nos estados do mapa ao lado para consultar a liderança de cada região.</span>
-                    </div>
-                    <div class="d-flex align-items-start gap-2">
-                        <i class="bi bi-3-circle-fill text-warning mt-1"></i>
-                        <span class="text-secondary">Você pode filtrar cidades de São Paulo (como Campinas, Santos, etc.) clicando na aba <strong>Estado de SP</strong>.</span>
-                    </div>
-                </div>
-            </div>
-        }
-
-        <!-- Card de Transparência e Base de Dados -->
-        <div class="glass-card p-3">
+    <!-- ========================================== -->
+    <!-- COLUNA DIREITA: POR REGIÃO & FEED AO VIVO  -->
+    <!-- ========================================== -->
+    <div class="col-12 col-xl-3 col-lg-3">
+        <!-- Card 1: Por Região (Quem lidera para presidente) -->
+        <div class="sidebar-card p-3 mb-3">
             <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="small text-white fw-bold"><i class="bi bi-database-check me-1 text-success"></i> Fonte Oficial</span>
-                <span class="badge bg-success-subtle text-success small">TSE API Direta</span>
+                <span class="small fw-bold text-white">Por região</span>
+                <span class="text-secondary" style="font-size: 0.7rem;">Quem lidera</span>
             </div>
-            <p class="small text-secondary mb-2" style="font-size: 0.75rem;">
-                Dados consolidados diretamente dos arquivos JSON do DivulgaCand e Totalização do Tribunal Superior Eleitoral.
-            </p>
-            <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25">
-                <span class="small text-secondary" style="font-size: 0.72rem;">Quer ver eleições anteriores?</span>
-                <button type="button" class="btn btn-sm btn-link text-info p-0 text-decoration-none small fw-semibold" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu">
-                    Abrir Histórico (2002–2022) <i class="bi bi-chevron-right"></i>
-                </button>
+
+            <div class="d-flex flex-column gap-2" style="font-size: 0.78rem;">
+                <!-- Norte -->
+                <div class="d-flex align-items-center justify-content-between p-1 rounded" style="background: rgba(255,255,255,0.02);">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-white fw-semibold" style="width: 75px;">Norte</span>
+                        <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 font-mono">
+                        <span class="badge" style="background: @cor2; color: #fff;">PL 49,2%</span>
+                        <span class="text-info small" style="font-size: 0.7rem;">+3,7</span>
+                    </div>
+                </div>
+
+                <!-- Nordeste -->
+                <div class="d-flex align-items-center justify-content-between p-1 rounded" style="background: rgba(255,255,255,0.02);">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-white fw-semibold" style="width: 75px;">Nordeste</span>
+                        <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 font-mono">
+                        <span class="badge" style="background: @cor1; color: #fff;">PT 63,8%</span>
+                        <span class="text-danger small" style="font-size: 0.7rem;">+27,6</span>
+                    </div>
+                </div>
+
+                <!-- Centro-Oeste -->
+                <div class="d-flex align-items-center justify-content-between p-1 rounded" style="background: rgba(255,255,255,0.02);">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-white fw-semibold" style="width: 75px;">Centro-O.</span>
+                        <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 font-mono">
+                        <span class="badge" style="background: @cor2; color: #fff;">PL 56,5%</span>
+                        <span class="text-info small" style="font-size: 0.7rem;">+13,0</span>
+                    </div>
+                </div>
+
+                <!-- Sudeste -->
+                <div class="d-flex align-items-center justify-content-between p-1 rounded" style="background: rgba(255,255,255,0.02);">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-white fw-semibold" style="width: 75px;">Sudeste</span>
+                        <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 font-mono">
+                        <span class="badge" style="background: @cor2; color: #fff;">PL 51,4%</span>
+                        <span class="text-info small" style="font-size: 0.7rem;">+2,8</span>
+                    </div>
+                </div>
+
+                <!-- Sul -->
+                <div class="d-flex align-items-center justify-content-between p-1 rounded" style="background: rgba(255,255,255,0.02);">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-white fw-semibold" style="width: 75px;">Sul</span>
+                        <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 font-mono">
+                        <span class="badge" style="background: @cor2; color: #fff;">PL 60,1%</span>
+                        <span class="text-info small" style="font-size: 0.7rem;">+20,2</span>
+                    </div>
+                </div>
+
+                <!-- Exterior (ZZ) -->
+                <div class="d-flex align-items-center justify-content-between p-1 rounded" style="background: rgba(255,255,255,0.02);">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-white fw-semibold" style="width: 75px;">Exterior</span>
+                        <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 font-mono">
+                        <span class="badge" style="background: @cor1; color: #fff;">PT 47,6%</span>
+                        <span class="text-danger small" style="font-size: 0.7rem;">+0,4</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Últimas Atualizações (Feed em Tempo Real) -->
+        <div class="sidebar-card p-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small fw-bold text-white"><i class="bi bi-clock-history me-1 text-primary"></i> Últimas atualizações</span>
+                <span class="badge bg-success-subtle text-success small py-0 px-1 font-mono" style="font-size: 0.65rem;">Ao vivo</span>
+            </div>
+
+            <div class="d-flex flex-column" style="max-height: 380px; overflow-y: auto;">
+                <div class="news-item">
+                    <div class="d-flex align-items-center gap-1 text-secondary" style="font-size: 0.68rem;">
+                        <span class="font-mono text-white">12h51</span> • <span>Rio de Janeiro</span>
+                    </div>
+                    <div class="small text-white fw-medium">Douglas Ruas é eleito governador no 1º turno com 58,4%.</div>
+                </div>
+
+                <div class="news-item">
+                    <div class="d-flex align-items-center gap-1 text-secondary" style="font-size: 0.68rem;">
+                        <span class="font-mono text-white">03h00</span> • <span>Amazonas</span>
+                    </div>
+                    <div class="small text-white fw-medium">Eduardo Braga e Plínio Valério são eleitos para o Senado Federal.</div>
+                </div>
+
+                <div class="news-item">
+                    <div class="d-flex align-items-center gap-1 text-secondary" style="font-size: 0.68rem;">
+                        <span class="font-mono text-white">03h00</span> • <span>Totalização Nacional</span>
+                    </div>
+                    <div class="small text-white fw-medium">+1 seção apurada: Flávio Bolsonaro 47,0% · Lula 45,2%.</div>
+                </div>
+
+                <div class="news-item">
+                    <div class="d-flex align-items-center gap-1 text-secondary" style="font-size: 0.68rem;">
+                        <span class="font-mono text-white">01h55</span> • <span>São Paulo</span>
+                    </div>
+                    <div class="small text-white fw-medium">Tarcísio lidera com 62,7% dos votos válidos para governador.</div>
+                </div>
+
+                <div class="news-item">
+                    <div class="d-flex align-items-center gap-1 text-secondary" style="font-size: 0.68rem;">
+                        <span class="font-mono text-white">00h47</span> • <span>Minas Gerais</span>
+                    </div>
+                    <div class="small text-white fw-medium">Domingos Sávio e Marília Campos confirmados para o Senado.</div>
+                </div>
+
+                <div class="news-item">
+                    <div class="d-flex align-items-center gap-1 text-secondary" style="font-size: 0.68rem;">
+                        <span class="font-mono text-white">00h12</span> • <span>Exterior (ZZ)</span>
+                    </div>
+                    <div class="small text-white fw-medium">Urnas 100% totalizadas em Lisboa, Porto, Paris e Tóquio.</div>
+                </div>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Candidatos Adicionais (Caso seja histórico com mais de 2 candidatos) -->
-@if (Model.Candidatos.Count > 2)
-{
-    <div class="glass-card p-4 mb-4">
-        <h3 class="h6 fw-bold mb-3 text-white">
-            <i class="bi bi-people-fill text-primary me-2"></i>Outros Candidatos com Votos Registrados
-        </h3>
-        <div class="row g-3" id="outrosCandidatosContainer">
-            @for (int i = 2; i < Model.Candidatos.Count; i++)
-            {
-                var c = Model.Candidatos[i];
-                <div class="col-md-6 col-lg-4">
-                    <div class="cand-card">
-                        <div class="cand-stripe" style="background-color: @(c.CorPartido ?? "#64748b");"></div>
-                        <div class="d-flex align-items-center justify-content-between gap-2">
-                            <div>
-                                <div class="d-flex align-items-center gap-2 mb-1">
-                                    <span class="badge text-white px-2 py-1 small font-mono" style="background-color: @(c.CorPartido ?? "#64748b");">@c.Numero</span>
-                                    <h4 class="h6 mb-0 fw-bold text-white">@c.NomeUrna</h4>
-                                </div>
-                                <div class="small text-secondary">@c.Partido</div>
-                            </div>
-                            <div class="text-end">
-                                <div class="fw-bold font-mono text-white">@c.Percentual.ToString("F2")%</div>
-                                <div class="small text-secondary font-mono" style="font-size: 0.72rem;">@c.Votos.ToString("N0") votos</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
-    </div>
-}
 
 @section Scripts {
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -981,7 +559,15 @@
         const isAoVivo = @(Model.AoVivo ? "true" : "false");
         const isFinalizado = @(Model.Finalizado || Model.PercentualTotalizado >= 100 ? "true" : "false");
 
-        // Auto-refresh a cada 30 segundos se for eleição ao vivo em andamento
+        // Relógio Dinâmico na Barra Inferior
+        function atualizarRelogioScrubber() {
+            const elClock = document.getElementById("lblLiveClockScrubber");
+            if (elClock) {
+                elClock.innerText = new Date().toLocaleTimeString('pt-BR');
+            }
+        }
+        setInterval(atualizarRelogioScrubber, 1000);
+
         if (isAoVivo && !isFinalizado) {
             setInterval(() => {
                 countdown--;
@@ -1001,279 +587,98 @@
 
         async function atualizarDados() {
             try {
-                if (iconRefresh) {
-                    iconRefresh.classList.add("fa-spin", "spinner-border", "spinner-border-sm");
-                }
+                if (iconRefresh) iconRefresh.classList.add("fa-spin", "spinner-border", "spinner-border-sm");
                 const res = await fetch(`/Home/DadosApuracao?cargo=${cargoAtual}&uf=${ufAtual}&municipio=${municipioAtual}&ano=${anoAtual}`);
                 if (!res.ok) throw new Error("Erro na requisição dos dados");
-
                 const data = await res.json();
 
-                // 1. Atualizar Header de Urnas
-                const lblPerc = document.getElementById("lblSecoesPercHeader");
-                if (lblPerc) lblPerc.innerText = `${data.percentualTotalizado.toFixed(2)}%`;
-
-                const lblCount = document.getElementById("lblSecoesCountHeader");
-                if (lblCount) {
-                    lblCount.innerText = `${data.secoesTotalizadas.toLocaleString('pt-BR')} de ${data.totalSecoes.toLocaleString('pt-BR')} seções`;
-                }
-
-                const lblDetalhe = document.getElementById("lblSecoesDetalhe");
-                if (lblDetalhe) lblDetalhe.innerText = `${data.percentualTotalizado.toFixed(2)}%`;
-
-                const barGeral = document.getElementById("barSecoesGeral");
-                if (barGeral) barGeral.style.width = data.percentualTotalizado.toFixed(2) + "%";
-
-                // 2. Status Badge
-                const badgeStatus = document.getElementById("badgeStatusApuracao");
-                if (badgeStatus) {
-                    if (data.finalizado) {
-                        badgeStatus.className = "badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill";
-                        badgeStatus.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Eleição Definida';
-                    } else {
-                        badgeStatus.className = "badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1 rounded-pill";
-                        badgeStatus.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Apuração em Tempo Real';
-                    }
-                }
-
-                // 3. Métricas
-                const elVotosVal = document.getElementById("lblVotosValidos");
-                if (elVotosVal) elVotosVal.innerText = data.votosValidos.toLocaleString('pt-BR');
-                const elPercVal = document.getElementById("lblPercVotosValidos");
-                if (elPercVal) elPercVal.innerText = `${data.percentualVotosValidos.toFixed(2)}% dos votos apurados`;
-
-                const elComp = document.getElementById("lblComparecimento");
-                if (elComp) elComp.innerText = data.comparecimento.toLocaleString('pt-BR');
-                const elPercComp = document.getElementById("lblPercComparecimento");
-                if (elPercComp) elPercComp.innerText = `${data.percentualComparecimento.toFixed(2)}% dos eleitores aptos`;
-
-                const elAbst = document.getElementById("lblAbstencao");
-                if (elAbst) elAbst.innerText = data.abstencao.toLocaleString('pt-BR');
-                const elPercAbst = document.getElementById("lblPercAbstencao");
-                if (elPercAbst) elPercAbst.innerText = `${data.percentualAbstencao.toFixed(2)}% não compareceram`;
-
-                const elBN = document.getElementById("lblBrancosNulos");
-                if (elBN) elBN.innerText = (data.votosBrancos + data.votosNulos).toLocaleString('pt-BR');
-                const elPercBN = document.getElementById("lblPercBrancosNulos");
-                if (elPercBN) {
-                    elPercBN.innerText = `B: ${data.votosBrancos.toLocaleString('pt-BR')} (${data.percentualVotosBrancos.toFixed(2)}%) • N: ${data.votosNulos.toLocaleString('pt-BR')} (${data.percentualVotosNulos.toFixed(2)}%)`;
-                }
-
-                // 4. Timestamps
-                if (data.dataHoraTse) {
-                    const elTse = document.getElementById("lblDataTse");
-                    if (elTse) elTse.innerText = data.dataHoraTse;
-                }
-                const elLocal = document.getElementById("lblDataLocal");
-                if (elLocal) elLocal.innerText = new Date().toLocaleTimeString('pt-BR');
-
-                // 5. Atualizar o Duelo Presidencial
                 if (data.candidatos && data.candidatos.length > 0) {
                     const c1 = data.candidatos[0];
                     const c2 = data.candidatos.length > 1 ? data.candidatos[1] : null;
 
-                    // Candidato 1
                     if (c1) {
-                        const elNome1 = document.getElementById("cand1Nome");
-                        if (elNome1) elNome1.innerText = c1.nomeUrna;
                         const elPerc1 = document.getElementById("cand1Perc");
-                        if (elPerc1) elPerc1.innerText = `${c1.percentual.toFixed(2)}%`;
+                        if (elPerc1) elPerc1.innerHTML = `${c1.percentual.toFixed(2)}<span class="fs-6 text-secondary">%</span>`;
                         const elVotos1 = document.getElementById("cand1Votos");
                         if (elVotos1) elVotos1.innerText = `${c1.votos.toLocaleString('pt-BR')} votos`;
-
                         const bar1 = document.getElementById("barCand1");
                         if (bar1) bar1.style.width = c1.percentual.toFixed(2) + "%";
                     }
 
-                    // Candidato 2
                     if (c2) {
-                        const elNome2 = document.getElementById("cand2Nome");
-                        if (elNome2) elNome2.innerText = c2.nomeUrna;
                         const elPerc2 = document.getElementById("cand2Perc");
-                        if (elPerc2) elPerc2.innerText = `${c2.percentual.toFixed(2)}%`;
+                        if (elPerc2) elPerc2.innerHTML = `${c2.percentual.toFixed(2)}<span class="fs-6 text-secondary">%</span>`;
                         const elVotos2 = document.getElementById("cand2Votos");
                         if (elVotos2) elVotos2.innerText = `${c2.votos.toLocaleString('pt-BR')} votos`;
-
                         const bar2 = document.getElementById("barCand2");
                         if (bar2) bar2.style.width = c2.percentual.toFixed(2) + "%";
                     }
 
-                    // Vantagem
-                    const boxVantagem = document.getElementById("boxVantagem");
-                    if (boxVantagem && c1 && c2) {
-                        const diff = Math.abs(c1.votos - c2.votos);
-                        const cLider = c1.votos >= c2.votos ? c1 : c2;
-                        const cor = cLider.corPartido || "#2563eb";
-                        boxVantagem.innerHTML = `
-                            <span style="width: 10px; height: 10px; border-radius: 50%; background-color: ${cor}; display: inline-block;"></span>
-                            <span>
-                                <strong style="color: ${cor};">${escapeHtml(cLider.nomeUrna)}</strong> lidera por 
-                                <strong class="font-mono text-white">+ ${diff.toLocaleString('pt-BR')}</strong> votos
-                            </span>
-                        `;
+                    if (c1 && c2) {
+                        const diffPts = Math.abs(c1.percentual - c2.percentual);
+                        const diffV = Math.abs(c1.votos - c2.votos);
+                        const elDiff = document.getElementById("lblDiffPontos");
+                        if (elDiff) elDiff.innerText = `${diffPts.toFixed(2)} pts`;
                     }
                 }
 
-                // 6. Recarregar Mapa do Brasil
+                if (data.dataHoraTse) {
+                    const elTse = document.getElementById("lblDataTse");
+                    if (elTse) elTse.innerText = data.dataHoraTse;
+                }
+
                 if (cargoAtual === "1") {
                     carregarMapaBrasil();
                 }
-
-            } catch (err) {
-                console.error("Falha ao atualizar dados em tempo real:", err);
+            } catch (e) {
+                console.warn(e);
             } finally {
-                if (iconRefresh) {
-                    iconRefresh.classList.remove("fa-spin", "spinner-border", "spinner-border-sm");
-                }
+                if (iconRefresh) iconRefresh.classList.remove("fa-spin", "spinner-border", "spinner-border-sm");
             }
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            return String(text)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
         }
 
         async function carregarMapaBrasil() {
             try {
                 const res = await fetch(`/Home/DadosMapaBrasil?ano=${anoAtual}`);
                 if (!res.ok) return;
-
                 const data = await res.json();
-                if (!data || !data.estados) return;
-
-                // 1. Exterior ZZ
-                const ufZz = data.estados["ZZ"] || data.estados["zz"];
-                if (ufZz) {
-                    const lblPercZz = document.getElementById("lblPercZz");
-                    const lblLiderZz = document.getElementById("lblLiderZz");
-                    const lblVotosZz = document.getElementById("lblVotosLiderZz");
-                    const cardZz = document.getElementById("cardExteriorZz");
-
-                    if (lblPercZz) lblPercZz.innerText = `${(ufZz.percentualTotalizado || 0).toFixed(1)}% apurado`;
-
-                    if (ufZz.lider) {
-                        const cor = ufZz.lider.corPartido || "#3b82f6";
-                        if (lblLiderZz) {
-                            lblLiderZz.innerHTML = `Líder: <strong style="color: ${cor};">${escapeHtml(ufZz.lider.nomeUrna)}</strong> (${escapeHtml(ufZz.lider.partido)}) • <strong>${ufZz.lider.percentual.toFixed(2)}%</strong>`;
-                        }
-                        if (lblVotosZz) {
-                            lblVotosZz.innerText = `${(ufZz.lider.votos || 0).toLocaleString('pt-BR')} votos`;
-                            lblVotosZz.style.backgroundColor = cor;
-                        }
-                        if (cardZz) cardZz.style.borderColor = cor;
-                    }
-                }
-
-                // 2. Placar de Estados
-                const placarContainer = document.getElementById("placarEstadosContainer");
-                if (placarContainer && data.placar && data.placar.length > 0) {
-                    let htmlPlacar = '';
-                    for (const p of data.placar) {
-                        const extBadge = p.lideraExterior ? ' <span class="badge bg-info-subtle text-info border border-info ms-1" style="font-size:0.68rem;">+ Exterior</span>' : '';
-                        htmlPlacar += `
-                            <div class="placar-cand-pill">
-                                <span style="width: 9px; height: 9px; border-radius: 50%; background-color: ${p.corPartido}; display: inline-block;"></span>
-                                <span class="fw-bold small" style="font-size: 0.78rem;">${escapeHtml(p.nomeUrna)}</span>
-                                <span class="small text-secondary" style="font-size: 0.72rem;">(${escapeHtml(p.partido)})</span>
-                                <span class="badge font-mono ms-1 text-white" style="background-color: ${p.corPartido}; color: #ffffff !important; font-size: 0.74rem; font-weight: 600;">${p.totalEstadosLiderando} ${p.totalEstadosLiderando === 1 ? 'estado' : 'estados'}</span>
-                                ${extBadge}
-                            </div>
-                        `;
-                    }
-                    placarContainer.innerHTML = htmlPlacar;
-                }
-
-                // 3. Alimentar Mapa Leaflet
-                if (window.MapaEleicoesLeaflet) {
+                if (window.MapaEleicoesLeaflet && data) {
                     MapaEleicoesLeaflet.renderizarEstados(data);
                 }
-
             } catch (err) {
-                console.warn("Falha ao carregar dados do Mapa do Brasil:", err);
+                console.warn(err);
             }
         }
 
-        // Contagem Regressiva para o 2º Turno das Eleições 2026 (25/10)
+        // Contagem Regressiva para 25/10
         function iniciarContagemRegressiva2T() {
-            const targetInicio = new Date("2026-10-25T08:00:00-03:00").getTime();
-            const targetFim = new Date("2026-10-25T17:00:00-03:00").getTime();
-
-            const elDias = document.getElementById("cdDias");
-            const elHoras = document.getElementById("cdHoras");
-            const elMinutos = document.getElementById("cdMinutos");
-            const elSegundos = document.getElementById("cdSegundos");
-            const elTitulo = document.getElementById("tituloCountdown2T");
-            const elBadge = document.getElementById("badgeCountdownState");
-            const elIcon = document.getElementById("iconCountdownState");
-            const containerDigits = document.getElementById("timerDigitsContainer");
-
-            function atualizarContador() {
+            const target = new Date("2026-10-25T08:00:00-03:00").getTime();
+            function tick() {
                 const agora = new Date().getTime();
-                const diffInicio = targetInicio - agora;
-                const diffFim = targetFim - agora;
+                const diff = target - agora;
+                if (diff > 0) {
+                    const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const horas = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const segundos = Math.floor((diff % (1000 * 60)) / 1000);
 
-                if (diffInicio > 0) {
-                    const dias = Math.floor(diffInicio / (1000 * 60 * 60 * 24));
-                    const horas = Math.floor((diffInicio % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const minutos = Math.floor((diffInicio % (1000 * 60 * 60)) / (1000 * 60));
-                    const segundos = Math.floor((diffInicio % (1000 * 60)) / 1000);
-
-                    if (elDias) elDias.innerText = String(dias).padStart(2, '0');
-                    if (elHoras) elHoras.innerText = String(horas).padStart(2, '0');
-                    if (elMinutos) elMinutos.innerText = String(minutos).padStart(2, '0');
-                    if (elSegundos) elSegundos.innerText = String(segundos).padStart(2, '0');
-
-                    if (elTitulo) elTitulo.innerText = "Contagem Regressiva para a Abertura das Urnas";
-                    if (elIcon) elIcon.className = "bi bi-alarm fs-4";
-                } 
-                else if (diffFim > 0) {
-                    const horas = Math.floor(diffFim / (1000 * 60 * 60));
-                    const minutos = Math.floor((diffFim % (1000 * 60 * 60)) / (1000 * 60));
-                    const segundos = Math.floor((diffFim % (1000 * 60)) / 1000);
-
-                    if (elDias) elDias.innerText = "00";
-                    if (elHoras) elHoras.innerText = String(horas).padStart(2, '0');
-                    if (elMinutos) elMinutos.innerText = String(minutos).padStart(2, '0');
-                    if (elSegundos) elSegundos.innerText = String(segundos).padStart(2, '0');
-
-                    if (elTitulo) elTitulo.innerHTML = `<span class="text-success"><i class="bi bi-broadcast me-1"></i>Votação em Andamento!</span> Urnas fecham em:`;
-                    if (elBadge) {
-                        elBadge.className = "badge bg-success text-white small px-2 py-1 rounded-pill fw-bold";
-                        elBadge.innerHTML = `<span class="pulse-nav me-1"></span> VOTAÇÃO EM ANDAMENTO (08H ÀS 17H)`;
-                    }
-                    if (elIcon) elIcon.className = "bi bi-hourglass-split fs-4 text-warning";
-                } 
-                else {
-                    if (elTitulo) elTitulo.innerHTML = `<span class="text-warning"><i class="bi bi-shield-check me-1"></i>Urnas Encerradas às 17h!</span> Apuração Oficial em Andamento`;
-                    if (elBadge) {
-                        elBadge.className = "badge bg-warning text-dark small px-2 py-1 rounded-pill fw-bold";
-                        elBadge.innerHTML = `<i class="bi bi-lightning-charge-fill me-1"></i> APURAÇÃO OFICIAL EM ANDAMENTO`;
-                    }
-                    if (elIcon) elIcon.className = "bi bi-check2-circle fs-4 text-success";
-
-                    if (containerDigits) {
-                        containerDigits.innerHTML = `
-                            <div class="badge bg-primary-subtle text-primary border border-primary px-3 py-2 fs-6 rounded-pill">
-                                <i class="bi bi-broadcast me-1"></i> Acompanhe os Votos ao Vivo Abaixo
-                            </div>`;
-                    }
+                    const elD = document.getElementById("cdDias");
+                    const elH = document.getElementById("cdHoras");
+                    const elM = document.getElementById("cdMinutos");
+                    const elS = document.getElementById("cdSegundos");
+                    if (elD) elD.innerText = String(dias).padStart(2, '0');
+                    if (elH) elH.innerText = String(horas).padStart(2, '0');
+                    if (elM) elM.innerText = String(minutos).padStart(2, '0');
+                    if (elS) elS.innerText = String(segundos).padStart(2, '0');
                 }
             }
-
-            atualizarContador();
-            setInterval(atualizarContador, 1000);
+            tick();
+            setInterval(tick, 1000);
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            // 1. Iniciar Contagem Regressiva
             iniciarContagemRegressiva2T();
 
-            // 2. Inicializar Mapa Leaflet
             if (window.MapaEleicoesLeaflet) {
                 MapaEleicoesLeaflet.inicializar("mapaInterativoLeaflet");
                 if (ufAtual === "sp") {
@@ -1285,12 +690,10 @@
                 }
             }
 
-            // 3. Carregar dados do mapa
             if (cargoAtual === "1") {
                 carregarMapaBrasil();
             }
 
-            // 4. Detecção Silenciosa de Geolocalização (Brasil -> Estado -> Cidade)
             if (window.GeoLocalizacaoService) {
                 GeoLocalizacaoService.aplicarTrilhaLocalidade(anoAtual, cargoAtual, ufAtual, municipioAtual);
             }

@@ -29,7 +29,7 @@
     <!-- Theme Pre-loader -->
     <script>
         (function() {
-            const savedTheme = localStorage.getItem('apuracao_theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+            const savedTheme = localStorage.getItem('apuracao_theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
     </script>
@@ -446,9 +446,34 @@
                     }
                 </div>
 
-                <div class="d-flex align-items-center gap-2 gap-md-3">
+                <div class="d-flex align-items-center gap-2 gap-md-2 flex-wrap">
+                    <!-- Botão Exterior (ZZ) -->
+                    <a href="?ano=@(apuracaoModel?.Ano ?? "2026")&cargo=@(apuracaoModel?.CargoCodigo ?? "1")&uf=zz" 
+                       class="btn btn-sm btn-outline-info d-none d-lg-inline-flex align-items-center gap-1 py-1 px-2 small rounded-pill" 
+                       title="Ver votação dos brasileiros no exterior (ZZ)">
+                        <i class="bi bi-globe-americas"></i>
+                        <span>Exterior</span>
+                    </a>
+
+                    <!-- Botão Compartilhar -->
+                    <button class="btn btn-sm btn-outline-light border-opacity-25 d-inline-flex align-items-center gap-1 py-1 px-2 small rounded-pill" 
+                            onclick="compartilharDashboard()" 
+                            title="Compartilhar link da apuração">
+                        <i class="bi bi-share-fill text-primary"></i>
+                        <span class="d-none d-sm-inline">Compartilhar</span>
+                    </button>
+
+                    <!-- Botão Tela Cheia -->
+                    <button class="btn btn-sm btn-outline-light border-opacity-25 d-inline-flex align-items-center gap-1 py-1 px-2 small rounded-pill" 
+                            id="btnFullscreen" 
+                            onclick="toggleFullscreen()" 
+                            title="Alternar Modo Tela Cheia">
+                        <i class="bi bi-fullscreen" id="iconFullscreen"></i>
+                        <span class="d-none d-md-inline">Tela cheia</span>
+                    </button>
+
                     <!-- Botão Atualizar com auto-refresh -->
-                    <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1 px-3" id="btnRefresh" title="Consultar TSE agora">
+                    <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1 px-2 px-md-3 py-1 rounded-pill" id="btnRefresh" title="Consultar TSE agora">
                         <i class="bi bi-arrow-clockwise" id="iconRefresh"></i>
                         <span class="d-none d-sm-inline">Atualizar</span>
                         <span class="badge bg-primary text-white ms-1 font-mono" id="lblCountdown" style="font-size: 0.7rem;">30s</span>
@@ -544,28 +569,80 @@
         </div>
     </div>
 
-    <main role="main" class="flex-grow-1 py-4">
-        <div class="container-fluid px-3 px-lg-4">
+    <main role="main" class="flex-grow-1 py-1 py-md-2">
+        <div class="container-fluid px-2 px-md-3">
             @RenderBody()
         </div>
     </main>
 
-    <footer class="footer-custom">
-        <div class="container-fluid px-3 px-lg-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
-            <div>
-                &copy; 2026 <strong>apuracao.johnmarlon.com.br</strong> • Dados Oficiais do Tribunal Superior Eleitoral (TSE).
-            </div>
-            <div class="d-flex gap-3 align-items-center">
-                <span><i class="bi bi-server me-1"></i> Banco de Dados: MSSQL</span>
-                <span>•</span>
-                <span><i class="bi bi-geo-alt-fill me-1 text-danger"></i> Foco Regional: Campinas / SP</span>
+    <!-- Toast de Notificação (Compartilhamento e Alertas) -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 2000;">
+        <div id="toastNotificacao" class="toast align-items-center text-white bg-dark border-primary" role="alert" aria-live="assertive" aria-atomic="true" style="backdrop-filter: blur(12px);">
+            <div class="d-flex">
+                <div class="toast-body small d-flex align-items-center gap-2" id="toastMsg">
+                    <i class="bi bi-check-circle-fill text-success"></i>
+                    <span>Link copiado para a área de transferência!</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
-    </footer>
+    </div>
 
     <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        function toggleFullscreen() {
+            const icon = document.getElementById("iconFullscreen");
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.warn(err));
+                if (icon) icon.className = "bi bi-fullscreen-exit";
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    if (icon) icon.className = "bi bi-fullscreen";
+                }
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            const icon = document.getElementById("iconFullscreen");
+            if (!document.fullscreenElement && icon) {
+                icon.className = "bi bi-fullscreen";
+            }
+        });
+
+        async function compartilharDashboard() {
+            const url = window.location.href;
+            const titulo = document.title || "Apuração Presidencial 2026";
+            const texto = "Acompanhe em tempo real a apuração oficial do 2º Turno:";
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title: titulo, text: texto, url: url });
+                    return;
+                } catch (e) {
+                    if (e.name !== 'AbortError') console.warn(e);
+                }
+            }
+
+            // Fallback: copiar para área de transferência
+            try {
+                await navigator.clipboard.writeText(url);
+                mostrarToast("Link da apuração copiado com sucesso!");
+            } catch (err) {
+                mostrarToast("URL: " + url);
+            }
+        }
+
+        function mostrarToast(msg) {
+            const toastEl = document.getElementById('toastNotificacao');
+            const toastMsg = document.getElementById('toastMsg');
+            if (toastMsg) toastMsg.innerHTML = `<i class="bi bi-check-circle-fill text-success"></i> <span>${msg}</span>`;
+            if (toastEl) {
+                const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+                toast.show();
+            }
+        }
         function updateBallotCountdown() {
             const now = new Date();
             const target = new Date();
