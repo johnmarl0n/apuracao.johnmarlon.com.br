@@ -1,0 +1,660 @@
+@using apuracao.johnmarlon.com.br.Models
+@{
+    var apuracaoModel = ViewData.Model as ApuracaoViewModel;
+    bool isEleicaoAoVivo = apuracaoModel?.AoVivo ?? true;
+    bool isFinalizado = (apuracaoModel?.Finalizado ?? false) || (apuracaoModel?.PercentualTotalizado >= 100);
+    bool isHistorico = !isEleicaoAoVivo || isFinalizado || (apuracaoModel != null && apuracaoModel.Ano != "2026");
+    string pleitoBadge = apuracaoModel != null ? $"Pleito {apuracaoModel.Pleito} ({apuracaoModel.Ano})" : "Pleito 3220 (1º Turno)";
+}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Apuração Oficial TSE</title>
+    <!-- Favicon Oficial com Cache-Buster -->
+    <link rel="icon" type="image/svg+xml" href="~/favicon.svg?v=20261004" />
+    <link rel="icon" type="image/png" sizes="32x32" href="~/favicon.png?v=20261004" />
+    <link rel="icon" type="image/png" sizes="192x192" href="~/favicon-192.png?v=20261004" />
+    <link rel="shortcut icon" href="~/favicon.ico?v=20261004" />
+    <link rel="apple-touch-icon" href="~/favicon-192.png?v=20261004" />
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Theme Pre-loader -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('apuracao_theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    
+    <style>
+        :root {
+            --bg-body: #090d16;
+            --bg-surface: #111827;
+            --bg-card: rgba(17, 24, 39, 0.75);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --primary: #2563eb;
+            --primary-light: #60a5fa;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --text-main: #f9fafb;
+            --text-secondary: #9ca3af;
+            --navbar-bg: rgba(15, 23, 42, 0.85);
+            --chip-bg: rgba(255, 255, 255, 0.05);
+            --chip-border: rgba(255, 255, 255, 0.1);
+            --chip-text: #d1d5db;
+            --cand-card-bg: rgba(23, 31, 50, 0.65);
+            --code-bg: #0b0f19;
+            --map-ocean-bg: #0d1527;
+            --map-border: #38bdf8;
+        }
+
+        :root[data-theme="light"] {
+            --bg-body: #f1f5f9;
+            --bg-surface: #ffffff;
+            --bg-card: rgba(255, 255, 255, 0.94);
+            --border-card: rgba(0, 0, 0, 0.1);
+            --primary: #2563eb;
+            --primary-light: #1d4ed8;
+            --accent-green: #059669;
+            --accent-yellow: #d97706;
+            --text-main: #0f172a;
+            --text-secondary: #475569;
+            --navbar-bg: rgba(255, 255, 255, 0.92);
+            --chip-bg: rgba(0, 0, 0, 0.05);
+            --chip-border: rgba(0, 0, 0, 0.12);
+            --chip-text: #334155;
+            --cand-card-bg: #ffffff;
+            --code-bg: #f8fafc;
+            --map-ocean-bg: #e2e8f0;
+            --map-border: #0284c7;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.1) 0px, transparent 40%),
+                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 40%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            position: relative;
+        }
+
+        .navbar-custom {
+            background: var(--navbar-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-card);
+            padding: 0.85rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: background 0.3s ease, border-color 0.3s ease;
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 1.15rem;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-icon {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, #2563eb, #10b981);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+        }
+
+        .badge-live-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            border: 1px solid rgba(52, 211, 153, 0.25);
+        }
+
+        .pulse-nav {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #34d399;
+            box-shadow: 0 0 6px #34d399;
+            animation: navPulse 1.6s infinite;
+        }
+
+        @@keyframes navPulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        .badge-pill-tse {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .btn-theme-toggle {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            border: 1px solid var(--border-card);
+            padding: 0.4rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            min-height: 40px;
+            min-width: 40px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--primary-light);
+        }
+
+        .btn-history-nav {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary-light);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            padding: 0.4rem 0.85rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            cursor: pointer;
+            min-height: 40px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-history-nav:hover {
+            background: rgba(59, 130, 246, 0.2);
+            color: #ffffff;
+        }
+
+        .btn-logout {
+            background: rgba(239, 68, 68, 0.12);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            padding: 0.4rem 0.85rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            min-height: 40px;
+        }
+
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .footer-custom {
+            margin-top: auto;
+            border-top: 1px solid var(--border-card);
+            background: var(--navbar-bg);
+            padding: 1.25rem 0;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            transition: background 0.3s ease;
+        }
+
+        /* Glass Cards */
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-card);
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Mobile Adjustments (UI/UX Designer Skill) */
+        @@media (max-width: 768px) {
+            .navbar-custom {
+                padding: 0.6rem 0.8rem;
+            }
+            .brand-logo span {
+                font-size: 1rem;
+            }
+            .brand-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 0.95rem;
+            }
+            .btn-logout, .btn-history-nav, .btn-theme-toggle {
+                padding: 0.35rem 0.55rem;
+                min-height: 44px;
+            }
+        }
+        /* Global Light Mode High-Contrast Rules (uiux-designer) */
+        [data-theme="light"] {
+            --bg-body: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-card: #ffffff;
+            --border-card: #e2e8f0;
+            --primary: #2563eb;
+            --primary-light: #1d4ed8;
+            --accent-green: #059669;
+            --accent-yellow: #d97706;
+            --text-main: #0f172a;
+            --text-secondary: #475569;
+            --navbar-bg: rgba(255, 255, 255, 0.96);
+            --chip-bg: #f1f5f9;
+            --chip-border: #cbd5e1;
+            --chip-text: #1e293b;
+            --cand-card-bg: #ffffff;
+            --code-bg: #f8fafc;
+            --map-ocean-bg: #f1f5f9;
+            --map-border: #0284c7;
+        }
+
+        [data-theme="light"] body {
+            background-color: #f8fafc;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.05) 0px, transparent 40%),
+                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.04) 0px, transparent 40%);
+            color: #0f172a;
+        }
+
+        [data-theme="light"] .brand-logo {
+            color: #0f172a !important;
+        }
+
+        [data-theme="light"] .text-white:not(.badge):not(.btn):not(.cand-badge-num):not([style*="background-color"]) {
+            color: #0f172a !important;
+        }
+
+        /* Ensure all solid badges and pills always have crisp white text */
+        .badge.text-white,
+        .badge.bg-primary,
+        .badge.bg-success,
+        .badge.bg-danger,
+        .badge.bg-dark,
+        .badge[style*="background-color"],
+        [data-theme="light"] .badge.text-white,
+        [data-theme="light"] .badge[style*="background-color"],
+        [data-theme="light"] .placar-cand-pill .badge {
+            color: #ffffff !important;
+        }
+
+        [data-theme="light"] .text-secondary {
+            color: #475569 !important;
+        }
+
+        [data-theme="light"] .text-muted {
+            color: #64748b !important;
+        }
+
+        [data-theme="light"] h1, 
+        [data-theme="light"] h2, 
+        [data-theme="light"] h3, 
+        [data-theme="light"] h4, 
+        [data-theme="light"] h5, 
+        [data-theme="light"] h6 {
+            color: #0f172a !important;
+        }
+
+        [data-theme="light"] .glass-card {
+            background: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.03) !important;
+        }
+
+        [data-theme="light"] .badge-pill-tse {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #334155;
+        }
+
+        [data-theme="light"] .btn-theme-toggle {
+            background: #f1f5f9;
+            color: #0f172a;
+            border-color: #cbd5e1;
+        }
+
+        [data-theme="light"] .btn-theme-toggle:hover {
+            background: #e2e8f0;
+            color: #2563eb;
+        }
+
+        [data-theme="light"] .btn-history-nav {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-color: #bfdbfe;
+        }
+
+        [data-theme="light"] .btn-history-nav:hover {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        [data-theme="light"] .modal-content {
+            background: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            color: #0f172a !important;
+        }
+
+        [data-theme="light"] .modal-content .text-white {
+            color: #0f172a !important;
+        }
+
+        [data-theme="light"] .btn-close-white {
+            filter: invert(1) grayscale(100%) brightness(20%) !important;
+        }
+
+        [data-theme="light"] .footer-custom {
+            background: #ffffff;
+            border-color: #e2e8f0;
+            color: #64748b;
+        }
+
+        [data-theme="light"] .footer-custom strong {
+            color: #0f172a;
+        }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <header>
+        <nav class="navbar-custom">
+            <div class="container-fluid d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2 gap-md-3">
+                    <a class="brand-logo" asp-controller="Home" asp-action="Index">
+                        <div class="brand-icon">
+                            <i class="bi bi-bar-chart-fill"></i>
+                        </div>
+                        <div class="d-flex flex-column">
+                            <span class="lh-1">Apuração 2026</span>
+                            <small class="text-secondary fw-normal" style="font-size: 0.7rem;">Presidência da República</small>
+                        </div>
+                    </a>
+                    @if (isEleicaoAoVivo && !isFinalizado)
+                    {
+                        <span class="badge-live-nav">
+                            <span class="pulse-nav"></span>
+                            <span>2º TURNO AO VIVO</span>
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 small rounded-pill">
+                            <i class="bi bi-check-circle-fill text-success me-1"></i>
+                            <span>Consolidado</span>
+                        </span>
+                    }
+                    <span class="badge-pill-tse d-none d-xl-inline-block">
+                        <i class="bi bi-shield-check me-1 text-primary"></i> @pleitoBadge
+                    </span>
+                    @if (!isHistorico)
+                    {
+                        <span class="badge-pill-tse d-none d-md-inline-flex align-items-center gap-1 border-warning text-warning" id="navClosingClock">
+                            <i class="bi bi-clock-history"></i>
+                            <span id="navClosingText">Calculando...</span>
+                        </span>
+                    }
+                </div>
+
+                <div class="d-flex align-items-center gap-2 gap-md-3">
+                    <!-- Botão Atualizar com auto-refresh -->
+                    <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1 px-3" id="btnRefresh" title="Consultar TSE agora">
+                        <i class="bi bi-arrow-clockwise" id="iconRefresh"></i>
+                        <span class="d-none d-sm-inline">Atualizar</span>
+                        <span class="badge bg-primary text-white ms-1 font-mono" id="lblCountdown" style="font-size: 0.7rem;">30s</span>
+                    </button>
+
+                    <!-- Toggle Claro / Escuro -->
+                    <button class="btn-theme-toggle" id="btnThemeToggle" onclick="toggleTheme()" title="Alternar Modo Claro / Escuro" aria-label="Alternar Tema">
+                        <i class="bi bi-sun-fill" id="themeIcon"></i>
+                    </button>
+
+                    <!-- Botão Menu / Gaveta Mais -->
+                    <button class="btn-history-nav" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu" aria-controls="offcanvasMenu" title="Menu, Histórico e Dados da API">
+                        <i class="bi bi-grid-fill"></i>
+                        <span class="d-none d-sm-inline">Menu</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Gaveta Lateral Offcanvas (Base Histórica, API e Informações) -->
+    <div class="offcanvas offcanvas-end glass-card border-start border-secondary border-opacity-25" tabindex="-1" id="offcanvasMenu" aria-labelledby="offcanvasMenuLabel" style="width: min(380px, 92vw);">
+        <div class="offcanvas-header border-bottom border-secondary border-opacity-25 pb-3">
+            <div class="d-flex align-items-center gap-2">
+                <div class="brand-icon" style="width: 28px; height: 28px; font-size: 0.9rem;">
+                    <i class="bi bi-sliders"></i>
+                </div>
+                <h5 class="offcanvas-title fw-bold text-white h6 mb-0" id="offcanvasMenuLabel">Opções & Histórico</h5>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column gap-4 py-3">
+            <!-- Seção 1: Eleições Gerais Anteriores -->
+            <div>
+                <span class="text-uppercase small fw-bold text-secondary d-block mb-2">
+                    <i class="bi bi-archive-fill text-info me-1"></i> Base Histórica (2002 a 2022)
+                </span>
+                <p class="small text-secondary mb-3" style="font-size: 0.8rem;">
+                    Consulte os resultados oficiais homologados das últimas eleições presidenciais brasileiras:
+                </p>
+                <div class="d-flex flex-column gap-2">
+                    <a href="/?ano=2022&cargo=1&uf=br" class="d-flex justify-content-between align-items-center p-2 rounded-2 text-decoration-none" style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-card);">
+                        <span class="small fw-semibold text-white"><i class="bi bi-calendar-event me-2 text-warning"></i>2022 (Lula x Bolsonaro)</span>
+                        <span class="badge bg-primary-subtle text-primary small">Ver</span>
+                    </a>
+                    <a href="/?ano=2018&cargo=1&uf=br" class="d-flex justify-content-between align-items-center p-2 rounded-2 text-decoration-none" style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-card);">
+                        <span class="small fw-semibold text-white"><i class="bi bi-calendar-event me-2 text-info"></i>2018 (Bolsonaro x Haddad)</span>
+                        <span class="badge bg-primary-subtle text-primary small">Ver</span>
+                    </a>
+                    <a href="/?ano=2014&cargo=1&uf=br" class="d-flex justify-content-between align-items-center p-2 rounded-2 text-decoration-none" style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-card);">
+                        <span class="small fw-semibold text-white"><i class="bi bi-calendar-event me-2 text-success"></i>2014 (Dilma x Aécio)</span>
+                        <span class="badge bg-primary-subtle text-primary small">Ver</span>
+                    </a>
+                    <a href="/?ano=2010&cargo=1&uf=br" class="d-flex justify-content-between align-items-center p-2 rounded-2 text-decoration-none" style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-card);">
+                        <span class="small fw-semibold text-white"><i class="bi bi-calendar-event me-2 text-primary"></i>2010 (Dilma x Serra)</span>
+                        <span class="badge bg-primary-subtle text-primary small">Ver</span>
+                    </a>
+                    <a href="/?ano=2006&cargo=1&uf=br" class="d-flex justify-content-between align-items-center p-2 rounded-2 text-decoration-none" style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-card);">
+                        <span class="small fw-semibold text-white"><i class="bi bi-calendar-event me-2 text-danger"></i>2006 (Lula x Alckmin)</span>
+                        <span class="badge bg-primary-subtle text-primary small">Ver</span>
+                    </a>
+                    <a href="/?ano=2002&cargo=1&uf=br" class="d-flex justify-content-between align-items-center p-2 rounded-2 text-decoration-none" style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-card);">
+                        <span class="small fw-semibold text-white"><i class="bi bi-calendar-event me-2 text-warning"></i>2002 (Lula x Serra)</span>
+                        <span class="badge bg-primary-subtle text-primary small">Ver</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Seção 2: API Pública Aberta -->
+            <div class="pt-2 border-top border-secondary border-opacity-25">
+                <span class="text-uppercase small fw-bold text-secondary d-block mb-1">
+                    <i class="bi bi-code-square text-primary me-1"></i> API Pública (JSON)
+                </span>
+                <p class="small text-secondary mb-2" style="font-size: 0.8rem;">
+                    Integração livre e aberta via cURL ou REST sem necessidade de chave:
+                </p>
+                <div class="p-2 rounded-2 font-mono small d-flex align-items-center justify-content-between gap-2" style="background: var(--code-bg); border: 1px solid var(--border-card); font-size: 0.75rem;">
+                    <span class="text-truncate">GET /api/apuracao/resumo?cargo=1&uf=br</span>
+                    <a href="/api/apuracao/resumo?cargo=1&uf=br" target="_blank" class="btn btn-link btn-sm p-0 text-primary" title="Abrir JSON">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Seção 3: Informações do Sistema -->
+            <div class="pt-2 border-top border-secondary border-opacity-25 mt-auto">
+                <div class="small text-secondary d-flex flex-column gap-1" style="font-size: 0.75rem;">
+                    <div><i class="bi bi-broadcast text-success me-1"></i> Fonte: <strong>Tribunal Superior Eleitoral (TSE)</strong></div>
+                    <div><i class="bi bi-clock-history me-1"></i> Cache em memória: <strong>20 segundos</strong></div>
+                    <div><i class="bi bi-shield-check text-primary me-1"></i> Acesso 100% público e gratuito</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main role="main" class="flex-grow-1 py-4">
+        <div class="container-fluid px-3 px-lg-4">
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="footer-custom">
+        <div class="container-fluid px-3 px-lg-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+            <div>
+                &copy; 2026 <strong>apuracao.johnmarlon.com.br</strong> • Dados Oficiais do Tribunal Superior Eleitoral (TSE).
+            </div>
+            <div class="d-flex gap-3 align-items-center">
+                <span><i class="bi bi-server me-1"></i> Banco de Dados: MSSQL</span>
+                <span>•</span>
+                <span><i class="bi bi-geo-alt-fill me-1 text-danger"></i> Foco Regional: Campinas / SP</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function updateBallotCountdown() {
+            const now = new Date();
+            const target = new Date();
+            target.setHours(17, 0, 0, 0); // 17:00 de hoje
+
+            const diff = target - now;
+            const elClock = document.getElementById("navClosingClock");
+            const elText = document.getElementById("navClosingText");
+            if (!elText) return;
+
+            if (diff > 0) {
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+                const pad = (n) => n.toString().padStart(2, '0');
+                elText.innerText = `Urnas fecham em ${pad(hours)}h ${pad(mins)}m ${pad(secs)}s`;
+            } else {
+                if (elClock) {
+                    elClock.classList.remove("border-warning", "text-warning");
+                    elClock.classList.add("border-success", "text-success");
+                }
+                elText.innerHTML = `<i class="bi bi-lock-fill me-1"></i> Urnas encerradas (17:00) • Apuração`;
+            }
+        }
+        function syncThemeIcon() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const icon = document.getElementById("themeIcon");
+            if (icon) {
+                if (currentTheme === 'light') {
+                    icon.className = "bi bi-moon-stars-fill text-primary";
+                } else {
+                    icon.className = "bi bi-sun-fill text-warning";
+                }
+            }
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', nextTheme);
+            localStorage.setItem('apuracao_theme', nextTheme);
+            syncThemeIcon();
+        }
+
+        async function sincronizarHistoricoModal() {
+            const btn = document.getElementById("btnSyncHistoricoModal");
+            const msg = document.getElementById("syncModalMsg");
+            if (!btn) return;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Sincronizando...`;
+            if (msg) {
+                msg.style.display = 'block';
+                msg.className = 'small text-muted mt-2';
+                msg.innerText = 'Consultando TSE e gravando snapshots no MSSQL SmartASP...';
+            }
+            try {
+                const res = await fetch('/api/apuracao/historico/importar?token=tse_apuracao_token_9f83kd91a7', {
+                    method: 'POST',
+                    headers: {
+                        'X-Api-Token': 'tse_apuracao_token_9f83kd91a7',
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await res.json().catch(() => ({ sucesso: false, mensagem: `HTTP ${res.status}: ${res.statusText}` }));
+                if (msg) {
+                    msg.style.display = 'block';
+                    msg.className = data.sucesso ? 'small text-success mt-2' : 'small text-danger mt-2';
+                    msg.innerText = data.mensagem || (data.sucesso ? 'Snapshots consolidados no SmartASP com sucesso!' : 'Erro na sincronização');
+                }
+            } catch (err) {
+                if (msg) {
+                    msg.style.display = 'block';
+                    msg.className = 'small text-danger mt-2';
+                    msg.innerText = 'Falha ao sincronizar com o banco: ' + (err.message || 'Erro de conexão.');
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="bi bi-arrow-repeat me-1"></i> Sincronizar Novamente`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            syncThemeIcon();
+            if (document.getElementById("navClosingClock")) {
+                updateBallotCountdown();
+                setInterval(updateBallotCountdown, 1000);
+            }
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,153 @@
+# ==============================================================================
+# .gitignore - apuracao.johnmarlon.com.br
+# Projeto ASP.NET Core 8 / C# / SmartASP MSSQL
+# Autor: John Dias
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. ARQUIVOS SENSÍVEIS, CREDENCIAIS E TOKENS (CRÍTICO)
+# ------------------------------------------------------------------------------
+# Arquivo principal contendo connection string do banco MSSQL de produção,
+# senhas de acesso mestra e tokens privados de API:
+appsettings.json
+appsettings.*.json
+!appsettings.example.json
+!appsettings.Development.json
+
+# Variáveis de ambiente e segredos locais
+.env
+.env.*
+*.env
+secrets.json
+.usersecrets/
+[Uu]ser[Ss]ecrets/
+
+# Certificados, chaves privadas e tokens de autenticação
+*.pfx
+*.p12
+*.cer
+*.crt
+*.pem
+*.key
+*.asc
+*.pub
+id_rsa*
+id_ed25519*
+
+# ------------------------------------------------------------------------------
+# 2. DIRETÓRIOS E PACOTES DE COMPILAÇÃO / PUBLICAÇÃO (.NET / C#)
+# ------------------------------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+publish/
+[Pp]ublish/
+out/
+dist/
+
+# Binários e bibliotecas compiladas
+*.dll
+*.exe
+*.pdb
+*.runtimeconfig.json
+*.runtimeconfig.dev.json
+*.deps.json
+*.so
+*.dylib
+
+# Pacotes e caches de pacotes
+*.nupkg
+*.snupkg
+project.assets.json
+project.nuget.cache
+*.nuget.props
+*.nuget.targets
+
+# ------------------------------------------------------------------------------
+# 3. VISUAL STUDIO, VS CODE E IDES
+# ------------------------------------------------------------------------------
+# Visual Studio
+.vs/
+*.csproj.user
+*.vbproj.user
+*.fsproj.user
+*.sqlproj.user
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.cache
+
+# Publish Profiles e Perfis de Deploy (Contêm credenciais/hosts)
+[Pp]roperties/[Pp]ublish[Pp]rofiles/
+*.pubxml
+*.pubxml.user
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# JetBrains Rider / IntelliJ
+.idea/
+*.iws
+*.iml
+
+# ------------------------------------------------------------------------------
+# 4. LOGS, CRASH DUMPS E ARQUIVOS TEMPORÁRIOS
+# ------------------------------------------------------------------------------
+*.log
+logs/
+[Ll]ogs/
+stdout/
+*.stdout
+*.stderr
+*.crash
+*.dmp
+*.dump
+
+# ------------------------------------------------------------------------------
+# 5. BANCOS DE DADOS LOCAIS, BACKUPS E DUMPS
+# ------------------------------------------------------------------------------
+*.mdf
+*.ldf
+*.ndf
+*.bak
+*.bacpac
+*.dacpac
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+
+# ------------------------------------------------------------------------------
+# 6. ARQUIVOS TEMPORÁRIOS DE SISTEMA OPERACIONAL
+# ------------------------------------------------------------------------------
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+.directory
+
+# ------------------------------------------------------------------------------
+# 7. ARQUIVOS TEMPORÁRIOS E DIRETÓRIOS DE AGENTES / ASSISTENTES
+# ------------------------------------------------------------------------------
+.agents/
+.gemini/
+scratch/
+[Tt]emp/
+[Tt]mp/
