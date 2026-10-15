@@ -54,6 +54,87 @@
             box-shadow: 0 0 16px rgba(37, 99, 235, 0.45);
         }
 
+        /* Countdown Card 2º Turno (Inspirado em seuimposto.com) */
+        .countdown-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 1rem;
+            box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(14px);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.25s ease;
+        }
+
+        .countdown-card:hover {
+            border-color: rgba(56, 189, 248, 0.45);
+        }
+
+        .countdown-card::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #38bdf8 0%, #2563eb 100%);
+        }
+
+        .time-digit-box {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.65rem;
+            min-width: 62px;
+            padding: 0.45rem 0.6rem;
+            text-align: center;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        .time-digit-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.55rem;
+            font-weight: 800;
+            line-height: 1.1;
+            color: #38bdf8;
+        }
+
+        .time-digit-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #94a3b8;
+            margin-top: 0.15rem;
+            font-weight: 600;
+        }
+
+        [data-theme="light"] .countdown-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%) !important;
+            border-color: #93c5fd !important;
+            box-shadow: 0 8px 24px -6px rgba(37, 99, 235, 0.12) !important;
+        }
+
+        [data-theme="light"] .countdown-card::before {
+            background: linear-gradient(180deg, #2563eb 0%, #10b981 100%) !important;
+        }
+
+        [data-theme="light"] .countdown-card h3 {
+            color: #0f172a !important;
+        }
+
+        [data-theme="light"] .time-digit-box {
+            background: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+        }
+
+        [data-theme="light"] .time-digit-val {
+            color: #1d4ed8 !important;
+        }
+
+        [data-theme="light"] .time-digit-label {
+            color: #475569 !important;
+        }
+
         /* Duelo Presidencial Card */
         .duel-card {
             background: linear-gradient(180deg, rgba(17, 24, 39, 0.85) 0%, rgba(11, 15, 25, 0.95) 100%);
@@ -378,6 +459,57 @@
             <i class="bi bi-arrow-clockwise" id="iconRefresh"></i>
             <span class="small fw-semibold">Atualizar</span>
         </button>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- CONTAGEM REGRESSIVA DO 2º TURNO (25/10)    -->
+<!-- ========================================== -->
+<div class="countdown-card p-3 p-md-4 mb-4" id="boxCountdown2T">
+    <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3 text-center text-lg-start">
+            <div class="d-none d-sm-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 52px; height: 52px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8;">
+                <i class="bi bi-alarm fs-4" id="iconCountdownState"></i>
+            </div>
+            <div>
+                <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-2 mb-1 flex-wrap">
+                    <span class="badge bg-primary text-white small px-2 py-1 rounded-pill fw-bold" id="badgeCountdownState">
+                        <span class="pulse-nav me-1"></span> 2º TURNO • DOMINGO, 25 DE OUTUBRO
+                    </span>
+                    <span class="small text-secondary" style="font-size: 0.75rem;">Horário de Brasília</span>
+                </div>
+                <h3 class="h5 fw-bold mb-1 text-white" id="tituloCountdown2T">
+                    Contagem Regressiva para a Abertura das Urnas
+                </h3>
+                <div class="small text-secondary d-flex align-items-center justify-content-center justify-content-lg-start gap-3 flex-wrap" style="font-size: 0.8rem;">
+                    <span><i class="bi bi-box-arrow-in-right text-success me-1"></i>Início: <strong>25/10 às 08:00</strong></span>
+                    <span>•</span>
+                    <span><i class="bi bi-box-arrow-right text-warning me-1"></i>Término da votação: <strong>25/10 às 17:00</strong></span>
+                    <span>•</span>
+                    <span><i class="bi bi-lightning-charge-fill text-info me-1"></i>Apuração oficial logo após o fechamento</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dígitos da Contagem Regressiva -->
+        <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap" id="timerDigitsContainer">
+            <div class="time-digit-box">
+                <div class="time-digit-val" id="cdDias">00</div>
+                <div class="time-digit-label">Dias</div>
+            </div>
+            <div class="time-digit-box">
+                <div class="time-digit-val" id="cdHoras">00</div>
+                <div class="time-digit-label">Horas</div>
+            </div>
+            <div class="time-digit-box">
+                <div class="time-digit-val" id="cdMinutos">00</div>
+                <div class="time-digit-label">Min</div>
+            </div>
+            <div class="time-digit-box">
+                <div class="time-digit-val text-warning" id="cdSegundos">00</div>
+                <div class="time-digit-label">Seg</div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1160,8 +1292,84 @@
             });
         }
 
+        // Contagem Regressiva para o 2º Turno das Eleições 2026 (25/10)
+        function iniciarContagemRegressiva2T() {
+            // Horário oficial de Brasília (UTC-3)
+            const targetInicio = new Date("2026-10-25T08:00:00-03:00").getTime();
+            const targetFim = new Date("2026-10-25T17:00:00-03:00").getTime();
+
+            const elDias = document.getElementById("cdDias");
+            const elHoras = document.getElementById("cdHoras");
+            const elMinutos = document.getElementById("cdMinutos");
+            const elSegundos = document.getElementById("cdSegundos");
+            const elTitulo = document.getElementById("tituloCountdown2T");
+            const elBadge = document.getElementById("badgeCountdownState");
+            const elIcon = document.getElementById("iconCountdownState");
+            const containerDigits = document.getElementById("timerDigitsContainer");
+
+            function atualizarContador() {
+                const agora = new Date().getTime();
+                const diffInicio = targetInicio - agora;
+                const diffFim = targetFim - agora;
+
+                if (diffInicio > 0) {
+                    // Fase 1: Antes da abertura das urnas (antes das 08h de 25/10)
+                    const dias = Math.floor(diffInicio / (1000 * 60 * 60 * 24));
+                    const horas = Math.floor((diffInicio % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutos = Math.floor((diffInicio % (1000 * 60 * 60)) / (1000 * 60));
+                    const segundos = Math.floor((diffInicio % (1000 * 60)) / 1000);
+
+                    if (elDias) elDias.innerText = String(dias).padStart(2, '0');
+                    if (elHoras) elHoras.innerText = String(horas).padStart(2, '0');
+                    if (elMinutos) elMinutos.innerText = String(minutos).padStart(2, '0');
+                    if (elSegundos) elSegundos.innerText = String(segundos).padStart(2, '0');
+
+                    if (elTitulo) elTitulo.innerText = "Contagem Regressiva para a Abertura das Urnas";
+                    if (elIcon) elIcon.className = "bi bi-alarm fs-4";
+                } 
+                else if (diffFim > 0) {
+                    // Fase 2: Durante o período de votação (entre 08h e 17h de 25/10)
+                    const horas = Math.floor(diffFim / (1000 * 60 * 60));
+                    const minutos = Math.floor((diffFim % (1000 * 60 * 60)) / (1000 * 60));
+                    const segundos = Math.floor((diffFim % (1000 * 60)) / 1000);
+
+                    if (elDias) elDias.innerText = "00";
+                    if (elHoras) elHoras.innerText = String(horas).padStart(2, '0');
+                    if (elMinutos) elMinutos.innerText = String(minutos).padStart(2, '0');
+                    if (elSegundos) elSegundos.innerText = String(segundos).padStart(2, '0');
+
+                    if (elTitulo) elTitulo.innerHTML = `<span class="text-success"><i class="bi bi-broadcast me-1"></i>Votação em Andamento!</span> Urnas fecham em:`;
+                    if (elBadge) {
+                        elBadge.className = "badge bg-success text-white small px-2 py-1 rounded-pill fw-bold";
+                        elBadge.innerHTML = `<span class="pulse-nav me-1"></span> VOTAÇÃO EM ANDAMENTO (08H ÀS 17H)`;
+                    }
+                    if (elIcon) elIcon.className = "bi bi-hourglass-split fs-4 text-warning";
+                } 
+                else {
+                    // Fase 3: Votação encerrada (após as 17h de 25/10)
+                    if (elTitulo) elTitulo.innerHTML = `<span class="text-warning"><i class="bi bi-shield-check me-1"></i>Urnas Encerradas às 17h!</span> Apuração Oficial em Andamento`;
+                    if (elBadge) {
+                        elBadge.className = "badge bg-warning text-dark small px-2 py-1 rounded-pill fw-bold";
+                        elBadge.innerHTML = `<i class="bi bi-lightning-charge-fill me-1"></i> APURAÇÃO OFICIAL EM ANDAMENTO`;
+                    }
+                    if (elIcon) elIcon.className = "bi bi-check2-circle fs-4 text-success";
+
+                    if (containerDigits) {
+                        containerDigits.innerHTML = `
+                            <div class="badge bg-primary-subtle text-primary border border-primary px-3 py-2 fs-6 rounded-pill">
+                                <i class="bi bi-broadcast me-1"></i> Acompanhe os Votos ao Vivo Abaixo
+                            </div>`;
+                    }
+                }
+            }
+
+            atualizarContador();
+            setInterval(atualizarContador, 1000);
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             configurarInteracaoMapaBrasil();
+            iniciarContagemRegressiva2T();
             if (cargoAtual === "1") {
                 carregarMapaBrasil();
             } else {
