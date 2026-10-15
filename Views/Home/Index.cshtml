@@ -17,11 +17,34 @@
 }
 
 @section Styles {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
         /* Tipografia de Destaque & Headings Inspirados em seuimposto.com */
         .font-display {
             font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             letter-spacing: -0.03em;
+        }
+
+        /* Estilos dos Marcadores e Tooltips do Leaflet */
+        .leaflet-tooltip-dark {
+            background: rgba(11, 15, 25, 0.92) !important;
+            border: 1px solid rgba(56, 189, 248, 0.45) !important;
+            border-radius: 8px !important;
+            padding: 8px 12px !important;
+            color: #ffffff !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8) !important;
+            backdrop-filter: blur(10px) !important;
+        }
+
+        .leaflet-tooltip-dark::before {
+            border-top-color: rgba(56, 189, 248, 0.45) !important;
+        }
+
+        .uf-label-pin {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
         }
 
         .filter-chip {
@@ -414,7 +437,7 @@
 
 <!-- Navegação e Filtro Rápido de Localidade (Drill-down Brasil -> SP -> Cidades) -->
 <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
-    <div class="d-flex align-items-center flex-wrap gap-2">
+    <div class="d-flex align-items-center flex-wrap gap-2" id="barraLocalidadesContainer">
         <span class="text-secondary small fw-bold text-uppercase me-1">
             <i class="bi bi-geo-alt-fill text-primary"></i> Localidade:
         </span>
@@ -942,6 +965,10 @@
 }
 
 @section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="~/js/geolocalizacao.js" asp-append-version="true"></script>
+    <script src="~/js/mapa-eleicoes.js" asp-append-version="true"></script>
+
     <script>
         const anoAtual = "@Model.Ano";
         const cargoAtual = "@Model.CargoCodigo";
@@ -1111,38 +1138,12 @@
                 .replace(/'/g, '&#039;');
         }
 
-        // Funções do Mapa
-        let dadosMapaCache = null;
-
-        function alternarVisaoMapa(visao) {
-            const boxBr = document.getElementById("visaoMapaBrasil");
-            const boxSp = document.getElementById("visaoMapaSp");
-            const btnBr = document.getElementById("btnToggleMapaBrasil");
-            const btnSp = document.getElementById("btnToggleMapaSp");
-            const lblTitulo = document.getElementById("lblMapaTitulo");
-
-            if (visao === 'brasil') {
-                if (boxBr) boxBr.style.display = "block";
-                if (boxSp) boxSp.style.display = "none";
-                if (btnBr) btnBr.classList.add("active");
-                if (btnSp) btnSp.classList.remove("active");
-                if (lblTitulo) lblTitulo.innerText = "Brasil (27 UFs)";
-            } else {
-                if (boxBr) boxBr.style.display = "none";
-                if (boxSp) boxSp.style.display = "block";
-                if (btnBr) btnBr.classList.remove("active");
-                if (btnSp) btnSp.classList.add("active");
-                if (lblTitulo) lblTitulo.innerText = "Estado de SP";
-            }
-        }
-
         async function carregarMapaBrasil() {
             try {
                 const res = await fetch(`/Home/DadosMapaBrasil?ano=${anoAtual}`);
                 if (!res.ok) return;
 
                 const data = await res.json();
-                dadosMapaCache = data;
                 if (!data || !data.estados) return;
 
                 // 1. Exterior ZZ
@@ -1187,13 +1188,9 @@
                     placarContainer.innerHTML = htmlPlacar;
                 }
 
-                // 3. Pintar os Estados no SVG
-                aplicarCoresMapaBrasil(data);
-
-                // 4. Contador de estados
-                const lblTotalizados = document.getElementById("lblEstadosApuradosCount");
-                if (lblTotalizados) {
-                    lblTotalizados.innerText = `Totalizados: ${data.estadosTotalizados || 0} / 27`;
+                // 3. Alimentar Mapa Leaflet
+                if (window.MapaEleicoesLeaflet) {
+                    MapaEleicoesLeaflet.renderizarEstados(data);
                 }
 
             } catch (err) {
@@ -1201,100 +1198,8 @@
             }
         }
 
-        function aplicarCoresMapaBrasil(data) {
-            if (!data || !data.estados) return;
-            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-            const paths = document.querySelectorAll("#svgMapaBrasil .estado-path");
-            
-            paths.forEach(path => {
-                const uf = path.getAttribute("data-uf");
-                if (!uf) return;
-
-                const estadoData = data.estados[uf] || data.estados[uf.toUpperCase()];
-                if (estadoData && estadoData.lider && estadoData.percentualTotalizado > 0) {
-                    path.style.fill = estadoData.lider.corPartido || "#3b82f6";
-                    path.style.stroke = isLight ? "#ffffff" : "#0f172a";
-                    path.style.strokeWidth = "1.5";
-                } else {
-                    path.style.fill = isLight ? "#e2e8f0" : "#1e293b";
-                    path.style.stroke = isLight ? "#cbd5e1" : "rgba(255,255,255,0.14)";
-                    path.style.strokeWidth = "1.2";
-                }
-            });
-        }
-
-        function configurarInteracaoMapaBrasil() {
-            const svg = document.getElementById("svgMapaBrasil");
-            const tooltip = document.getElementById("mapBrasilTooltip");
-            if (!svg || !tooltip) return;
-
-            const paths = svg.querySelectorAll(".estado-path");
-            paths.forEach(path => {
-                const uf = path.getAttribute("data-uf");
-
-                path.addEventListener("mouseenter", (e) => {
-                    if (!dadosMapaCache || !dadosMapaCache.estados) return;
-                    const estadoData = dadosMapaCache.estados[uf] || dadosMapaCache.estados[uf.toUpperCase()];
-                    if (!estadoData) return;
-
-                    document.getElementById("ttUfNome").innerText = estadoData.nome || uf;
-                    document.getElementById("ttUfPerc").innerText = `${(estadoData.percentualTotalizado || 0).toFixed(1)}% apurado`;
-
-                    const ttLiderBox = document.getElementById("ttLiderBox");
-                    const ttViceBox = document.getElementById("ttViceBox");
-
-                    if (estadoData.lider) {
-                        ttLiderBox.style.display = "flex";
-                        document.getElementById("ttLiderCor").style.backgroundColor = estadoData.lider.corPartido;
-                        document.getElementById("ttLiderNome").innerText = estadoData.lider.nomeUrna;
-                        document.getElementById("ttLiderPart").innerText = `(${estadoData.lider.partido})`;
-                        document.getElementById("ttLiderPerc").innerText = `${estadoData.lider.percentual.toFixed(2)}%`;
-                    } else {
-                        ttLiderBox.style.display = "none";
-                    }
-
-                    if (estadoData.viceLider) {
-                        ttViceBox.style.display = "flex";
-                        document.getElementById("ttViceCor").style.backgroundColor = estadoData.viceLider.corPartido;
-                        document.getElementById("ttViceNome").innerText = estadoData.viceLider.nomeUrna;
-                        document.getElementById("ttVicePart").innerText = `(${estadoData.viceLider.partido})`;
-                        document.getElementById("ttVicePerc").innerText = `${estadoData.viceLider.percentual.toFixed(2)}%`;
-                    } else {
-                        ttViceBox.style.display = "none";
-                    }
-
-                    tooltip.style.display = "block";
-                    tooltip.style.opacity = "1";
-                });
-
-                path.addEventListener("mousemove", (e) => {
-                    const wrapper = svg.closest(".svg-brasil-wrapper");
-                    if (!wrapper) return;
-                    const wrapRect = wrapper.getBoundingClientRect();
-
-                    const x = e.clientX - wrapRect.left;
-                    const y = e.clientY - wrapRect.top;
-
-                    tooltip.style.left = x + "px";
-                    tooltip.style.top = y + "px";
-                });
-
-                path.addEventListener("mouseleave", () => {
-                    tooltip.style.opacity = "0";
-                    setTimeout(() => {
-                        if (tooltip.style.opacity === "0") tooltip.style.display = "none";
-                    }, 150);
-                });
-
-                path.addEventListener("click", () => {
-                    window.location.href = `?ano=${anoAtual}&cargo=1&uf=${uf.toLowerCase()}`;
-                });
-            });
-        }
-
         // Contagem Regressiva para o 2º Turno das Eleições 2026 (25/10)
         function iniciarContagemRegressiva2T() {
-            // Horário oficial de Brasília (UTC-3)
             const targetInicio = new Date("2026-10-25T08:00:00-03:00").getTime();
             const targetFim = new Date("2026-10-25T17:00:00-03:00").getTime();
 
@@ -1313,7 +1218,6 @@
                 const diffFim = targetFim - agora;
 
                 if (diffInicio > 0) {
-                    // Fase 1: Antes da abertura das urnas (antes das 08h de 25/10)
                     const dias = Math.floor(diffInicio / (1000 * 60 * 60 * 24));
                     const horas = Math.floor((diffInicio % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                     const minutos = Math.floor((diffInicio % (1000 * 60 * 60)) / (1000 * 60));
@@ -1328,7 +1232,6 @@
                     if (elIcon) elIcon.className = "bi bi-alarm fs-4";
                 } 
                 else if (diffFim > 0) {
-                    // Fase 2: Durante o período de votação (entre 08h e 17h de 25/10)
                     const horas = Math.floor(diffFim / (1000 * 60 * 60));
                     const minutos = Math.floor((diffFim % (1000 * 60 * 60)) / (1000 * 60));
                     const segundos = Math.floor((diffFim % (1000 * 60)) / 1000);
@@ -1346,7 +1249,6 @@
                     if (elIcon) elIcon.className = "bi bi-hourglass-split fs-4 text-warning";
                 } 
                 else {
-                    // Fase 3: Votação encerrada (após as 17h de 25/10)
                     if (elTitulo) elTitulo.innerHTML = `<span class="text-warning"><i class="bi bi-shield-check me-1"></i>Urnas Encerradas às 17h!</span> Apuração Oficial em Andamento`;
                     if (elBadge) {
                         elBadge.className = "badge bg-warning text-dark small px-2 py-1 rounded-pill fw-bold";
@@ -1368,21 +1270,30 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            configurarInteracaoMapaBrasil();
+            // 1. Iniciar Contagem Regressiva
             iniciarContagemRegressiva2T();
-            if (cargoAtual === "1") {
-                carregarMapaBrasil();
-            } else {
-                alternarVisaoMapa('sp');
+
+            // 2. Inicializar Mapa Leaflet
+            if (window.MapaEleicoesLeaflet) {
+                MapaEleicoesLeaflet.inicializar("mapaInterativoLeaflet");
+                if (ufAtual === "sp") {
+                    MapaEleicoesLeaflet.alternarVisao('sp');
+                } else if (ufAtual === "zz") {
+                    MapaEleicoesLeaflet.alternarVisao('exterior');
+                } else {
+                    MapaEleicoesLeaflet.alternarVisao('brasil');
+                }
             }
 
-            // Alternar tema e repintar mapa
-            const observerTema = new MutationObserver(() => {
-                if (dadosMapaCache) {
-                    aplicarCoresMapaBrasil(dadosMapaCache);
-                }
-            });
-            observerTema.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+            // 3. Carregar dados do mapa
+            if (cargoAtual === "1") {
+                carregarMapaBrasil();
+            }
+
+            // 4. Detecção Silenciosa de Geolocalização (Brasil -> Estado -> Cidade)
+            if (window.GeoLocalizacaoService) {
+                GeoLocalizacaoService.aplicarTrilhaLocalidade(anoAtual, cargoAtual, ufAtual, municipioAtual);
+            }
         });
     </script>
 }
