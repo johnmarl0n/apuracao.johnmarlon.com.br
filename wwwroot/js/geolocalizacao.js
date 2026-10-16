@@ -159,7 +159,7 @@ const GeoLocalizacaoService = {
      * Aplica os chips na barra de localidade:
      * Brasil (Nacional) -> Estado do visitante -> Cidade do visitante
      */
-    async aplicarTrilhaLocalidade(anoAtual, cargoAtual, ufAtual, munAtual) {
+    async aplicarTrilhaLocalidade(anoAtual, cargoAtual, ufAtual, munAtual, nomeMunAtual) {
         const container = document.getElementById("barraLocalidadesContainer");
         if (!container) return;
 
@@ -199,9 +199,9 @@ const GeoLocalizacaoService = {
         if (loc.codigoMunicipio) {
             htmlChips += `
                 <a href="?ano=${anoAtual}&cargo=${cargoAtual}&uf=${estadoUf}${munParam}" 
-                   class="filter-chip chip-sua-cidade ${isCidadeAtiva ? 'active' : ''}" 
-                   style="${isCidadeAtiva ? '' : 'border-color: rgba(245, 158, 11, 0.45); background: rgba(245, 158, 11, 0.08);'}"
-                   title="Clique para ver a apuração em ${cidadeNome}">
+                    class="filter-chip chip-sua-cidade ${isCidadeAtiva ? 'active' : ''}" 
+                    style="${isCidadeAtiva ? '' : 'border-color: rgba(245, 158, 11, 0.45); background: rgba(245, 158, 11, 0.08);'}"
+                    title="Clique para ver a apuração em ${cidadeNome}">
                     <i class="bi bi-pin-map-fill text-warning"></i> ${cidadeNome} 
                     <span class="badge bg-warning text-dark font-mono px-1 py-0 ms-1" style="font-size:0.65rem;">Sua Cidade</span>
                 </a>
@@ -210,7 +210,19 @@ const GeoLocalizacaoService = {
 
         // Se o usuário selecionou outra cidade diferente da detectada
         if (munAtual && munAtual !== loc.codigoMunicipio) {
-            const nomeCidadeUrl = document.getElementById("lblNomeCidadeAtual")?.innerText || "Cidade Selecionada";
+            let nomeCidadeUrl = (nomeMunAtual && nomeMunAtual.trim().length > 0) 
+                ? nomeMunAtual 
+                : (document.getElementById("lblNomeCidadeAtual")?.innerText || munAtual);
+
+            // Se ainda for apenas o código numérico, tenta resolver o nome oficial no índice de municípios
+            if (/^\d+$/.test(nomeCidadeUrl)) {
+                const lista = await this.carregarIndiceMunicipios();
+                if (lista) {
+                    const item = lista.find(m => m[0] === munAtual);
+                    if (item) nomeCidadeUrl = item[2];
+                }
+            }
+
             htmlChips += `
                 <div class="filter-chip active d-flex align-items-center gap-2">
                     <i class="bi bi-building"></i>

@@ -271,10 +271,61 @@ const MapaEleicoesLeaflet = {
             this.renderizarMunicipiosEstado(this.cacheMalhas[ufUpper], ufUpper);
         } else {
             try {
-                const url = `https://servicodados.ibge.gov.br/api/v3/malhas/estados/${ibgeCode}?formato=application/vnd.geo+json&intrarregiao=municipio&qualidade=minima`;
-                const res = await fetch(url);
-                if (!res.ok) throw new Error("Falha ao baixar malha municipal");
-                const geoJson = await res.json();
+                const urlMalha = `https://servicodados.ibge.gov.br/api/v3/malhas/estados/${ibgeCode}?formato=application/vnd.geo+json&intrarregiao=municipio&qualidade=minima`;
+                const urlNomes = `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${ibgeCode}/municipios`;
+                
+                const [resMalha, resNomes] = await Promise.all([
+                    fetch(urlMalha),
+                    fetch(urlNomes).catch(() => null)
+                ]);
+                
+                if (!resMalha.ok) throw new Error("Falha ao baixar malha municipal");
+                const geoJson = await resMalha.json();
+
+                // Construir mapa de nomes por código de área do IBGE (7 dígitos)
+                const mapaIbgeNomes = {};
+                if (resNomes && resNomes.ok) {
+                    try {
+                        const listaIbge = await resNomes.json();
+                        listaIbge.forEach(m => {
+                            if (m.id && m.nome) {
+                                mapaIbgeNomes[String(m.id)] = m.nome;
+                            }
+                        });
+                    } catch (eNomes) {
+                        console.warn("Erro ao processar lista de nomes do IBGE:", eNomes);
+                    }
+                }
+
+                // Tentar obter também os códigos TSE a partir do índice local
+                let listaTse = window._municipiosData;
+                if (!listaTse && window.GeoLocalizacaoService) {
+                    listaTse = await window.GeoLocalizacaoService.carregarIndiceMunicipios().catch(() => null);
+                }
+                const mapaTsePorNome = {};
+                if (listaTse) {
+                    listaTse.forEach(item => {
+                        if (item[1] === ufUpper) {
+                            const nNorm = (item[2] || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+                            mapaTsePorNome[nNorm] = item[0];
+                        }
+                    });
+                }
+
+                geoJson.features?.forEach(f => {
+                    f.properties = f.properties || {};
+                    const codArea = String(f.properties.codarea || f.id || '');
+                    if (mapaIbgeNomes[codArea]) {
+                        f.properties.nome = mapaIbgeNomes[codArea];
+                    }
+                    if (f.properties.nome) {
+                        const nNorm = f.properties.nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+                        if (mapaTsePorNome[nNorm]) {
+                            f.properties.codTse = mapaTsePorNome[nNorm];
+                        }
+                    }
+                });
+
                 this.cacheMalhas[ufUpper] = geoJson;
                 this.renderizarMunicipiosEstado(geoJson, ufUpper);
             } catch (err) {
@@ -303,8 +354,10 @@ const MapaEleicoesLeaflet = {
                 };
             },
             onEachFeature: (feature, layer) => {
-                const nomeMun = feature.properties?.nome || `Município ${feature.properties?.codarea || ''}`;
                 const codArea = feature.properties?.codarea || '';
+                const codTse = feature.properties?.codTse || '';
+                const nomeMun = feature.properties?.nome || (codArea ? `Município ${codArea}` : 'Município');
+                const codParaApuracao = codTse || codArea;
 
                 const codNum = parseInt(String(codArea).slice(-3)) || 10;
                 const p1 = 40 + (codNum % 25);
@@ -336,7 +389,7 @@ const MapaEleicoesLeaflet = {
                 });
 
                 layer.on('click', () => {
-                    this.abrirModalZonasEleitorais(nomeMun, codArea, uf, p1, p2);
+                    this.abrirModalZonasEleitorais(nomeMun, codParaApuracao, uf, p1, p2);
                 });
             }
         });

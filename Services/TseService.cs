@@ -270,6 +270,7 @@ namespace apuracao.johnmarlon.com.br.Services
         private static readonly object _municipiosLock = new();
         private static List<MunicipioItem>? _todosMunicipios;
         private static Dictionary<string, MunicipioItem>? _municipiosPorCodigo;
+        private static Dictionary<string, MunicipioItem>? _municipiosPorNomeUf;
         private static Dictionary<string, List<MunicipioItem>>? _municipiosPorUf;
 
         public static void GarantirMunicipiosCarregados(string? basePath = null)
@@ -281,6 +282,7 @@ namespace apuracao.johnmarlon.com.br.Services
 
                 var lista = new List<MunicipioItem>();
                 var porCodigo = new Dictionary<string, MunicipioItem>(StringComparer.OrdinalIgnoreCase);
+                var porNomeUf = new Dictionary<string, MunicipioItem>(StringComparer.OrdinalIgnoreCase);
                 var porUf = new Dictionary<string, List<MunicipioItem>>(StringComparer.OrdinalIgnoreCase);
 
                 try
@@ -296,7 +298,7 @@ namespace apuracao.johnmarlon.com.br.Services
                     string? jsonFile = pathsToTry.FirstOrDefault(File.Exists);
                     if (jsonFile != null)
                     {
-                        var json = File.ReadAllText(jsonFile);
+                        var json = File.ReadAllText(jsonFile).Trim().Trim('\uFEFF');
                         using var doc = JsonDocument.Parse(json);
                         foreach (var el in doc.RootElement.EnumerateArray())
                         {
@@ -319,6 +321,12 @@ namespace apuracao.johnmarlon.com.br.Services
                                 porCodigo[cod] = item;
                             }
 
+                            var chaveNomeUf = $"{RemoverAcentos(nome)}|{uf.ToUpperInvariant()}";
+                            if (!porNomeUf.ContainsKey(chaveNomeUf))
+                            {
+                                porNomeUf[chaveNomeUf] = item;
+                            }
+
                             if (!porUf.TryGetValue(item.Uf, out var listaUf))
                             {
                                 listaUf = new List<MunicipioItem>();
@@ -328,9 +336,9 @@ namespace apuracao.johnmarlon.com.br.Services
                         }
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Fallback
+                    Console.WriteLine($"[AVISO] Erro ao carregar municipios.json: {ex.Message}");
                 }
 
                 if (lista.Count == 0)
@@ -339,11 +347,13 @@ namespace apuracao.johnmarlon.com.br.Services
                     foreach (var c in CidadesSp)
                     {
                         porCodigo[c.Codigo] = c;
+                        porNomeUf[$"{RemoverAcentos(c.Nome)}|{c.Uf.ToUpperInvariant()}"] = c;
                     }
                 }
 
                 _todosMunicipios = lista;
                 _municipiosPorCodigo = porCodigo;
+                _municipiosPorNomeUf = porNomeUf;
                 _municipiosPorUf = porUf;
             }
         }
@@ -388,21 +398,45 @@ namespace apuracao.johnmarlon.com.br.Services
             return _todosMunicipios ?? CidadesSp;
         }
 
-        public MunicipioItem? ObterMunicipioPorCodigo(string? codigo)
+        public MunicipioItem? ObterMunicipioPorCodigo(string? codigo, string? uf = null)
         {
             if (string.IsNullOrWhiteSpace(codigo)) return null;
             GarantirMunicipiosCarregados();
-            if (_municipiosPorCodigo != null && _municipiosPorCodigo.TryGetValue(codigo.Trim(), out var m))
+            var trimmed = codigo.Trim();
+
+            // 1. Tentar por código direto (TSE)
+            if (_municipiosPorCodigo != null && _municipiosPorCodigo.TryGetValue(trimmed, out var m))
             {
                 return m;
             }
+
+            // 2. Se for busca por nome com UF
+            if (!string.IsNullOrWhiteSpace(uf) && _municipiosPorNomeUf != null)
+            {
+                var chave = $"{RemoverAcentos(trimmed)}|{uf.Trim().ToUpperInvariant()}";
+                if (_municipiosPorNomeUf.TryGetValue(chave, out var mPorNome))
+                {
+                    return mPorNome;
+                }
+            }
+
+            // 3. Tentar busca aproximada
+            if (_todosMunicipios != null)
+            {
+                var norm = RemoverAcentos(trimmed);
+                var match = _todosMunicipios.FirstOrDefault(x => 
+                    (string.IsNullOrEmpty(uf) || x.Uf.Equals(uf, StringComparison.OrdinalIgnoreCase)) &&
+                    (RemoverAcentos(x.Nome).Equals(norm, StringComparison.OrdinalIgnoreCase) || x.Codigo == trimmed));
+                if (match != null) return match;
+            }
+
             return null;
         }
 
         public string? ObterNomeMunicipio(string? codigo, string? uf = null)
         {
             if (string.IsNullOrWhiteSpace(codigo)) return null;
-            var mun = ObterMunicipioPorCodigo(codigo);
+            var mun = ObterMunicipioPorCodigo(codigo, uf);
             return mun?.Nome;
         }
 

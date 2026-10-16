@@ -222,7 +222,7 @@
         {
             <div class="filter-chip active d-flex align-items-center gap-2">
                 <i class="bi bi-building"></i>
-                <span>@(Model.NomeMunicipio ?? Model.CodigoMunicipio)</span>
+                <span id="lblNomeCidadeAtual">@(Model.NomeMunicipio ?? Model.CodigoMunicipio)</span>
                 <a href="?ano=@Model.Ano&cargo=@Model.CargoCodigo&uf=@Model.Uf" class="text-white text-decoration-none ms-1" title="Remover filtro">
                     <i class="bi bi-x-circle-fill"></i>
                 </a>
@@ -249,7 +249,7 @@
         <div class="duel-side-card p-3 mb-3">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <span class="text-secondary small fw-semibold" style="font-size: 0.72rem;">
-                    Presidente • @(Model.Uf == "br" ? "Brasil" : Model.Uf.ToUpperInvariant())
+                    Presidente • @(!string.IsNullOrEmpty(Model.NomeMunicipio) ? $"{Model.NomeMunicipio} ({Model.Uf.ToUpperInvariant()})" : (Model.Uf == "br" ? "Brasil" : Model.Uf.ToUpperInvariant()))
                 </span>
                 <span class="badge bg-secondary-subtle text-secondary small py-0 px-2 rounded-pill font-mono" style="font-size: 0.68rem;" id="badgeStatusApuracao">
                     @(Model.Finalizado ? "• 2º turno · Definido" : "• 2º turno · Ao vivo")
@@ -730,7 +730,7 @@
             }
 
             if (window.GeoLocalizacaoService) {
-                GeoLocalizacaoService.aplicarTrilhaLocalidade(anoAtual, cargoAtual, ufAtual, municipioAtual);
+                GeoLocalizacaoService.aplicarTrilhaLocalidade(anoAtual, cargoAtual, ufAtual, municipioAtual, '@(Model.NomeMunicipio ?? "")');
             }
         });
     </script>
