@@ -502,8 +502,15 @@ const MapaEleicoesLeaflet = {
         const btnAbrirMun = document.getElementById("btnModalAbrirApuracaoMun");
         if (btnAbrirMun) {
             btnAbrirMun.onclick = () => {
-                const ano = window.anoAtual || '2026';
-                window.location.href = `?ano=${ano}&cargo=1&uf=${uf.toLowerCase()}&municipio=${cod}`;
+                if (typeof window.navegarParaCidadeSemReload === 'function') {
+                    window.navegarParaCidadeSemReload(nomeMun, cod, uf);
+                } else {
+                    const bsModal = bootstrap.Modal.getInstance(modalEl);
+                    if (bsModal) bsModal.hide();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    const ano = window.anoAtual || '2026';
+                    window.location.href = `?ano=${ano}&cargo=1&uf=${uf.toLowerCase()}&municipio=${cod}`;
+                }
             };
         }
 

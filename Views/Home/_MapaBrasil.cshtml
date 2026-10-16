@@ -245,7 +245,7 @@
                     <i class="bi bi-shield-check text-success me-1"></i> Dados oficiais de totalização da Justiça Eleitoral
                 </span>
                 <button type="button" class="btn btn-sm btn-primary px-3 rounded-pill" id="btnModalAbrirApuracaoMun">
-                    <i class="bi bi-box-arrow-up-right me-1"></i> Ver Página Completa Deste Município
+                    <i class="bi bi-arrow-up-circle-fill me-1"></i> Ver a Página da Cidade
                 </button>
             </div>
         </div>
@@ -410,6 +410,19 @@
         },
 
         selecionar(codigo, uf) {
+            if (typeof window.navegarParaCidadeSemReload === 'function') {
+                let nome = codigo;
+                if (!codigo) {
+                    nome = (uf && uf.toLowerCase() !== 'br') ? `Estado de ${uf.toUpperCase()}` : 'Brasil';
+                } else if (this.indiceIndexado) {
+                    const item = this.indiceIndexado.find(x => x.cod === codigo);
+                    if (item) nome = item.nome;
+                }
+                this.limpar();
+                window.navegarParaCidadeSemReload(nome, codigo, uf);
+                return;
+            }
+
             const url = new URL(window.location.href);
             url.searchParams.set('ano', '@Model.Ano');
             url.searchParams.set('cargo', '@Model.CargoCodigo');

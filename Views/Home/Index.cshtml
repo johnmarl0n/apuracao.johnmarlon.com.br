@@ -278,7 +278,7 @@
         <!-- Card Principal da Disputa Presidencial -->
         <div class="duel-side-card p-3 mb-3">
             <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="text-secondary small fw-semibold" style="font-size: 0.72rem;">
+                <span class="text-secondary small fw-semibold" style="font-size: 0.72rem;" id="lblDuelLocalidadeSubtitulo">
                     Presidente • @(!string.IsNullOrEmpty(Model.NomeMunicipio) ? $"{Model.NomeMunicipio} ({Model.Uf.ToUpperInvariant()})" : (Model.Uf == "br" ? "Brasil" : Model.Uf.ToUpperInvariant()))
                 </span>
                 <span class="badge bg-secondary-subtle text-secondary small py-0 px-2 rounded-pill font-mono" style="font-size: 0.68rem;" id="badgeStatusApuracao">
@@ -613,10 +613,63 @@
     <script src="~/js/mapa-eleicoes.js" asp-append-version="true"></script>
 
     <script>
-        const anoAtual = "@Model.Ano";
-        const cargoAtual = "@Model.CargoCodigo";
-        const ufAtual = "@Model.Uf";
-        const municipioAtual = "@(Model.CodigoMunicipio ?? "")";
+        let anoAtual = "@Model.Ano";
+        let cargoAtual = "@Model.CargoCodigo";
+        let ufAtual = "@Model.Uf";
+        let municipioAtual = "@(Model.CodigoMunicipio ?? "")";
+        window.anoAtual = anoAtual;
+        window.cargoAtual = cargoAtual;
+        window.ufAtual = ufAtual;
+        window.municipioAtual = municipioAtual;
+
+        // Navegação fluida para município sem recarregar a tela (SPA) e subindo suavemente
+        window.navegarParaCidadeSemReload = async function(nomeMun, cod, uf) {
+            // 1. Fechar modal de zonas se aberto
+            const modalEl = document.getElementById("modalZonasEleitorais");
+            if (modalEl) {
+                const bsModal = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
+                if (bsModal) bsModal.hide();
+            }
+
+            // 2. Subir suavemente até o topo da tela
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // 3. Atualizar URL no histórico sem refresh
+            const ufLimpa = (uf || 'sp').toLowerCase();
+            const ano = window.anoAtual || '2026';
+            const novaUrl = cod ? `?ano=${ano}&cargo=1&uf=${ufLimpa}&municipio=${cod}` : `?ano=${ano}&cargo=1&uf=${ufLimpa}`;
+            window.history.pushState({ path: novaUrl }, '', novaUrl);
+
+            // 4. Atualizar o cabeçalho da disputa presidencial
+            const elSub = document.getElementById("lblDuelLocalidadeSubtitulo");
+            if (elSub) {
+                elSub.innerText = cod ? `Presidente • ${nomeMun} (${ufLimpa.toUpperCase()})` : `Presidente • ${ufLimpa.toUpperCase()}`;
+            }
+
+            // 5. Atualizar trilha de chips de localidade
+            if (window.GeoLocalizacaoService) {
+                window.GeoLocalizacaoService.aplicarTrilhaLocalidade(ano, '1', ufLimpa, cod, nomeMun);
+            }
+
+            // 6. Atualizar variáveis de estado e buscar dados via AJAX
+            ufAtual = ufLimpa;
+            municipioAtual = cod || "";
+            window.ufAtual = ufLimpa;
+            window.municipioAtual = cod || "";
+
+            await atualizarDados();
+        };
+
+        window.addEventListener('popstate', () => {
+            const params = new URLSearchParams(window.location.search);
+            const m = params.get('municipio') || '';
+            const u = params.get('uf') || 'br';
+            ufAtual = u;
+            municipioAtual = m;
+            window.ufAtual = u;
+            window.municipioAtual = m;
+            atualizarDados();
+        });
 
         let countdown = 30;
         const btnRefresh = document.getElementById("btnRefresh");
