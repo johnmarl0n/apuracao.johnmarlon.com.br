@@ -529,6 +529,21 @@
             color: #0f172a;
         }
 
+        /* Fallback de Tela Cheia / Modo Maximizado */
+        body.app-fullscreen-active {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 99999 !important;
+            background-color: var(--bg-body) !important;
+            overflow-y: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
     </style>
     @await RenderSectionAsync("Styles", required: false)
 </head>
@@ -595,7 +610,7 @@
                             onclick="toggleFullscreen()" 
                             title="Alternar Modo Tela Cheia">
                         <i class="bi bi-fullscreen text-secondary" id="iconFullscreen"></i>
-                        <span class="d-none d-md-inline">Tela cheia</span>
+                        <span class="d-none d-md-inline" id="lblFullscreen">Tela cheia</span>
                     </button>
 
                     <!-- Botão Atualizar com auto-refresh -->
@@ -717,23 +732,88 @@
     <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function toggleFullscreen() {
+        function isFullscreenActive() {
+            return !!(document.fullscreenElement || 
+                      document.webkitFullscreenElement || 
+                      document.mozFullScreenElement || 
+                      document.msFullscreenElement ||
+                      document.body.classList.contains('app-fullscreen-active'));
+        }
+
+        function updateFullscreenUi(active) {
             const icon = document.getElementById("iconFullscreen");
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => console.warn(err));
-                if (icon) icon.className = "bi bi-fullscreen-exit";
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                    if (icon) icon.className = "bi bi-fullscreen";
-                }
+            const lbl = document.getElementById("lblFullscreen");
+            const btn = document.getElementById("btnFullscreen");
+            if (icon) {
+                icon.className = active ? "bi bi-fullscreen-exit text-primary" : "bi bi-fullscreen text-secondary";
+            }
+            if (lbl) {
+                lbl.innerText = active ? "Sair da tela cheia" : "Tela cheia";
+            }
+            if (btn) {
+                btn.setAttribute("title", active ? "Sair do modo tela cheia (Esc)" : "Alternar Modo Tela Cheia");
             }
         }
 
-        document.addEventListener('fullscreenchange', () => {
-            const icon = document.getElementById("iconFullscreen");
-            if (!document.fullscreenElement && icon) {
-                icon.className = "bi bi-fullscreen";
+        async function toggleFullscreen() {
+            const docEl = document.documentElement;
+            const isFull = isFullscreenActive();
+
+            if (!isFull) {
+                try {
+                    if (docEl.requestFullscreen) {
+                        await docEl.requestFullscreen();
+                    } else if (docEl.webkitRequestFullscreen) {
+                        await docEl.webkitRequestFullscreen();
+                    } else if (docEl.mozRequestFullScreen) {
+                        await docEl.mozRequestFullScreen();
+                    } else if (docEl.msRequestFullscreen) {
+                        await docEl.msRequestFullscreen();
+                    } else {
+                        throw new Error("Fullscreen API não suportada");
+                    }
+                    updateFullscreenUi(true);
+                } catch (err) {
+                    console.warn("Fullscreen nativo bloqueado ou indisponível, usando modo maximizado:", err);
+                    document.body.classList.add('app-fullscreen-active');
+                    updateFullscreenUi(true);
+                }
+            } else {
+                try {
+                    if (document.exitFullscreen && document.fullscreenElement) {
+                        await document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen && document.webkitFullscreenElement) {
+                        await document.webkitExitFullscreen();
+                    } else if (document.mozCancelFullScreen && document.mozFullScreenElement) {
+                        await document.mozCancelFullScreen();
+                    } else if (document.msExitFullscreen && document.msFullscreenElement) {
+                        await document.msExitFullscreen();
+                    }
+                } catch (e) {
+                    console.warn(e);
+                }
+                document.body.classList.remove('app-fullscreen-active');
+                updateFullscreenUi(false);
+            }
+        }
+
+        ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(ev => {
+            document.addEventListener(ev, () => {
+                const active = !!(document.fullscreenElement || 
+                                  document.webkitFullscreenElement || 
+                                  document.mozFullScreenElement || 
+                                  document.msFullscreenElement);
+                if (!active) {
+                    document.body.classList.remove('app-fullscreen-active');
+                }
+                updateFullscreenUi(active);
+            });
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.body.classList.contains('app-fullscreen-active')) {
+                document.body.classList.remove('app-fullscreen-active');
+                updateFullscreenUi(false);
             }
         });
 
@@ -853,6 +933,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             syncThemeIcon();
+            updateFullscreenUi(isFullscreenActive());
             if (document.getElementById("navClosingClock")) {
                 updateBallotCountdown();
                 setInterval(updateBallotCountdown, 1000);
