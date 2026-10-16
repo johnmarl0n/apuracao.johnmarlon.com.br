@@ -109,6 +109,13 @@ const MapaEleicoesLeaflet = {
 
         const observer = new MutationObserver(() => this.atualizarTileLayer());
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+        if (window.ResizeObserver) {
+            const ro = new ResizeObserver(() => {
+                if (this.map) this.map.invalidateSize();
+            });
+            ro.observe(el);
+        }
     },
 
     atualizarTileLayer() {

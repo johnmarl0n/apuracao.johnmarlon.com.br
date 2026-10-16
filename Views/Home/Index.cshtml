@@ -223,6 +223,65 @@
         .border-themed {
             border-color: var(--border-card-subtle) !important;
         }
+
+        /* Proporções customizadas do Dashboard (Painel lateral direito reduzido em 15-20%) */
+        @@media (min-width: 992px) {
+            .dashboard-layout-row {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+            }
+            .dashboard-col-left {
+                flex: 0 0 31% !important;
+                max-width: 31% !important;
+                width: 31% !important;
+            }
+            .dashboard-col-center {
+                flex: 0 0 49% !important;
+                max-width: 49% !important;
+                width: 49% !important;
+            }
+            .dashboard-col-right {
+                flex: 0 0 20% !important;
+                max-width: 20% !important;
+                width: 20% !important;
+            }
+        }
+
+        @@media (min-width: 1200px) {
+            .dashboard-col-left {
+                flex: 0 0 26% !important;
+                max-width: 26% !important;
+                width: 26% !important;
+            }
+            .dashboard-col-center {
+                flex: 0 0 55% !important;
+                max-width: 55% !important;
+                width: 55% !important;
+            }
+            .dashboard-col-right {
+                flex: 0 0 19% !important;
+                max-width: 19% !important;
+                width: 19% !important;
+            }
+        }
+
+        @@media (min-width: 1600px) {
+            .dashboard-col-left {
+                flex: 0 0 24% !important;
+                max-width: 24% !important;
+                width: 24% !important;
+            }
+            .dashboard-col-center {
+                flex: 0 0 58% !important;
+                max-width: 58% !important;
+                width: 58% !important;
+            }
+            .dashboard-col-right {
+                flex: 0 0 18% !important;
+                max-width: 18% !important;
+                width: 18% !important;
+            }
+        }
     </style>
 }
 
@@ -270,11 +329,11 @@
 <!-- ========================================================================= -->
 <!-- DASHBOARD PROFISSIONAL: 3 COLUNAS (DUELO ESQUERDA | MAPA CENTRO | FEED DIR) -->
 <!-- ========================================================================= -->
-<div class="row g-3 mb-3">
+<div class="row g-3 mb-3 dashboard-layout-row">
     <!-- ========================================== -->
     <!-- COLUNA ESQUERDA: CARD DUELO & EVOLUÇÃO     -->
     <!-- ========================================== -->
-    <div class="col-12 col-xl-3 col-lg-4">
+    <div class="col-12 col-xl-3 col-lg-4 dashboard-col-left">
         <!-- Card Principal da Disputa Presidencial -->
         <div class="duel-side-card p-3 mb-3">
             <div class="d-flex align-items-center justify-content-between mb-2">
@@ -463,14 +522,14 @@
     <!-- ========================================== -->
     <!-- COLUNA CENTRAL: MAPA & FILTROS & SCRUBBER  -->
     <!-- ========================================== -->
-    <div class="col-12 col-xl-6 col-lg-5">
+    <div class="col-12 col-xl-6 col-lg-5 dashboard-col-center">
         @await Html.PartialAsync("_MapaBrasil", Model)
     </div>
 
     <!-- ========================================== -->
     <!-- COLUNA DIREITA: POR REGIÃO & FEED AO VIVO  -->
     <!-- ========================================== -->
-    <div class="col-12 col-xl-3 col-lg-3">
+    <div class="col-12 col-xl-3 col-lg-3 dashboard-col-right">
         <!-- Card 1: Por Região (Quem lidera para presidente) -->
         <div class="sidebar-card p-3 mb-3">
             <div class="d-flex align-items-center justify-content-between mb-2">
@@ -478,76 +537,76 @@
                 <span class="text-secondary" style="font-size: 0.7rem;">Quem lidera</span>
             </div>
 
-            <div class="d-flex flex-column gap-2" style="font-size: 0.78rem;">
+            <div class="d-flex flex-column gap-2" style="font-size: 0.76rem;">
                 <!-- Norte -->
                 <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="fw-semibold region-name" style="width: 75px;">Norte</span>
+                        <span class="fw-semibold region-name">Norte</span>
                         <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
                     </div>
                     <div class="d-flex align-items-center gap-1 font-mono">
-                        <span class="badge" style="background: @cor2; color: #fff;">PL 49,2%</span>
-                        <span class="text-info small" style="font-size: 0.7rem;">+3,7</span>
+                        <span class="badge" style="background: @cor2; color: #fff; font-size: 0.7rem;">PL 49,2%</span>
+                        <span class="text-info small" style="font-size: 0.68rem;">+3,7</span>
                     </div>
                 </div>
 
                 <!-- Nordeste -->
                 <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="fw-semibold region-name" style="width: 75px;">Nordeste</span>
+                        <span class="fw-semibold region-name">Nordeste</span>
                         <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
                     </div>
                     <div class="d-flex align-items-center gap-1 font-mono">
-                        <span class="badge" style="background: @cor1; color: #fff;">PT 63,8%</span>
-                        <span class="text-danger small" style="font-size: 0.7rem;">+27,6</span>
+                        <span class="badge" style="background: @cor1; color: #fff; font-size: 0.7rem;">PT 63,8%</span>
+                        <span class="text-danger small" style="font-size: 0.68rem;">+27,6</span>
                     </div>
                 </div>
 
                 <!-- Centro-Oeste -->
                 <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="fw-semibold region-name" style="width: 75px;">Centro-O.</span>
+                        <span class="fw-semibold region-name">Centro-O.</span>
                         <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
                     </div>
                     <div class="d-flex align-items-center gap-1 font-mono">
-                        <span class="badge" style="background: @cor2; color: #fff;">PL 56,5%</span>
-                        <span class="text-info small" style="font-size: 0.7rem;">+13,0</span>
+                        <span class="badge" style="background: @cor2; color: #fff; font-size: 0.7rem;">PL 56,5%</span>
+                        <span class="text-info small" style="font-size: 0.68rem;">+13,0</span>
                     </div>
                 </div>
 
                 <!-- Sudeste -->
                 <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="fw-semibold region-name" style="width: 75px;">Sudeste</span>
+                        <span class="fw-semibold region-name">Sudeste</span>
                         <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
                     </div>
                     <div class="d-flex align-items-center gap-1 font-mono">
-                        <span class="badge" style="background: @cor2; color: #fff;">PL 51,4%</span>
-                        <span class="text-info small" style="font-size: 0.7rem;">+2,8</span>
+                        <span class="badge" style="background: @cor2; color: #fff; font-size: 0.7rem;">PL 51,4%</span>
+                        <span class="text-info small" style="font-size: 0.68rem;">+2,8</span>
                     </div>
                 </div>
 
                 <!-- Sul -->
                 <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="fw-semibold region-name" style="width: 75px;">Sul</span>
+                        <span class="fw-semibold region-name">Sul</span>
                         <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
                     </div>
                     <div class="d-flex align-items-center gap-1 font-mono">
-                        <span class="badge" style="background: @cor2; color: #fff;">PL 60,1%</span>
-                        <span class="text-info small" style="font-size: 0.7rem;">+20,2</span>
+                        <span class="badge" style="background: @cor2; color: #fff; font-size: 0.7rem;">PL 60,1%</span>
+                        <span class="text-info small" style="font-size: 0.68rem;">+20,2</span>
                     </div>
                 </div>
 
                 <!-- Exterior (ZZ) -->
                 <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="fw-semibold region-name" style="width: 75px;">Exterior</span>
+                        <span class="fw-semibold region-name">Exterior</span>
                         <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
                     </div>
                     <div class="d-flex align-items-center gap-1 font-mono">
-                        <span class="badge" style="background: @cor1; color: #fff;">PT 47,6%</span>
-                        <span class="text-danger small" style="font-size: 0.7rem;">+0,4</span>
+                        <span class="badge" style="background: @cor1; color: #fff; font-size: 0.7rem;">PT 47,6%</span>
+                        <span class="text-danger small" style="font-size: 0.68rem;">+0,4</span>
                     </div>
                 </div>
             </div>
