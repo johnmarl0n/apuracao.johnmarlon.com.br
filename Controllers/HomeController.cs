@@ -45,6 +45,49 @@ namespace apuracao.johnmarlon.com.br.Controllers
             return Json(mapa);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> DetectarLocalidade()
+        {
+            try
+            {
+                string? ip = null;
+                if (Request.Headers.TryGetValue("X-Forwarded-For", out var forwarded))
+                {
+                    ip = forwarded.ToString().Split(',')[0].Trim();
+                }
+                if (string.IsNullOrWhiteSpace(ip))
+                {
+                    ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+                }
+
+                bool isLocal = string.IsNullOrWhiteSpace(ip) || ip == "::1" || ip == "127.0.0.1" || ip.StartsWith("192.168.") || ip.StartsWith("10.");
+
+                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(3) };
+                client.DefaultRequestHeaders.Add("User-Agent", "ApuracaoEleicoes/1.0");
+
+                string url = isLocal ? "https://ipwho.is/" : $"https://ipwho.is/{ip}";
+                var res = await client.GetAsync(url);
+                if (res.IsSuccessStatusCode)
+                {
+                    var content = await res.Content.ReadAsStringAsync();
+                    return Content(content, "application/json");
+                }
+            }
+            catch
+            {
+                // Fallback silencioso
+            }
+
+            return Json(new
+            {
+                success = true,
+                country_code = "BR",
+                region_code = "SP",
+                region = "São Paulo",
+                city = "Campinas"
+            });
+        }
+
         [HttpPost]
         [HttpGet]
         public async Task<IActionResult> SincronizarHistorico()

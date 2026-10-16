@@ -92,11 +92,26 @@ const GeoLocalizacaoService = {
         const cached = this.obterCache();
         if (cached) return cached;
 
-        // 2. Consulta de IP gratuita e não bloqueante
+        // 2. Consulta de IP não-bloqueante (primeiro tenta endpoint interno same-origin, depois fallback com CORS)
         try {
-            const res = await fetch('https://ipapi.co/json/', { cache: 'no-store' });
-            if (!res.ok) throw new Error("Falha na consulta ipapi");
-            const data = await res.json();
+            let data = null;
+            try {
+                const res = await fetch('/Home/DetectarLocalidade', { cache: 'no-store' });
+                if (res.ok) {
+                    data = await res.json();
+                }
+            } catch (e) {
+                // Ignore e tenta fallback
+            }
+
+            if (!data || !data.country_code) {
+                const resFallback = await fetch('https://ipwho.is/', { cache: 'no-store' });
+                if (resFallback.ok) {
+                    data = await resFallback.json();
+                }
+            }
+
+            if (!data) throw new Error("Não foi possível detectar localidade");
 
             const pais = data.country_code || 'BR';
             const estado = (data.region_code || '').toLowerCase();
@@ -132,10 +147,10 @@ const GeoLocalizacaoService = {
 
             const loc = {
                 pais: pais,
-                estado: estado,
-                estadoNome: data.region || estado.toUpperCase(),
-                cidade: nomeMunTse,
-                codigoMunicipio: codigoMunTse,
+                estado: estado || 'sp',
+                estadoNome: data.region || estado.toUpperCase() || 'São Paulo',
+                cidade: nomeMunTse || 'Campinas',
+                codigoMunicipio: codigoMunTse || (estado === 'sp' ? '62910' : null),
                 isExterior: pais !== 'BR'
             };
 
