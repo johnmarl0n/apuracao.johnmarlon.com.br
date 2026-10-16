@@ -187,10 +187,13 @@
         .region-row {
             background: var(--bg-card-subtle);
             border: 1px solid var(--border-card-subtle);
+            padding: 0.35rem 0.5rem;
         }
 
         .region-name {
             color: var(--text-title);
+            font-size: 0.76rem;
+            min-width: 50px;
         }
 
         .news-item {
@@ -211,6 +214,73 @@
             color: var(--text-secondary);
             font-size: 0.7rem;
             margin-bottom: 0.2rem;
+        }
+
+        .news-item .news-meta span {
+            color: var(--text-secondary);
+        }
+
+        .news-item .news-meta .font-mono {
+            color: var(--text-title);
+        }
+
+        /* Regras explícitas de alto contraste para o Dark Mode */
+        [data-theme="dark"] .sidebar-card {
+            background: #10141d !important;
+            border-color: rgba(255, 255, 255, 0.08) !important;
+            color: #f1f5f9 !important;
+        }
+        [data-theme="dark"] .sidebar-card span[style*="var(--text-title)"],
+        [data-theme="dark"] .sidebar-card .small.fw-bold,
+        [data-theme="dark"] .region-name {
+            color: #ffffff !important;
+        }
+        [data-theme="dark"] .sidebar-card .text-secondary,
+        [data-theme="dark"] .sidebar-card .news-meta,
+        [data-theme="dark"] .sidebar-card .news-meta span {
+            color: #94a3b8 !important;
+        }
+        [data-theme="dark"] .region-row {
+            background: rgba(255, 255, 255, 0.03) !important;
+            border-color: rgba(255, 255, 255, 0.06) !important;
+        }
+        [data-theme="dark"] .sidebar-card .badge.bg-secondary-subtle {
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: #cbd5e1 !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        }
+        [data-theme="dark"] .news-item .news-title {
+            color: #f1f5f9 !important;
+        }
+
+        /* Regras explícitas de alto contraste para o Light Mode */
+        [data-theme="light"] .sidebar-card {
+            background: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
+            color: #1e293b !important;
+        }
+        [data-theme="light"] .sidebar-card span[style*="var(--text-title)"],
+        [data-theme="light"] .sidebar-card .small.fw-bold,
+        [data-theme="light"] .region-name {
+            color: #0f172a !important;
+        }
+        [data-theme="light"] .sidebar-card .text-secondary,
+        [data-theme="light"] .sidebar-card .news-meta,
+        [data-theme="light"] .sidebar-card .news-meta span {
+            color: #64748b !important;
+        }
+        [data-theme="light"] .region-row {
+            background: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+        }
+        [data-theme="light"] .sidebar-card .badge.bg-secondary-subtle {
+            background: #f1f5f9 !important;
+            color: #475569 !important;
+            border: 1px solid #cbd5e1 !important;
+        }
+        [data-theme="light"] .news-item .news-title {
+            color: #1e293b !important;
         }
 
         /* Countdown Compacto */

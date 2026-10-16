@@ -31,6 +31,7 @@
         (function() {
             const savedTheme = localStorage.getItem('apuracao_theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
         })();
     </script>
     
@@ -808,6 +809,7 @@
             const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
             const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', nextTheme);
+            document.documentElement.setAttribute('data-bs-theme', nextTheme);
             localStorage.setItem('apuracao_theme', nextTheme);
             syncThemeIcon();
         }
