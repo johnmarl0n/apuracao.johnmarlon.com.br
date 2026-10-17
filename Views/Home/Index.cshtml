@@ -425,7 +425,7 @@
 
         /* Altura adaptativa do Mapa Leaflet para preencher a tela inteira */
         .mapa-leaflet-frame {
-            height: 520px;
+            height: 480px;
             width: 100%;
             z-index: 10;
         }
@@ -433,20 +433,32 @@
         /* Proporções customizadas do Dashboard para uso total da altura do viewport sem scroll */
         @@media (min-width: 992px) {
             .dashboard-localidade-bar {
-                margin-bottom: 0.35rem !important;
+                margin-bottom: 0.15rem !important;
+                min-height: 28px !important;
                 flex-shrink: 0 !important;
+            }
+            .dashboard-localidade-bar .filter-chip {
+                padding: 0.16rem 0.55rem !important;
+                font-size: 0.72rem !important;
+                line-height: 1.2 !important;
             }
             .dashboard-layout-row {
                 display: flex !important;
                 flex-wrap: nowrap !important;
                 align-items: stretch !important;
-                gap: 0.75rem !important;
-                flex: 1 1 0 !important;
+                gap: 0.55rem !important;
+                flex: 1 1 0% !important;
                 min-height: 0 !important;
-                height: 100% !important;
+                height: auto !important;
                 max-height: 100% !important;
-                margin-bottom: 0 !important;
+                margin: 0 !important;
+                padding-bottom: 0.45rem !important;
                 overflow: hidden !important;
+            }
+            .dashboard-layout-row > [class*="dashboard-col-"] {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                padding-top: 0 !important;
             }
             .dashboard-col-left {
                 display: flex !important;
@@ -485,20 +497,25 @@
             /* Coluna Esquerda: Card Duelo enxuto e Gráfico estendido até o final */
             .dashboard-col-left .duel-side-card {
                 flex-shrink: 0 !important;
-                margin-bottom: 0.5rem !important;
-                padding: 0.65rem 0.85rem !important;
+                margin-bottom: 0.25rem !important;
+                padding: 0.45rem 0.65rem !important;
             }
             .dashboard-col-left .cand-square-avatar {
-                width: 44px !important;
-                height: 44px !important;
-                border-radius: 0.55rem !important;
+                width: 34px !important;
+                height: 34px !important;
+                border-radius: 0.45rem !important;
+                font-size: 0.95rem !important;
             }
             .dashboard-col-left .font-serif-headline {
-                font-size: 1.05rem !important;
-                margin-bottom: 0.45rem !important;
+                font-size: 0.92rem !important;
+                margin-bottom: 0.25rem !important;
             }
             .dashboard-col-left .cand-percent-display {
-                font-size: 1.85rem !important;
+                font-size: 1.55rem !important;
+            }
+            .dashboard-col-left .duel-split-bar {
+                height: 6px !important;
+                margin-bottom: 0.25rem !important;
             }
             .dashboard-col-left .card-ao-longo-apuracao {
                 flex: 1 1 0 !important;
@@ -506,7 +523,7 @@
                 display: flex !important;
                 flex-direction: column !important;
                 margin-bottom: 0 !important;
-                padding: 0.65rem 0.85rem !important;
+                padding: 0.35rem 0.65rem !important;
                 overflow: hidden !important;
             }
             .dashboard-col-left .card-ao-longo-apuracao .chart-box {
@@ -515,7 +532,7 @@
                 display: flex !important;
                 align-items: stretch !important;
                 overflow: hidden !important;
-                padding: 0.25rem !important;
+                padding: 0.15rem !important;
             }
 
             /* Coluna Centro: Mapa esticado dinamicamente entre filtro e scrubber */
@@ -524,29 +541,37 @@
                 display: flex !important;
                 flex-direction: column !important;
                 min-height: 0 !important;
+                gap: 0.25rem !important;
+                overflow: hidden !important;
             }
             .map-wrapper-leaflet {
-                flex: 1 1 0 !important;
+                flex: 1 1 0% !important;
                 min-height: 0 !important;
-                height: 100% !important;
+                height: 0 !important;
                 display: flex !important;
                 flex-direction: column !important;
             }
             .mapa-leaflet-frame {
-                flex: 1 1 0 !important;
+                flex: 1 1 0% !important;
                 height: 100% !important;
                 min-height: 0 !important;
                 width: 100% !important;
+            }
+            .timeline-bar-box {
+                flex-shrink: 0 !important;
+                height: 36px !important;
+                min-height: 36px !important;
+                margin-bottom: 0 !important;
             }
 
             /* Coluna Direita: Por Região enxuto e Feed ocupando o resto com gradiente */
             .dashboard-col-right .sidebar-card-regions {
                 flex-shrink: 0 !important;
-                margin-bottom: 0.5rem !important;
-                padding: 0.6rem 0.85rem !important;
+                margin-bottom: 0.25rem !important;
+                padding: 0.4rem 0.65rem !important;
             }
             .dashboard-col-right .region-row-v2 {
-                padding: 2.5px 0 !important;
+                padding: 1.5px 0 !important;
             }
             .dashboard-col-right .sidebar-card-feed {
                 flex: 1 1 0 !important;
@@ -554,7 +579,7 @@
                 display: flex !important;
                 flex-direction: column !important;
                 margin-bottom: 0 !important;
-                padding: 0.65rem 0.85rem !important;
+                padding: 0.4rem 0.65rem !important;
                 overflow: hidden !important;
             }
             .dashboard-col-right .news-feed-fade-container {
@@ -565,7 +590,7 @@
                 overflow-y: hidden !important;
             }
             .dashboard-col-right .news-row-v2 {
-                padding: 0.45rem 0 !important;
+                padding: 0.25rem 0 !important;
             }
         }
 
@@ -651,13 +676,13 @@
 <!-- ========================================================================= -->
 <!-- DASHBOARD PROFISSIONAL: 3 COLUNAS (DUELO ESQUERDA | MAPA CENTRO | FEED DIR) -->
 <!-- ========================================================================= -->
-<div class="row g-3 mb-3 dashboard-layout-row">
+<div class="row g-2 mb-0 dashboard-layout-row">
     <!-- ========================================== -->
     <!-- COLUNA ESQUERDA: CARD DUELO & EVOLUÇÃO     -->
     <!-- ========================================== -->
     <div class="col-12 col-xl-3 col-lg-4 dashboard-col-left">
         <!-- Card Principal da Disputa Presidencial -->
-        <div class="duel-side-card p-3 mb-3">
+        <div class="duel-side-card p-3 mb-2">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <span class="text-secondary small fw-semibold" style="font-size: 0.72rem;" id="lblDuelLocalidadeSubtitulo">
                     Presidente • @(!string.IsNullOrEmpty(Model.NomeMunicipio) ? $"{Model.NomeMunicipio} ({Model.Uf.ToUpperInvariant()})" : (Model.Uf == "br" ? "Brasil" : Model.Uf.ToUpperInvariant()))
@@ -668,7 +693,7 @@
             </div>
 
             <!-- Título em Serif com Nomes dos Candidatos Coloridos -->
-            <h2 class="h5 font-serif-headline mb-3" id="lblHeadlineDuelo">
+            <h2 class="h5 font-serif-headline mb-2" id="lblHeadlineDuelo">
                 @if (cand1 != null && cand2 != null)
                 {
                     <span class="cand-headline-name-c2">@cand2.NomeUrna</span><span class="cand-headline-connector"> e </span><span class="cand-headline-name-c1">@cand1.NomeUrna</span><span class="cand-headline-connector"> vão ao 2º turno</span>
@@ -680,7 +705,7 @@
             </h2>
 
             <!-- Cards dos Dois Candidatos Lado a Lado -->
-            <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                 <!-- Candidato 1 -->
                 @if (cand1 != null)
                 {
@@ -763,13 +788,13 @@
             </div>
 
             <!-- Diferença e Meta -->
-            <div class="d-flex align-items-center justify-content-between text-secondary small py-2 border-top border-themed mt-2" style="font-size: 0.75rem;">
+            <div class="d-flex align-items-center justify-content-between text-secondary small py-1 border-top border-themed mt-2" style="font-size: 0.74rem;">
                 <span>Diferença: <strong class="font-mono" style="color: var(--text-title);" id="lblDiffPontos">@Math.Abs((cand1?.Percentual ?? 0) - (cand2?.Percentual ?? 0)).ToString("F2") pts</strong> (@diffVotos.ToString("N0") votos)</span>
                 <span>2º turno: <strong class="text-warning">25/10</strong></span>
             </div>
 
             <!-- Resumo dos Votos Válidos, Comparecimento e Brancos/Nulos -->
-            <div class="row g-2 pt-2 border-top border-themed text-center" style="font-size: 0.75rem;">
+            <div class="row g-2 pt-1 border-top border-themed text-center" style="font-size: 0.74rem;">
                 <div class="col-4">
                     <div class="text-secondary" style="font-size: 0.68rem;">Votos válidos</div>
                     <div class="fw-bold font-mono" style="color: var(--text-title);" id="lblVotosValidos">@Model.VotosValidos.ToString("N0")</div>
@@ -785,7 +810,7 @@
             </div>
 
             <!-- Contagem Regressiva do 2º Turno integrada -->
-            <div class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top border-themed small" style="font-size: 0.72rem;">
+            <div class="d-flex align-items-center justify-content-between pt-1 mt-1 border-top border-themed small" style="font-size: 0.72rem;">
                 <span class="text-secondary"><i class="bi bi-alarm text-info me-1"></i> Abertura das urnas (25/10):</span>
                 <span class="font-mono fw-bold" style="color: var(--text-title);" id="timerDigitsContainer">
                     <span id="cdDias">00</span><small class="text-secondary">d</small>
@@ -798,7 +823,7 @@
 
         <!-- Card "Ao longo da apuração" (Gráfico de Linha Interativo com proporção estendida até a base) -->
         <div class="sidebar-card p-3 card-ao-longo-apuracao">
-            <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="d-flex align-items-center justify-content-between mb-1">
                 <span class="small fw-bold" style="color: var(--text-title);">Ao longo da apuração</span>
                 <div class="d-flex align-items-center gap-2 small" style="font-size: 0.7rem;">
                     <span style="color: @cor1;">■ @(cand1?.NomeUrna ?? "C1")</span>
@@ -807,45 +832,45 @@
             </div>
 
             <!-- Gráfico Vetorial em SVG (Escala completa para preencher o card) -->
-            <div class="chart-box flex-grow-1 d-flex flex-column justify-content-between p-2">
-                <svg viewBox="0 0 300 230" style="width: 100%; height: 100%; flex-grow: 1; overflow: visible;">
+            <div class="chart-box flex-grow-1 d-flex flex-column justify-content-between p-2" style="min-height: 0;">
+                <svg viewBox="0 0 300 160" style="width: 100%; height: 100%; max-height: 100%; flex-grow: 1; overflow: visible;">
                     <!-- Linhas horizontais de grade (38% a 54%) -->
-                    <line x1="28" y1="20" x2="295" y2="20" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
-                    <text x="5" y="23" fill="var(--chart-text)" font-size="8" font-family="monospace">54%</text>
+                    <line x1="28" y1="12" x2="295" y2="12" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="14" fill="var(--chart-text)" font-size="7.5" font-family="monospace">54%</text>
 
-                    <line x1="28" y1="44" x2="295" y2="44" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
-                    <text x="5" y="47" fill="var(--chart-text)" font-size="8" font-family="monospace">52%</text>
+                    <line x1="28" y1="30" x2="295" y2="30" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="32" fill="var(--chart-text)" font-size="7.5" font-family="monospace">52%</text>
 
-                    <line x1="28" y1="68" x2="295" y2="68" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
-                    <text x="5" y="71" fill="var(--chart-text)" font-size="8" font-family="monospace">50%</text>
+                    <line x1="28" y1="48" x2="295" y2="48" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="50" fill="var(--chart-text)" font-size="7.5" font-family="monospace">50%</text>
 
-                    <line x1="28" y1="92" x2="295" y2="92" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
-                    <text x="5" y="95" fill="var(--chart-text)" font-size="8" font-family="monospace">48%</text>
+                    <line x1="28" y1="66" x2="295" y2="66" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="68" fill="var(--chart-text)" font-size="7.5" font-family="monospace">48%</text>
 
-                    <line x1="28" y1="116" x2="295" y2="116" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
-                    <text x="5" y="119" fill="var(--chart-text)" font-size="8" font-family="monospace">46%</text>
+                    <line x1="28" y1="84" x2="295" y2="84" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="86" fill="var(--chart-text)" font-size="7.5" font-family="monospace">46%</text>
 
-                    <line x1="28" y1="140" x2="295" y2="140" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
-                    <text x="5" y="143" fill="var(--chart-text)" font-size="8" font-family="monospace">44%</text>
+                    <line x1="28" y1="102" x2="295" y2="102" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="104" fill="var(--chart-text)" font-size="7.5" font-family="monospace">44%</text>
 
-                    <line x1="28" y1="164" x2="295" y2="164" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
-                    <text x="5" y="167" fill="var(--chart-text)" font-size="8" font-family="monospace">42%</text>
+                    <line x1="28" y1="120" x2="295" y2="120" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="122" fill="var(--chart-text)" font-size="7.5" font-family="monospace">42%</text>
 
-                    <line x1="28" y1="188" x2="295" y2="188" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
-                    <text x="5" y="191" fill="var(--chart-text)" font-size="8" font-family="monospace">38%</text>
+                    <line x1="28" y1="138" x2="295" y2="138" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="140" fill="var(--chart-text)" font-size="7.5" font-family="monospace">38%</text>
 
                     <!-- Curva Cand 2 (Azul/PL) -->
-                    <path d="M 30,90 Q 75,54 140,68 T 290,105" fill="none" stroke="@cor2" stroke-width="2.5" />
-                    <circle cx="290" cy="105" r="3.5" fill="@cor2" />
+                    <path d="M 30,65 Q 75,38 140,50 T 290,75" fill="none" stroke="@cor2" stroke-width="2.2" />
+                    <circle cx="290" cy="75" r="3" fill="@cor2" />
 
                     <!-- Curva Cand 1 (Vermelho/PT) -->
-                    <path d="M 30,166 Q 75,182 140,175 T 290,122" fill="none" stroke="@cor1" stroke-width="2.5" />
-                    <circle cx="290" cy="122" r="3.5" fill="@cor1" />
+                    <path d="M 30,120 Q 75,130 140,125 T 290,88" fill="none" stroke="@cor1" stroke-width="2.2" />
+                    <circle cx="290" cy="88" r="3" fill="@cor1" />
 
                     <!-- Eixo X (0% a 100%) -->
-                    <text x="30" y="218" fill="var(--chart-text)" font-size="8">0% das seções</text>
-                    <text x="145" y="218" fill="var(--chart-text)" font-size="8" text-anchor="middle">50%</text>
-                    <text x="290" y="218" fill="var(--chart-text)" font-size="8" text-anchor="end">100%</text>
+                    <text x="30" y="153" fill="var(--chart-text)" font-size="7.5">0% das seções</text>
+                    <text x="145" y="153" fill="var(--chart-text)" font-size="7.5" text-anchor="middle">50%</text>
+                    <text x="290" y="153" fill="var(--chart-text)" font-size="7.5" text-anchor="end">100%</text>
                 </svg>
             </div>
         </div>
@@ -863,7 +888,7 @@
     <!-- ========================================== -->
     <div class="col-12 col-xl-3 col-lg-3 dashboard-col-right">
         <!-- Card 1: Por Região (Quem lidera para presidente) -->
-        <div class="sidebar-card p-3 mb-3 sidebar-card-regions">
+        <div class="sidebar-card p-3 mb-2 sidebar-card-regions">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <span class="small fw-bold" style="color: var(--text-title);">Por região</span>
                 <span class="text-secondary" style="font-size: 0.7rem;">Quem lidera para presidente</span>

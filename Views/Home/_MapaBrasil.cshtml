@@ -1,8 +1,8 @@
 @model apuracao.johnmarlon.com.br.Models.ApuracaoViewModel
 
-<div class="map-container mb-0" id="boxMapaBrasil">
+<div class="map-container mb-0 d-flex flex-column h-100" id="boxMapaBrasil" style="gap: 0.25rem;">
     <!-- Barra Superior de Modos e Filtros (Inspirado no Pandora / SeuImposto) -->
-    <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 flex-shrink-0" style="min-height: 32px;">
         <div class="d-flex align-items-center gap-2 flex-wrap">
             <div class="btn-group btn-group-sm" role="group">
                 <button type="button" class="btn btn-outline-secondary active py-1 px-2 small fw-semibold" id="btnFiltroMun" onclick="MapaEleicoesLeaflet.alternarVisao('sp')">
@@ -42,8 +42,8 @@
     </div>
 
     <!-- Container do Mapa Interativo Leaflet (CartoDB Dark Matter / Positron) -->
-    <div class="position-relative flex-grow-1 map-wrapper-leaflet" style="border-radius: 0.85rem; overflow: hidden; border: 1px solid var(--border-card); box-shadow: var(--card-shadow); min-height: 0;">
-        <div id="mapaInterativoLeaflet" class="mapa-leaflet-frame"></div>
+    <div class="position-relative map-wrapper-leaflet" style="flex: 1 1 0%; min-height: 0; height: 0; border-radius: 0.85rem; overflow: hidden; border: 1px solid var(--border-card); box-shadow: var(--card-shadow);">
+        <div id="mapaInterativoLeaflet" class="mapa-leaflet-frame" style="width: 100%; height: 100%; min-height: 0;"></div>
 
         <!-- Badge de Orientação Flutuante no Mapa -->
         <div class="position-absolute bottom-0 start-0 m-2 px-3 py-1 rounded-pill small" style="z-index: 500; background: var(--bg-card); backdrop-filter: blur(10px); border: 1px solid var(--border-card); color: var(--text-secondary); font-size: 0.72rem; pointer-events: none; box-shadow: var(--card-shadow-sm);">
@@ -61,19 +61,19 @@
     </div>
 
     <!-- Barra Inferior de Linha do Tempo e Apuração (Timeline Scrubber) -->
-    <div class="mt-1 p-2 px-3 rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-2 timeline-bar-box flex-shrink-0" style="background: var(--bg-card); border: 1px solid var(--border-card); font-size: 0.78rem;">
-        <div class="d-flex align-items-center gap-2">
+    <div class="px-3 rounded-3 d-flex align-items-center justify-content-between flex-nowrap gap-2 timeline-bar-box flex-shrink-0" style="background: var(--bg-card); border: 1px solid var(--border-card); font-size: 0.76rem; height: 36px; min-height: 36px;">
+        <div class="d-flex align-items-center gap-2 flex-shrink-0">
             <span class="font-mono fw-bold timeline-clock-text" style="color: var(--text-title);" id="lblLiveClockScrubber">19:04:32</span>
             <span class="badge bg-secondary-subtle text-secondary small py-0 px-1 d-none d-sm-inline">Brasília</span>
         </div>
 
-        <div class="d-flex align-items-center gap-2 flex-grow-1 mx-2" style="max-width: 360px;">
+        <div class="d-flex align-items-center gap-2 flex-grow-1 mx-2" style="max-width: 340px; min-width: 100px;">
             <span class="text-secondary small font-mono" id="lblScrubberMin">0%</span>
             <input type="range" class="form-range flex-grow-1" min="0" max="100" value="100" id="rangeScrubberApuracao" style="height: 4px;" title="Navegar no histórico da apuração" />
             <span class="fw-bold font-mono" style="color: var(--text-title);" id="lblScrubberCurrent">100%</span>
         </div>
 
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 flex-shrink-0">
             <span class="small font-mono text-secondary d-flex align-items-center gap-1" id="lblContainerPresenca">
                 <i class="bi bi-eye text-primary"></i> 
                 <strong style="color: var(--text-title);" id="lblOnlineCount">1 pessoa</strong> agora
