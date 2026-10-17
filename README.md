@@ -3,84 +3,128 @@
 [![.NET 8.0](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![C# 12](https://img.shields.io/badge/C%23-12-239120?logo=csharp)](https://docs.microsoft.com/dotnet/csharp/)
 [![SmartASP MSSQL](https://img.shields.io/badge/Database-SQL%20Server-CC292B?logo=microsoft-sql-server)](https://www.microsoft.com/sql-server)
-[![License: No License](https://img.shields.io/badge/License-No%20License%20(Proprietary)-red.svg)](#licença)
-[![Author](https://img.shields.io/badge/Author-John%20Dias-blue.svg)](#autor)
+[![Leaflet.js](https://img.shields.io/badge/Maps-Leaflet.js-199900?logo=leaflet)](https://leafletjs.com/)
+[![CartoDB](https://img.shields.io/badge/Tiles-CartoDB%20Positron%20%2F%20Dark-0096D6)](https://carto.com/)
+[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](#-licença)
+[![Author](https://img.shields.io/badge/Author-John%20Dias-blue.svg)](#-autor)
 
-Plataforma corporativa de alto desempenho para acompanhamento, auditoria e estudo de apurações eleitorais oficiais do **Tribunal Superior Eleitoral (TSE)**. Desenvolvida em **ASP.NET Core 8.0 MVC**, com arquitetura resiliente de cache em memória, persistência em SQL Server (SmartASP), interface moderna responsiva com suporte a temas Claro/Escuro (*Dark/Light Mode*), **mapa cartográfico vetorial do Brasil com coloração por candidato líder em cada UF**, módulo de urnas no exterior (**Exterior - ZZ**), mapa do Estado de São Paulo com dados demográficos do IBGE, acervo histórico consolidado (2002 a 2022) e total extensibilidade para eleições futuras sem necessidade de recompilação.
+Plataforma corporativa de alta performance para auditoria, visualização analítica e acompanhamento em tempo real de apurações eleitorais oficiais do **Tribunal Superior Eleitoral (TSE)**. 
+
+Construída em **ASP.NET Core 8.0 MVC**, com arquitetura em cache volátil de múltiplos níveis, persistência em **SQL Server (SmartASP)**, mapa cartográfico interativo via **Leaflet.js** com malhas geográficas vetoriais (GeoJSON) dos 645 municípios de São Paulo e das 27 UFs do Brasil, painel de monitoramento de **usuários online em tempo real**, **timeline interativa (scrubber temporal)**, e uma interface adaptativa moderna desenhada para **preencher 100% da altura da tela (100vh)** sem barras de rolagem vertical no desktop.
 
 ---
 
 ## 📋 Sumário
 
-- [Visão Geral](#-visão-geral)
-- [Funcionalidades Principais](#-funcionalidades-principais)
-- [Mapa da Apuração do Brasil & Urnas no Mundo](#-mapa-da-apuração-do-brasil--urnas-no-mundo)
+- [Visão Geral & Interface](#-visão-geral--interface)
+- [Arquitetura do Dashboard (3 Colunas em 100vh)](#-arquitetura-do-dashboard-3-colunas-em-100vh)
+- [Mapa Interativo Cartográfico (Leaflet + GeoJSON)](#-mapa-interativo-cartográfico-leaflet--geojson)
+- [Monitoramento de Usuários Online (Ao Vivo)](#-monitoramento-de-usuários-online-ao-vivo)
+- [Linha do Tempo Interativa (Timeline Scrubber)](#-linha-do-tempo-interativa-timeline-scrubber)
 - [Base Histórica de Eleições Gerais (2002 a 2022)](#-base-histórica-de-eleições-gerais-2002-a-2022)
 - [Arquitetura & Tecnologias](#-arquitetura--tecnologias)
-- [Configuração de Eleições (Atuais & Históricas)](#-configuração-de-eleições-atuais--históricas)
+- [Banco de Dados MSSQL (Tabelas & Snapshots)](#-banco-de-dados-mssql-tabelas--snapshots)
 - [Estrutura do Projeto](#-estrutura-do-projeto)
 - [Instalação & Execução Local](#-instalação--execução-local)
 - [Deploy e Hospedagem (SmartASP / IIS)](#-deploy-e-hospedagem-smartasp--iis)
-- [API RESTful](#-api-restful)
+- [API RESTful Documentada](#-api-restful-documentada)
 - [Gestão de Fotos de Candidatos](#-gestão-de-fotos-de-candidatos)
 - [Autor](#-autor)
 - [Licença](#-licença)
 
 ---
 
-## 🎯 Visão Geral
+## 🎯 Visão Geral & Interface
 
-O sistema conecta-se diretamente à rede de distribuição de dados abertos do TSE (`resultados.tse.jus.br`) para processar e exibir a apuração de votos em tempo real no dia da votação, além de integrar uma base histórica abrangente dos pleitos gerais homologados de 2002 a 2022.
+O sistema conecta-se de forma assíncrona aos servidores de dados abertos do TSE (`resultados.tse.jus.br`) para processar e totalizar os boletins de urna à medida que são divulgados, garantindo confiabilidade estatística e fluidez na navegação.
 
-O layout foi concebido sob rigorosos padrões de UI/UX, apresentando:
-- **Painel de Eleição Principal:** Focado nas eleições vigentes ao vivo (Eleições Gerais 2026 - 1º Turno) com atualização instantânea de votos e seções sem recarregamento de página.
-- **Mapa da Apuração em Tempo Real:** Cartografia vetorial de alta fidelidade de todos os 27 estados e DF, coloridos dinamicamente de acordo com o candidato líder em cada unidade da federação.
-- **Card Consular (Exterior - ZZ):** Totalização dedicada das urnas de brasileiros no exterior, com líder, votos e percentual em destaque.
-- **Placar Geral de Estados:** Sumário instantâneo com a contagem de estados liderados por cada candidato.
-- **Base Histórica Integrada:** Módulo isolado acessível via menu dropdown na barra de filtros e modal rápido na barra de navegação.
-- **Indicadores Dinâmicos:** Seções totalizadas, votos válidos, brancos, nulos, comparecimento e abstenção.
-- **Cartões de Candidatos:** Destaque para situação eleitoral (Eleito, 2º Turno, Não Eleito), percentual, número e cores oficiais das legendas partidárias.
-- **Gerenciamento Inteligente do Fim da Votação:** Remoção automática do banner de *"Votação em Andamento"* a partir das 17:00 ou assim que as primeiras urnas começam a ser apuradas.
-- **Ficha Demográfica Regional:** Dados do Censo IBGE e TRE-SP integrados com mapa vetorial interativo do Estado de São Paulo.
+### Destaques da Interface:
+- **Layout Profissional sem Rolagem (100vh):** Projetado sob métricas estritas de layout fluido. No desktop (`>= 992px`), todas as 3 colunas e seus componentes alinham-se perfeitamente na linha de base inferior da janela, eliminando qualquer scroll vertical indesejado.
+- **Suporte Total a Dark / Light Mode:** Design System de alto contraste semântico (WCAG AA), com alternância instantânea de temas para todos os componentes (incluindo mapas de tiles CartoDB Dark Matter e Positron).
+- **Menu Lateral Offcanvas de Alta Legibilidade:** Gaveta de opções com acesso à base histórica (2002 a 2022) e endpoints de API, estilizada com tipografia legível e contrastes específicos para temas claro e escuro.
+- **Drill-down Instantâneo de Localidades:** Navegação em SPA sem recarregar a página (Brasil ⇄ São Paulo ⇄ Cidades) atualizando gráficos, placares e mapa de forma sincronizada.
 
 ---
 
-## 🚀 Funcionalidades Principais
+## 🏛️ Arquitetura do Dashboard (3 Colunas em 100vh)
 
-- **Monitoramento em Tempo Real:** Leitura dos arquivos oficiais de totalização do TSE com auto-refresh a cada 30 segundos (atualiza votos, percentuais, posições dos candidatos e mapa sem refresh de tela).
-- **Mapa Cartográfico Oficial do Brasil:** Vetores contíguos de alta fidelidade (viewBox `0 0 1000 912`) com todos os 27 estados desenhados com precisão geográfica e fronteiras contíguas.
-- **Pintura Dinâmica por Liderança Eleitoral:** Estados coloridos automaticamente com as cores oficiais do partido do candidato em 1º lugar na respectiva UF.
-- **Módulo de Votos no Exterior (ZZ):** Acompanhamento exclusivo das seções de consulados e embaixadas espalhadas pelo mundo.
-- **Alternância Claro / Escuro (Dark/Light Theme):** Design System semântico adaptativo, com contraste otimizado (WCAG AA), cards claros com alto contraste e `MutationObserver` para re-estilização instantânea do mapa ao alternar o tema.
-- **Padronização de Encoding & Ícones Vetoriais:** Arquivos de views Razor gravados com **UTF-8 com BOM** para blindagem total contra *mojibake* em servidores Windows/IIS, além da adoção de **Bootstrap Icons** nos seletores de mapa (`Brasil` e `SP`) no lugar de emojis multibyte, assegurando fidelidade visual em qualquer plataforma.
-- **Ciclo Inteligente das 17:00:** O aviso de *"Votação em Andamento (encerramento às 17:00)"* desaparece automaticamente assim que a votação encerra às 17:00 ou no início da totalização de seções.
-- **Base Histórica em MSSQL (SmartASP):** Módulo reservado com interface modal para sincronização, auditoria e consulta de snapshots consolidados diretamente no banco de dados.
-- **Autenticação Segura:** Proteção por cookies de sessão criptografados (`CookieAuthentication`), tela de login exclusiva e rota protegida para gerenciamento de dados.
-- **API REST Documentada:** Endpoints protegidos por token de segurança (`X-Api-Token`) para integração com painéis externos e dashboards.
+O dashboard é organizado em 3 colunas independentes e balanceadas:
+
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ NAVBAR: Apuração 2026 | Pleito | Localidade | Exterior | Compartilhar | Tela Cheia | Atualizar │
+├──────────────────────────┬─────────────────────────────┬───────────────────────────────┤
+│ [COLUNA ESQUERDA]        │ [COLUNA CENTRAL]            │ [COLUNA DIREITA]              │
+│                          │                             │                               │
+│ 1. Card Duelo 2º Turno:  │ 1. Filtros de Visão:        │ 1. Card Por Região:           │
+│    • Avatares Squircle   │    • Municípios (SP)        │    • Norte, Nordeste,         │
+│    • Headline Serifada   │    • Estados (Brasil)       │      Centro-Oeste, Sudeste,    │
+│    • Percentuais Grandes │    • Exterior (ZZ)          │      Sul e Exterior           │
+│    • Barra Duelo (50%)   │                             │    • Mini-barras e fotos      │
+│    • Diferença de Votos  │ 2. Mapa Interativo Leaflet: │                               │
+│    • Comparecimento      │    • Camada CartoDB         │ 2. Card Últimas Atualizações: │
+│    • Regressiva 25/10    │    • GeoJSON 645 municípios │    • Feed ao vivo com fotos   │
+│                          │    • Tooltip com placar     │    • Máscara de gradiente     │
+│ 2. Ao Longo da Apuração: │                             │      inferior (sem rollover)  │
+│    • Gráfico SVG temporal│ 3. Timeline Scrubber:       │                               │
+│      esticado até a base │    • Relógio de Brasília    │                               │
+│                          │    • Range Slider (0-100%)  │                               │
+│                          │    • Contador Online Ao Vivo│                               │
+└──────────────────────────┴─────────────────────────────┴───────────────────────────────┘
+```
+
+1. **Coluna Esquerda (Card Duelo & Evolução Temporal):**
+   - **Identidade Visual Refinada:** Avatares em formato *squircle* com fotos reais dos candidatos ou iniciais sobre o gradiente partidário.
+   - **Headline Serifada:** Destaque editorial moderno (*"Flávio Bolsonaro e Lula vão ao 2º turno"*).
+   - **Métricas Chave:** Votos válidos, comparecimento, brancos, nulos e contagem regressiva para abertura das urnas do 2º turno (25/10).
+   - **Gráfico Vetorial ("Ao longo da apuração"):** Curvas em SVG responsivo que acompanham a evolução de cada candidato de 0% a 100% das seções apuradas.
+
+2. **Coluna Central (Mapa Interativo & Controle Temporal):**
+   - **Mapa Cartográfico Leaflet:** Renderização ultraveloz com tiles CartoDB e malhas GeoJSON de alta fidelidade.
+   - **Barra de Linha do Tempo (Scrubber):** Permite rebobinar o tempo e ver a configuração da disputa hora a hora durante a totalização.
+   - **Contador de Presença Online:** Exibe a quantidade de usuários ativos acompanhando a página em tempo real.
+
+3. **Coluna Direita (Votação por Região & Feed de Notícias):**
+   - **Liderança Regional:** Desempenho nas 5 regiões do Brasil (Norte, Nordeste, Centro-Oeste, Sudeste, Sul) e no Exterior com mini-barras duel e percentuais de liderança.
+   - **Feed com Fade Gradiente:** Linha do tempo de acontecimentos e eleições estaduais com efeito de esmaecimento suave no rodapé (`mask-image`), eliminando barras de rolagem e sensação de rollover.
 
 ---
 
-## 🗺️ Mapa da Apuração do Brasil & Urnas no Mundo
+## 🗺️ Mapa Interativo Cartográfico (Leaflet + GeoJSON)
 
-Para eleições presidenciais, a plataforma disponibiliza um módulo geográfico completo:
+O módulo de mapas substitui imagens estáticas por uma solução dinâmica com a biblioteca **Leaflet 1.9.4**:
 
-1. **Visão Cartográfica Contígua (27 UFs):**
-   - Vetores SVG oficiais derivados de malhas geográficas nacionais, garantindo que os estados fiquem perfeitamente encaixados, sem distorções ou efeito de ilhas desconectadas.
-   - Estados ainda não totalizados recebem preenchimento neutro elegante (`#1e293b` no tema escuro e `#e2e8f0` no tema claro).
-   - Conforme as seções são apuradas, os estados são pintados dinamicamente com a cor do líder (ex: vermelho para PT, azul para PL, etc.).
-2. **Urnas no Mundo (Exterior - ZZ):**
-   - Card interativo dedicado no topo do mapa com badge pulsar de globo, percentual de apuração consular, líder e número de votos.
-   - Clique direto para navegar e abrir a apuração detalhada de todas as seções do exterior (`uf=zz`).
-3. **Placar de Estados Liderados:**
-   - Barra analítica com contadores de estados conquistados por cada candidato (ex: `16 estados`, `11 estados + Exterior`), com tags de alto contraste em ambos os temas.
-4. **Tooltip Interativo:**
-   - Ao passar o mouse ou tocar em qualquer estado, um popover suspenso escuro de alto contraste exibe instantaneamente:
-     - Nome completo do estado e percentual apurado.
-     - Candidato líder (nome, partido, percentual e cor).
-     - Vice-líder da UF (nome, partido e percentual).
-     - Clique no estado para filtrar diretamente os resultados daquela UF.
-5. **Alternador de Visões Vetoriais (Brasil / SP):**
-   - Grupo de botões estilizados com ícones vetoriais do Bootstrap Icons (`bi-globe-americas` e `bi-building`) para alternar instantaneamente entre o mapa contíguo de todas as 27 UFs do Brasil e o mapa estadual de São Paulo com coordenadas geográficas do IBGE.
+- **Malha dos 645 Municípios de São Paulo:** Renderização vetorial baseada em coordenadas oficiais do IBGE, pintando cada cidade de acordo com o candidato vitorioso na localidade (azul para PL, vermelho para PT).
+- **Visão do Brasil (27 UFs):** Visão nacional com os estados coloridos pelo partido líder, permitindo clicar em qualquer estado para detalhar a apuração local.
+- **Votação no Exterior (ZZ):** Acompanhamento exclusivo das urnas de brasileiros espalhadas em mais de 140 cidades pelo mundo (Lisboa, Tóquio, Paris, Miami, etc.).
+- **Modal de Zonas Eleitorais:** Ao clicar em Campinas ou em qualquer município polo, abre-se uma janela modal com a distribuição detalhada de votos por zona eleitoral (Zonas 33ª, 274ª, 275ª, 378ª, 379ª, 380ª e 423ª).
+
+---
+
+## 👥 Monitoramento de Usuários Online (Ao Vivo)
+
+A plataforma incorpora rastreamento de audiência concorrente em tempo real:
+
+- **Arquitetura Thread-Safe:** Implementado via [OnlinePresenceService.cs](file:///e:/99.Projetos/CSharp/VS2022/apuracao.johnmarlon.com.br/Services/OnlinePresenceService.cs), utilizando um `ConcurrentDictionary<string, DateTime>` em memória com limpeza automática de conexões inativas (timeout de 35 segundos).
+- **Sessão por Navegador:** Cada visitante gera um identificador único anônimo salvo em `sessionStorage`.
+- **Heartbeat Assíncrono:** O frontend envia um ping a cada 15 segundos para o endpoint `GET /api/apuracao/presenca?id={cid}`.
+- **Exibição Dinâmica:** A barra do mapa exibe o contador atualizado instantaneamente:
+  ```html
+  <i class="bi bi-eye text-primary"></i> 1 pessoa agora • Ao vivo
+  ```
+
+---
+
+## ⏳ Linha do Tempo Interativa (Timeline Scrubber)
+
+O controle deslizante na base do mapa atua como uma máquina do tempo da eleição:
+
+- **Endpoint Dedicado:** `GET /api/apuracao/timeline` retorna os marcos de totalização minuto a minuto (das 17h00 às 22h00).
+- **Interação em Tempo Real:** Ao arrastar o slider de 0% a 100%:
+  1. O relógio oficial de Brasília (`#lblLiveClockScrubber`) muda para o horário exato daquele marco.
+  2. O placar de votos e percentuais dos candidatos no card de duelo retrocede para refletir o momento histórico da apuração.
+  3. A barra central de 50% recalcula a liderança provisória.
+  4. Ao soltar ou posicionar em 100%, o dashboard restaura instantaneamente os dados consolidados ao vivo.
 
 ---
 
@@ -88,7 +132,6 @@ Para eleições presidenciais, a plataforma disponibiliza um módulo geográfico
 
 Para contornar o comportamento do TSE — que remove pleitos anteriores de suas CDNs de tempo real após a homologação oficial gerando erros HTTP 404 —, a plataforma incorpora um repositório nativo de dados históricos oficiais ([DadosHistoricosTse.cs](file:///e:/99.Projetos/CSharp/VS2022/apuracao.johnmarlon.com.br/Services/DadosHistoricosTse.cs)) com persistência automática no SQL Server.
 
-### Pleitos Abrangidos
 | Ano | Pleito Principal | Vencedor / Disputa |
 |---|---|---|
 | **2022** | Eleições Gerais 2022 | Lula (48,43%) vs Jair Bolsonaro (43,20%) - 1º Turno |
@@ -97,14 +140,6 @@ Para contornar o comportamento do TSE — que remove pleitos anteriores de suas 
 | **2010** | Eleições Gerais 2010 | Dilma Rousseff (46,91%) vs José Serra (32,61%) |
 | **2006** | Eleições Gerais 2006 | Lula (48,61%) vs Geraldo Alckmin (41,64%) |
 | **2002** | Eleições Gerais 2002 | Lula (46,44%) vs José Serra (23,20%) |
-
-### Cargos Considerados na Base Histórica
-As consultas históricas restringem-se aos **5 cargos mais estratégicos**, omitindo propositalmente dados municipais pontuais:
-1. **Presidente da República** (Brasil Nacional e Recorte SP)
-2. **Governador de Estado** (São Paulo)
-3. **Senador da República** (São Paulo)
-4. **Deputado Federal** (São Paulo)
-5. **Deputado Estadual** (São Paulo)
 
 ---
 
@@ -115,73 +150,25 @@ As consultas históricas restringem-se aos **5 cargos mais estratégicos**, omit
 | **Backend** | .NET 8.0 (C# 12) | ASP.NET Core MVC & Web API com controllers tipados |
 | **Acesso a Dados** | Dapper 2.1 | Micro-ORM de altíssima performance para queries SQL brutas |
 | **Banco de Dados** | Microsoft SQL Server | Hospedado na nuvem (SQL Server / Azure SQL / SmartASP) |
-| **Cache de Dados** | `IMemoryCache` | Cache em memória volátil de 20s para prevenir throttling e absorver picos |
-| **Agregação Paralela** | `Task.WhenAll` | Consulta simultânea das 27 UFs + ZZ para o mapa nacional |
+| **Cache em Memória** | `IMemoryCache` | Cache volátil de 20s para prevenir throttling e absorver picos de tráfego |
+| **Presença Online** | `OnlinePresenceService` | Serviço singleton concorrente para contagem de clientes ativos |
+| **Cartografia** | Leaflet.js 1.9.4 | Renderização vetorial interativa de mapas de municípios e estados |
+| **Tiles de Mapa** | CartoDB Positron / Dark Matter | Camadas de mapa sob demanda adaptadas ao tema ativo |
 | **Frontend** | HTML5 / CSS3 / Vanilla JS | Estilização moderna via Glassmorphism, CSS Custom Properties e Bootstrap 5.3 |
-| **Ícones & Tipografia** | Bootstrap Icons & Google Fonts | Fontes *Inter* e *JetBrains Mono* para clareza numérica |
-| **Vetorização Cartográfica** | SVG Vetorial Oficial (Brasil e SP) | Contornos oficiais de alta precisão com suporte a hover e eventos de toque |
-| **Codificação & Encoding** | UTF-8 com BOM | Views Razor (.cshtml) salvas em UTF-8 com BOM para prevenir incompatibilidades ANSI/Windows-1252 no IIS |
+| **Tipografia & Ícones** | Google Fonts & Bootstrap Icons | Fontes *Inter*, *Playfair Display* (serif) e *JetBrains Mono* |
+| **Codificação** | UTF-8 com BOM | Arquivos Razor (.cshtml) gravados com BOM para blindagem contra mojibake no IIS |
 | **Servidor Web** | IIS / Kestrel | Configurado em modo `OutOfProcess` no `web.config` |
 
 ---
 
-## ⚙️ Configuração de Eleições (Atuais & Históricas)
+## 🗄️ Banco de Dados MSSQL (Tabelas & Snapshots)
 
-O arquivo [appsettings.json](file:///e:/99.Projetos/CSharp/VS2022/apuracao.johnmarlon.com.br/appsettings.json) permite gerenciar separadamente os pleitos ao vivo e as bases históricas:
+A classe [DatabaseInitializer.cs](file:///e:/99.Projetos/CSharp/VS2022/apuracao.johnmarlon.com.br/Data/DatabaseInitializer.cs) cria e atualiza automaticamente as tabelas e índices necessários no SQL Server:
 
-```json
-{
-  "Tse": {
-    "BaseUrl": "https://resultados.tse.jus.br/oficial/",
-    "AnoEleicao": "2026",
-    "Pleito": "3220",
-    "EleicaoFederal": "6257",
-    "EleicaoEstadual": "6259",
-    "EleicaoDistrital": "6261",
-    "UfPadrao": "sp",
-    "MunicipioPadrao": "62910",
-    "IntervaloCacheSegundos": 20,
-    "EleicoesConfiguradas": [
-      {
-        "Ano": "2026",
-        "Pleito": "3220",
-        "Descricao": "Eleições Gerais 2026 (1º Turno)",
-        "Tipo": "Geral",
-        "EleicaoFederal": "6257",
-        "EleicaoEstadual": "6259",
-        "EleicaoDistrital": "6261",
-        "AoVivo": true
-      }
-    ],
-    "EleicoesHistoricas": [
-      {
-        "Ano": "2022",
-        "Pleito": "406",
-        "Descricao": "Eleições Gerais 2022",
-        "Tipo": "Geral",
-        "EleicaoFederal": "544",
-        "EleicaoEstadual": "546",
-        "AoVivo": false,
-        "Historica": true
-      },
-      {
-        "Ano": "2018",
-        "Pleito": "295",
-        "Descricao": "Eleições Gerais 2018",
-        "Tipo": "Geral",
-        "EleicaoFederal": "295",
-        "EleicaoEstadual": "297",
-        "AoVivo": false,
-        "Historica": true
-      }
-    ]
-  }
-}
-```
-
-- **`EleicoesConfiguradas`**: Define quais eleições aparecem no seletor principal de apuração ao vivo.
-- **`EleicoesHistoricas`**: Define as opções disponíveis no menu suspenso e modal de arquivo histórico.
-- **`AoVivo`**: `true` ativa o cronômetro para o fechamento às 17:00 e o auto-refresh contínuo; `false` define o pleito como consolidado/histórico.
+1. **`ApuracaoSnapshots`**: Registra cada leitura e totalização de votos por cargo, UF e município.
+2. **`ApuracaoCandidatos`**: Votos nominais, situação (Eleito, 2º Turno) e percentuais de cada candidato.
+3. **`ApuracaoTimeline`**: Armazena a curva de evolução da apuração ao longo do tempo (pontos de amostragem por hora/minuto).
+4. **`CandidatosFotos`**: Cadastro de fotos e avatares oficiais associados ao número de urna e ano do pleito.
 
 ---
 
@@ -190,38 +177,39 @@ O arquivo [appsettings.json](file:///e:/99.Projetos/CSharp/VS2022/apuracao.johnm
 ```text
 apuracao.johnmarlon.com.br/
 ├── Controllers/
-│   ├── ApiController.cs        # Endpoints JSON públicos/autenticados
-│   ├── AuthController.cs       # Login, autenticação e logout de sessão
-│   └── HomeController.cs       # View principal, consultas de apuração e dados do mapa
+│   ├── ApuracaoApiController.cs # Endpoints REST de resumo, presença, timeline e municípios
+│   ├── AuthController.cs        # Login, autenticação e logout de sessão
+│   └── HomeController.cs        # View principal, renderização de dados e mapa Brasil
 ├── Data/
-│   ├── ApuracaoRepository.cs   # Operações Dapper no SQL Server (Snapshots)
-│   └── DatabaseInitializer.cs  # Criação automática de tabelas e índices
+│   ├── ApuracaoRepository.cs    # Operações Dapper no SQL Server (Snapshots e histórico)
+│   └── DatabaseInitializer.cs   # DDL automática: tabelas, índices e constraints
 ├── Models/
-│   ├── ApuracaoViewModel.cs    # ViewModels da tela, candidatos e configurações
-│   ├── MapaBrasilDto.cs        # Modelos de dados para UFs, exterior e placar de estados
+│   ├── ApuracaoViewModel.cs     # ViewModels da tela, candidatos e métricas
+│   ├── MapaBrasilDto.cs         # DTOs para UFs, exterior e placar de estados
 │   └── Tse/
-│       └── TseDto.cs           # Mapeamento do JSON oficial do TSE
+│       └── TseDto.cs            # Mapeamento do JSON oficial da CDN do TSE
 ├── Services/
-│   ├── DadosHistoricosTse.cs   # Base consolidada homologada oficial (2002 a 2022)
-│   └── TseService.cs           # Engine de consumo HTTP, cache, fallback histórico e mapa
+│   ├── DadosHistoricosTse.cs    # Base homologada consolidada (2002 a 2022)
+│   ├── OnlinePresenceService.cs # Monitor de usuários online concorrentes em memória
+│   └── TseService.cs            # Engine de consumo HTTP, cache volátil e normalização
 ├── Views/
 │   ├── Auth/
-│   │   └── Login.cshtml        # Tela de login estilizada com dark mode
+│   │   └── Login.cshtml         # Tela de autenticação administrativa
 │   ├── Home/
-│   │   ├── Index.cshtml        # Dashboard principal de apuração, candidatos e histórico
-│   │   └── _MapaBrasil.cshtml  # Partial view vetorial do Mapa do Brasil e SP
+│   │   ├── Index.cshtml         # Dashboard 3 colunas em 100vh com duelo e feed
+│   │   └── _MapaBrasil.cshtml   # Partial view Leaflet com scrubber e presença
 │   └── Shared/
-│       └── _Layout.cshtml      # Master template com theme switcher e modais
+│       └── _Layout.cshtml       # Master template (Navbar, tema claro/escuro, offcanvas)
 ├── wwwroot/
-│   ├── favicon.ico             # Favicon multi-resolução
-│   ├── favicon.png             # Ícone PNG 32x32
-│   ├── favicon-192.png         # Ícone PNG 192x192
-│   ├── favicon.svg             # Favicon vetorial oficial
-│   └── img/
-│       └── candidatos/         # Diretório para fotos locais de candidatos
-├── appsettings.json            # Configurações de conexões, chaves e pleitos
-├── database_setup.sql          # Script DDL do banco de dados MSSQL
-└── web.config                  # Configuração IIS com OutOfProcess para SmartASP
+│   ├── img/
+│   │   └── candidatos/          # Fotos oficiais dos candidatos (formato squircle/webp)
+│   ├── js/
+│   │   ├── geolocalizacao.js    # Serviço de detecção e trilha de localidade
+│   │   └── mapa-eleicoes.js     # Engine Leaflet de renderização de cidades e estados
+│   ├── favicon.ico              # Favicon multi-resolução
+│   └── favicon.svg              # Ícone vetorial oficial
+├── appsettings.json             # Parâmetros de eleição, connection string e chaves
+└── web.config                   # Configuração OutOfProcess para IIS/SmartASP
 ```
 
 ---
@@ -233,12 +221,13 @@ apuracao.johnmarlon.com.br/
 - Visual Studio 2022 ou VS Code.
 
 ### Passos
-1. Abra a pasta do projeto no terminal:
+1. Clone o repositório e navegue até a pasta:
    ```bash
-   cd e:\99.Projetos\CSharp\VS2022\apuracao.johnmarlon.com.br
+   git clone https://github.com/johnmarl0n/apuracao.johnmarlon.com.br.git
+   cd apuracao.johnmarlon.com.br
    ```
 
-2. Restaure os pacotes NuGet:
+2. Restaure os pacotes e dependências:
    ```bash
    dotnet restore
    ```
@@ -250,22 +239,21 @@ apuracao.johnmarlon.com.br/
 
 4. Acesse pelo navegador:
    ```text
-   http://localhost:5161
+   http://localhost:5161/?ano=2026&cargo=1&uf=sp
    ```
 
 ---
 
 ## 🚀 Deploy e Hospedagem (SmartASP / IIS)
 
-O projeto foi especificamente ajustado para garantir estabilidade e compatibilidade em ambientes de hospedagem compartilhada Windows IIS (como o **SmartASP**):
+O projeto está otimizado para ambientes compartilhados Windows IIS (como o **SmartASP**):
 
-1. **Geração do Pacote:**
+1. **Compilação e Publicação:**
    ```bash
    dotnet publish -c Release -o ./publish
    ```
 
-2. **Hosting Model:**
-   O arquivo `web.config` utiliza obrigatoriamente:
+2. **Modelo de Processo no `web.config`:**
    ```xml
    <aspNetCore processPath="dotnet" 
                arguments=".\apuracao.johnmarlon.com.br.dll" 
@@ -273,53 +261,59 @@ O projeto foi especificamente ajustado para garantir estabilidade e compatibilid
                stdoutLogFile=".\logs\stdout" 
                hostingModel="OutOfProcess" />
    ```
-   *Evita o erro HTTP 503 comum em Application Pools compartilhados no modo InProcess.*
+   *O modo `OutOfProcess` evita erros HTTP 503 causados por reciclagem de Application Pools.*
 
-3. **Satélites de Linguagem:**
-   O arquivo `.csproj` restringe idiomas extras para manter o diretório de publicação limpo e rápido de subir via FTP:
+3. **Otimização de Pacotes de Idioma:**
+   O `.csproj` restringe idiomas extras para manter a pasta de deploy leve e rápida de enviar via FTP:
    ```xml
    <SatelliteResourceLanguages>pt-BR</SatelliteResourceLanguages>
    ```
 
-4. **Upload:**
-   Envie todo o conteúdo gerado dentro da pasta `publish/` para o diretório raiz do seu site no FTP da SmartASP.
-
-5. **Codificação dos Arquivos Razor & Estáticos:**
-   As views Razor (.cshtml) contendo caracteres acentuados da língua portuguesa são mantidas com assinatura **UTF-8 com BOM**, prevenindo que o interpretador do IIS em servidores Windows interprete o arquivo como ANSI/Windows-1252.
-
 ---
 
-## 📡 API RESTful
+## 📡 API RESTful Documentada
 
-A aplicação expõe endpoints para consulta programática de dados de apuração:
+A plataforma expõe endpoints abertos e protegidos para consumo externo em JSON:
 
 ### 1. Resumo da Apuração
 - **Rota:** `GET /api/apuracao/resumo`
-- **Autenticação:** Header `X-Api-Token` ou query param `token`
 - **Parâmetros:**
   - `cargo`: `1` (Presidente), `3` (Governador), `5` (Senador), `6` (Dep. Federal), `7` (Dep. Estadual)
-  - `uf`: `br` ou sigla do estado (`sp`)
-  - `municipio`: código TSE do município (ex: `62910` para Campinas, apenas para eleições municipais/atuais)
+  - `uf`: `br`, `sp` ou qualquer sigla de estado
+  - `municipio`: código TSE do município (ex: `62910` para Campinas)
   - `ano`: ano da eleição (`2026`, `2022`, `2018`, `2014`, `2010`, `2006`, `2002`)
 
-### 2. Snapshots do Banco
-- **Rota:** `GET /api/apuracao/snapshots`
-- **Autenticação:** Header `X-Api-Token` ou query param `token`
-- **Retorno:** Histórico dos últimos snapshots totalizados gravados no SQL Server.
+### 2. Presença Online (Ao Vivo)
+- **Rota:** `GET /api/apuracao/presenca?id={cid}`
+- **Retorno:**
+  ```json
+  {
+    "sucesso": true,
+    "online": 42,
+    "texto": "42 pessoas agora",
+    "dataHora": "20:30:15"
+  }
+  ```
 
-### 3. Dados Agregados do Mapa do Brasil
+### 3. Linha do Tempo (Scrubber)
+- **Rota:** `GET /api/apuracao/timeline`
+- **Retorno:** Array com os marcos da totalização (hora, % de seções, percentuais de cada candidato e status descritivo).
+
+### 4. Busca de Municípios
+- **Rota:** `GET /api/apuracao/municipios?uf=sp&q=Campinas`
+- **Retorno:** Lista de municípios com código oficial do TSE para drill-down dinâmico.
+
+### 5. Dados Agregados do Mapa
 - **Rota:** `GET /Home/DadosMapaBrasil?ano=2026`
-- **Retorno:** JSON contendo o status de apuração de todas as 27 UFs + ZZ, líder e vice-líder por estado, total de estados totalizados e o placar geral de liderança.
+- **Retorno:** Status de todas as 27 UFs + ZZ, líder e vice-líder por estado e o placar geral de estados liderados.
 
 ---
 
 ## 🖼️ Gestão de Fotos de Candidatos
 
-O TSE não disponibiliza fotos abertas na CDN de apuração em tempo real e bloqueia o portal de candidaturas (*DivulgaCandContas*) contra hotlinkings externos com código HTTP 403.
-
-Por isso, o sistema possui **estratégia dual inteligente com resiliência a falhas**:
-1. **Avatar Nativo Automático com Fallback Instantâneo:** Renderiza as iniciais do candidato sobre um gradiente elegante na **cor oficial do seu partido**, com carregamento instantâneo, zero dependência externa e sem poluir o console com erros 404.
-2. **Fotos Próprias Locais (Opcional):** Para exibir a foto real de qualquer candidato, basta adicionar a imagem na pasta `wwwroot/img/candidatos/` nomeada com o **número de urna** (ex: `10.jpg`, `13.jpg`, `22.jpg`). O sistema detecta a imagem e faz a renderização automaticamente.
+O sistema emprega estratégia dual para fotos oficiais:
+1. **Fotos Oficiais Locais:** Arquivos `.webp` ou `.jpg` no diretório `wwwroot/img/candidatos/` nomeados pelo número do candidato (`13.jpg`, `22.jpg`, `lula.webp`, `bolsonaro.webp`, `douglas_ruas.webp`, `tarcisio.webp`, etc.).
+2. **Fallback Inteligente:** Caso a imagem não esteja disponível, o componente renderiza automaticamente um avatar em formato *squircle* com as iniciais do candidato sobre a cor oficial da sua legenda, sem gerar erros de rede no console.
 
 ---
 
@@ -327,12 +321,13 @@ Por isso, o sistema possui **estratégia dual inteligente com resiliência a fal
 
 Desenvolvido por **John Dias**  
 - **Website / Portal:** [johnmarlon.com.br](https://johnmarlon.com.br)  
-- **Projeto:** Apuração Eleitoral TSE & Inteligência de Dados
+- **LinkedIn:** [linkedin.com/in/johnmarlondias](https://linkedin.com/in/johnmarlondias)  
+- **Projeto:** Monitor de Apuração TSE & Inteligência de Dados Eleitorais
 
 ---
 
 ## 📄 Licença
 
-**No License (Proprietário)**  
+**Proprietário — No License**  
 Copyright © 2024–2026 John Dias. Todos os direitos reservados.  
-Nenhuma parte deste software, código-fonte, layout ou documentação pode ser reproduzida, distribuída ou transmitida sob qualquer forma sem a autorização prévia por escrito do autor.
+Nenhuma parte deste software, layout ou código-fonte pode ser reproduzida ou distribuída sem autorização prévia por escrito do autor.
