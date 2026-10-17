@@ -50,7 +50,13 @@ builder.Services.AddRateLimiter(options =>
             ip = httpContext.Connection.RemoteIpAddress?.ToString();
         }
 
-        ip = string.IsNullOrWhiteSpace(ip) ? "anonimo" : ip;
+        // Permitir bypass automático para testes de estresse autorizados (Loader.io / Header de Teste)
+        if (httpContext.Request.Headers.UserAgent.ToString().Contains("loader.io", StringComparison.OrdinalIgnoreCase)
+            || httpContext.Request.Headers.ContainsKey("X-Load-Test")
+            || httpContext.Request.Headers.ContainsKey("X-Loader-Test"))
+        {
+            return RateLimitPartition.GetNoLimiter("load_testing");
+        }
 
         return RateLimitPartition.GetSlidingWindowLimiter(ip, _ => new SlidingWindowRateLimiterOptions
         {
@@ -108,6 +114,12 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseRateLimiter();
+
+// Validação de Propriedade do Loader.io para Testes de Carga
+app.MapGet("/loaderio-359e5ba50107df6138a54df9e2341f67", () => "loaderio-359e5ba50107df6138a54df9e2341f67").DisableRateLimiting();
+app.MapGet("/loaderio-359e5ba50107df6138a54df9e2341f67.txt", () => "loaderio-359e5ba50107df6138a54df9e2341f67").DisableRateLimiting();
+app.MapGet("/loaderio-359e5ba50107df6138a54df9e2341f67.html", () => "loaderio-359e5ba50107df6138a54df9e2341f67").DisableRateLimiting();
+app.MapGet("/loaderio-359e5ba50107df6138a54df9e2341f67/", () => "loaderio-359e5ba50107df6138a54df9e2341f67").DisableRateLimiting();
 
 app.MapControllers();
 app.MapControllerRoute(
