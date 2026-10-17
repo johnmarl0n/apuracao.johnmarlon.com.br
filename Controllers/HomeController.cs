@@ -4,16 +4,28 @@ using apuracao.johnmarlon.com.br.Models;
 using apuracao.johnmarlon.com.br.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 
 namespace apuracao.johnmarlon.com.br.Controllers
 {
     public class HomeController : Controller
     {
         private readonly TseService _tseService;
+        private readonly IConfiguration _config;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IMemoryCache _cache;
 
-        public HomeController(TseService tseService)
+        public HomeController(
+            TseService tseService,
+            IConfiguration config,
+            IHttpClientFactory httpClientFactory,
+            IMemoryCache cache)
         {
             _tseService = tseService;
+            _config = config;
+            _httpClientFactory = httpClientFactory;
+            _cache = cache;
         }
 
         [HttpGet]
@@ -50,32 +62,44 @@ namespace apuracao.johnmarlon.com.br.Controllers
         {
             try
             {
-                string? ip = null;
+                string? rawIp = null;
                 if (Request.Headers.TryGetValue("X-Forwarded-For", out var forwarded))
                 {
-                    ip = forwarded.ToString().Split(',')[0].Trim();
+                    rawIp = forwarded.ToString().Split(',')[0].Trim();
                 }
-                if (string.IsNullOrWhiteSpace(ip))
+                if (string.IsNullOrWhiteSpace(rawIp))
                 {
-                    ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    rawIp = HttpContext.Connection.RemoteIpAddress?.ToString();
                 }
 
-                bool isLocal = string.IsNullOrWhiteSpace(ip) || ip == "::1" || ip == "127.0.0.1" || ip.StartsWith("192.168.") || ip.StartsWith("10.");
+                bool isValido = System.Net.IPAddress.TryParse(rawIp, out var ipAddr);
+                bool isLocal = !isValido || System.Net.IPAddress.IsLoopback(ipAddr!) || rawIp!.StartsWith("192.168.") || rawIp.StartsWith("10.");
 
-                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(3) };
-                client.DefaultRequestHeaders.Add("User-Agent", "ApuracaoEleicoes/1.0");
+                string cacheKey = $"geo_ip_{rawIp ?? "local"}";
+                if (_cache.TryGetValue(cacheKey, out string? cachedGeoJson) && !string.IsNullOrEmpty(cachedGeoJson))
+                {
+                    return Content(cachedGeoJson, "application/json");
+                }
 
-                string url = isLocal ? "https://ipwho.is/" : $"https://ipwho.is/{ip}";
+                var client = _httpClientFactory.CreateClient();
+                client.Timeout = TimeSpan.FromSeconds(3);
+                if (!client.DefaultRequestHeaders.Contains("User-Agent"))
+                {
+                    client.DefaultRequestHeaders.Add("User-Agent", "ApuracaoEleicoes/1.0");
+                }
+
+                string url = isLocal ? "https://ipwho.is/" : $"https://ipwho.is/{Uri.EscapeDataString(ipAddr!.ToString())}";
                 var res = await client.GetAsync(url);
                 if (res.IsSuccessStatusCode)
                 {
                     var content = await res.Content.ReadAsStringAsync();
+                    _cache.Set(cacheKey, content, TimeSpan.FromHours(1));
                     return Content(content, "application/json");
                 }
             }
             catch
             {
-                // Fallback silencioso
+                // Fallback silencioso sem interromper a tela
             }
 
             return Json(new
@@ -89,9 +113,32 @@ namespace apuracao.johnmarlon.com.br.Controllers
         }
 
         [HttpPost]
-        [HttpGet]
         public async Task<IActionResult> SincronizarHistorico()
         {
+            var validToken = _config["Security:ApiToken"];
+            if (string.IsNullOrWhiteSpace(validToken))
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+                {
+                    sucesso = false,
+                    mensagem = "Sincronização administrativa temporariamente desabilitada por segurança (Token não configurado)."
+                });
+            }
+
+            if (!Request.Headers.TryGetValue("X-Api-Token", out var headerToken) || string.IsNullOrWhiteSpace(headerToken))
+            {
+                return Unauthorized(new { sucesso = false, mensagem = "Acesso não autorizado. Cabeçalho 'X-Api-Token' obrigatório." });
+            }
+
+            byte[] expectedBytes = System.Text.Encoding.UTF8.GetBytes(validToken);
+            byte[] providedBytes = System.Text.Encoding.UTF8.GetBytes(headerToken.ToString());
+
+            if (expectedBytes.Length != providedBytes.Length || 
+                !System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(expectedBytes, providedBytes))
+            {
+                return Unauthorized(new { sucesso = false, mensagem = "Token administrativo inválido." });
+            }
+
             try
             {
                 var total = await _tseService.ImportarHistorico2024Async();

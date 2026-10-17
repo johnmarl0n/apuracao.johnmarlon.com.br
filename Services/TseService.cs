@@ -30,6 +30,20 @@ namespace apuracao.johnmarlon.com.br.Services
         private readonly string _eleicaoEstadual;
         private readonly int _cacheSeconds;
 
+        private static readonly System.Threading.SemaphoreSlim _dbWriteSemaphore = new(2, 2);
+
+        private static readonly HashSet<string> UfsValidas = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "br", "sp", "ac", "al", "am", "ap", "ba", "ce", "df", "es", "go", "ma",
+            "mg", "ms", "mt", "pa", "pb", "pe", "pi", "pr", "rj", "rn", "ro", "rr",
+            "rs", "sc", "se", "to", "zz"
+        };
+
+        private static readonly HashSet<string> CargosValidos = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "1", "3", "5", "6", "7", "11", "13"
+        };
+
         private static readonly Dictionary<string, string> PartyColors = new(StringComparer.OrdinalIgnoreCase)
         {
             { "PT", "#c4122d" },
@@ -464,6 +478,7 @@ namespace apuracao.johnmarlon.com.br.Services
             {
                 _http.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36");
             }
+            _http.Timeout = TimeSpan.FromSeconds(8);
         }
 
         public List<EleicaoConfiguracao> ObterEleicoesConfiguradas()
@@ -501,7 +516,19 @@ namespace apuracao.johnmarlon.com.br.Services
 
         public async Task<ApuracaoViewModel> ObterApuracaoAsync(string? cargo = null, string uf = "br", string? municipio = null, string ano = "2026")
         {
-            ano = string.IsNullOrWhiteSpace(ano) ? _ano : ano;
+            // Sanitização de entradas contra Cache-Bypassing e DoS no TSE
+            ano = string.IsNullOrWhiteSpace(ano) || ano.Length > 10 ? _ano : ano.Trim();
+            uf = (!string.IsNullOrWhiteSpace(uf) && UfsValidas.Contains(uf.Trim())) ? uf.Trim().ToLowerInvariant() : "br";
+            cargo = (!string.IsNullOrWhiteSpace(cargo) && CargosValidos.Contains(cargo.Trim())) ? cargo.Trim() : "1";
+            if (!string.IsNullOrWhiteSpace(municipio))
+            {
+                municipio = municipio.Trim();
+                if (!municipio.All(char.IsDigit) || municipio.Length > 7)
+                {
+                    municipio = null;
+                }
+            }
+
             var eleicoesAtuais = ObterEleicoesConfiguradas();
             var eleicoesHistoricas = ObterEleicoesHistoricas();
             var eleicao = eleicoesAtuais.FirstOrDefault(e => e.Ano.Equals(ano, StringComparison.OrdinalIgnoreCase))
@@ -600,6 +627,12 @@ namespace apuracao.johnmarlon.com.br.Services
                 {
                     _ = Task.Run(async () =>
                     {
+                        if (!await _dbWriteSemaphore.WaitAsync(TimeSpan.FromSeconds(2)))
+                        {
+                            _logger.LogWarning("Gravação histórica no MSSQL descartada para proteger o pool sob alta demanda.");
+                            return;
+                        }
+
                         try
                         {
                             var dbCands = vm.Candidatos.Select(c => new ApuracaoCandidatoRecord
@@ -631,7 +664,11 @@ namespace apuracao.johnmarlon.com.br.Services
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Erro ao gravar snapshot histÃ³rico no MSSQL.");
+                            _logger.LogError(ex, "Erro ao gravar snapshot histórico no MSSQL.");
+                        }
+                        finally
+                        {
+                            _dbWriteSemaphore.Release();
                         }
                     });
 
@@ -903,6 +940,12 @@ namespace apuracao.johnmarlon.com.br.Services
                 {
                     _ = Task.Run(async () =>
                     {
+                        if (!await _dbWriteSemaphore.WaitAsync(TimeSpan.FromSeconds(2)))
+                        {
+                            _logger.LogWarning("Gravação assíncrona no MSSQL descartada para proteger o pool sob alta demanda.");
+                            return;
+                        }
+
                         try
                         {
                             await _repo.SalvarSnapshotAsync(
@@ -931,6 +974,10 @@ namespace apuracao.johnmarlon.com.br.Services
                         catch (Exception ex)
                         {
                             _logger.LogError(ex, "Erro assíncrono ao gravar snapshot no MSSQL.");
+                        }
+                        finally
+                        {
+                            _dbWriteSemaphore.Release();
                         }
                     });
                 }

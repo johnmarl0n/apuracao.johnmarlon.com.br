@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using apuracao.johnmarlon.com.br.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 
 namespace apuracao.johnmarlon.com.br.Controllers
@@ -22,6 +23,7 @@ namespace apuracao.johnmarlon.com.br.Controllers
 
         [HttpGet("presenca")]
         [HttpPost("presenca")]
+        [EnableRateLimiting("ApiLimiter")]
         public IActionResult RegistrarPresenca([FromQuery] string? id = null)
         {
             if (!string.IsNullOrWhiteSpace(id))
@@ -124,24 +126,43 @@ namespace apuracao.johnmarlon.com.br.Controllers
             });
         }
 
-        [HttpGet("importar-historico")]
         [HttpPost("importar-historico")]
-        [HttpGet("historico/importar")]
         [HttpPost("historico/importar")]
+        [EnableRateLimiting("ApiLimiter")]
         public async Task<IActionResult> ImportarHistorico([FromQuery] string? token = null)
         {
             var validToken = _config["Security:ApiToken"];
-            string? providedToken = token;
-            if (string.IsNullOrWhiteSpace(providedToken) && Request.Headers.TryGetValue("X-Api-Token", out var headerToken))
+            if (string.IsNullOrWhiteSpace(validToken))
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+                {
+                    sucesso = false,
+                    mensagem = "Sincronização administrativa temporariamente desabilitada por segurança (Token não configurado)."
+                });
+            }
+
+            string? providedToken = null;
+            if (Request.Headers.TryGetValue("X-Api-Token", out var headerToken))
             {
                 providedToken = headerToken.ToString();
             }
-
-            bool isValidToken = !string.IsNullOrWhiteSpace(validToken) && (!string.IsNullOrWhiteSpace(providedToken) && providedToken == validToken);
-
-            if (!isValidToken && !string.IsNullOrWhiteSpace(validToken))
+            else if (!string.IsNullOrWhiteSpace(token))
             {
-                return Unauthorized(new { sucesso = false, mensagem = "Acesso não autorizado. Forneça o token administrativo de API configurado." });
+                providedToken = token;
+            }
+
+            if (string.IsNullOrWhiteSpace(providedToken))
+            {
+                return Unauthorized(new { sucesso = false, mensagem = "Acesso não autorizado. Forneça o token administrativo via cabeçalho 'X-Api-Token'." });
+            }
+
+            byte[] expectedBytes = System.Text.Encoding.UTF8.GetBytes(validToken);
+            byte[] providedBytes = System.Text.Encoding.UTF8.GetBytes(providedToken);
+
+            if (expectedBytes.Length != providedBytes.Length || 
+                !System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(expectedBytes, providedBytes))
+            {
+                return Unauthorized(new { sucesso = false, mensagem = "Acesso não autorizado. Token administrativo inválido." });
             }
 
             try
