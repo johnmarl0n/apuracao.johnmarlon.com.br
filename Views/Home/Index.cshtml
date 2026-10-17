@@ -184,44 +184,169 @@
             color: var(--text-main);
         }
 
-        .region-row {
-            background: var(--bg-card-subtle);
-            border: 1px solid var(--border-card-subtle);
-            padding: 0.35rem 0.5rem;
+        /* Região Row v2 (Estilo seuimposto.com) */
+        .region-row-v2 {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-card-subtle);
         }
-
-        .region-name {
+        .region-row-v2:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .region-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .region-title {
+            font-size: 0.85rem;
+            font-weight: 700;
             color: var(--text-title);
-            font-size: 0.76rem;
-            min-width: 50px;
+            line-height: 1.2;
         }
-
-        .news-item {
-            border-left: 2px solid var(--primary);
-            padding-left: 0.75rem;
-            margin-bottom: 0.75rem;
-            position: relative;
+        .region-sub {
+            font-size: 0.68rem;
+            color: var(--text-secondary);
         }
-
-        .news-item .news-title {
-            color: var(--text-main);
+        .region-stats {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+        }
+        .region-cand-pill {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .region-avatar {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: #2563eb;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            font-weight: bold;
+            color: #ffffff;
+            flex-shrink: 0;
+        }
+        .region-party {
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+        .region-party-pl {
+            color: #3b82f6;
+        }
+        .region-party-pt {
+            color: #ef4444;
+        }
+        .region-pct {
             font-size: 0.82rem;
-            line-height: 1.35;
-            font-weight: 500;
-        }
-
-        .news-item .news-meta {
-            color: var(--text-secondary);
-            font-size: 0.7rem;
-            margin-bottom: 0.2rem;
-        }
-
-        .news-item .news-meta span {
-            color: var(--text-secondary);
-        }
-
-        .news-item .news-meta .font-mono {
+            font-weight: 800;
+            font-family: var(--font-mono, monospace);
             color: var(--text-title);
+        }
+        .region-diff {
+            font-size: 0.7rem;
+            font-family: var(--font-mono, monospace);
+            color: var(--text-secondary);
+        }
+
+        /* Mini-Barra de Vantagem / Duel Bar */
+        .mini-duel-bar-wrap {
+            width: 58px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 9999px;
+            position: relative;
+            margin-top: 2px;
+        }
+        .mini-duel-tick {
+            position: absolute;
+            left: 50%;
+            top: -2px;
+            bottom: -2px;
+            width: 1px;
+            background: var(--text-title);
+            opacity: 0.55;
+            z-index: 2;
+        }
+        .mini-duel-fill {
+            position: absolute;
+            height: 100%;
+            border-radius: 9999px;
+            top: 0;
+        }
+
+        /* Container de Notícias com Efeito Esmaecido (Gradient Mask) e sem Rollover */
+        .news-feed-fade-container {
+            max-height: 390px;
+            overflow-y: auto;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE e Edge */
+            -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 68%, rgba(0,0,0,0) 100%);
+            mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 68%, rgba(0,0,0,0) 100%);
+            padding-bottom: 24px;
+        }
+        .news-feed-fade-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Edge */
+        }
+
+        /* Notícia Item v2 */
+        .news-row-v2 {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 0.65rem 0;
+            border-bottom: 1px solid var(--border-card-subtle);
+        }
+        .news-row-v2:last-child {
+            border-bottom: none;
+        }
+        .news-time {
+            font-size: 0.72rem;
+            font-family: var(--font-mono, monospace);
+            color: var(--text-secondary);
+            min-width: 38px;
+            flex-shrink: 0;
+            padding-top: 3px;
+        }
+        .news-avatar {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            flex-shrink: 0;
+        }
+        .news-icon-circle {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: 1.5px solid var(--text-secondary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-title);
+            font-size: 0.7rem;
+            flex-shrink: 0;
+            background: transparent;
+        }
+        .news-body {
+            font-size: 0.79rem;
+            line-height: 1.35;
+            color: var(--text-main);
+        }
+        .news-body strong {
+            color: var(--text-title);
+            font-weight: 600;
         }
 
         /* Regras explícitas de alto contraste para o Dark Mode */
@@ -232,25 +357,27 @@
         }
         [data-theme="dark"] .sidebar-card span[style*="var(--text-title)"],
         [data-theme="dark"] .sidebar-card .small.fw-bold,
-        [data-theme="dark"] .region-name {
+        [data-theme="dark"] .region-title,
+        [data-theme="dark"] .region-pct {
             color: #ffffff !important;
         }
         [data-theme="dark"] .sidebar-card .text-secondary,
-        [data-theme="dark"] .sidebar-card .news-meta,
-        [data-theme="dark"] .sidebar-card .news-meta span {
+        [data-theme="dark"] .region-sub,
+        [data-theme="dark"] .region-diff,
+        [data-theme="dark"] .news-time {
             color: #94a3b8 !important;
         }
-        [data-theme="dark"] .region-row {
-            background: rgba(255, 255, 255, 0.03) !important;
-            border-color: rgba(255, 255, 255, 0.06) !important;
+        [data-theme="dark"] .mini-duel-bar-wrap {
+            background: rgba(255, 255, 255, 0.14) !important;
         }
-        [data-theme="dark"] .sidebar-card .badge.bg-secondary-subtle {
-            background: rgba(255, 255, 255, 0.08) !important;
-            color: #cbd5e1 !important;
-            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        [data-theme="dark"] .mini-duel-tick {
+            background: #ffffff !important;
         }
-        [data-theme="dark"] .news-item .news-title {
-            color: #f1f5f9 !important;
+        [data-theme="dark"] .news-body {
+            color: #e2e8f0 !important;
+        }
+        [data-theme="dark"] .news-body strong {
+            color: #ffffff !important;
         }
 
         /* Regras explícitas de alto contraste para o Light Mode */
@@ -262,25 +389,27 @@
         }
         [data-theme="light"] .sidebar-card span[style*="var(--text-title)"],
         [data-theme="light"] .sidebar-card .small.fw-bold,
-        [data-theme="light"] .region-name {
+        [data-theme="light"] .region-title,
+        [data-theme="light"] .region-pct {
             color: #0f172a !important;
         }
         [data-theme="light"] .sidebar-card .text-secondary,
-        [data-theme="light"] .sidebar-card .news-meta,
-        [data-theme="light"] .sidebar-card .news-meta span {
+        [data-theme="light"] .region-sub,
+        [data-theme="light"] .region-diff,
+        [data-theme="light"] .news-time {
             color: #64748b !important;
         }
-        [data-theme="light"] .region-row {
-            background: #f8fafc !important;
-            border-color: #e2e8f0 !important;
+        [data-theme="light"] .mini-duel-bar-wrap {
+            background: rgba(0, 0, 0, 0.12) !important;
         }
-        [data-theme="light"] .sidebar-card .badge.bg-secondary-subtle {
-            background: #f1f5f9 !important;
-            color: #475569 !important;
-            border: 1px solid #cbd5e1 !important;
+        [data-theme="light"] .mini-duel-tick {
+            background: #0f172a !important;
         }
-        [data-theme="light"] .news-item .news-title {
+        [data-theme="light"] .news-body {
             color: #1e293b !important;
+        }
+        [data-theme="light"] .news-body strong {
+            color: #0f172a !important;
         }
 
         /* Countdown Compacto */
@@ -604,132 +733,221 @@
         <div class="sidebar-card p-3 mb-3">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <span class="small fw-bold" style="color: var(--text-title);">Por região</span>
-                <span class="text-secondary" style="font-size: 0.7rem;">Quem lidera</span>
+                <span class="text-secondary" style="font-size: 0.7rem;">Quem lidera para presidente</span>
             </div>
 
-            <div class="d-flex flex-column gap-2" style="font-size: 0.76rem;">
+            <div class="d-flex flex-column">
                 <!-- Norte -->
-                <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="fw-semibold region-name">Norte</span>
-                        <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
+                <div class="region-row-v2">
+                    <div class="region-info">
+                        <span class="region-title">Norte</span>
+                        <span class="region-sub">100%</span>
                     </div>
-                    <div class="d-flex align-items-center gap-1 font-mono">
-                        <span class="badge" style="background: @cor2; color: #fff; font-size: 0.7rem;">PL 49,2%</span>
-                        <span class="text-info small" style="font-size: 0.68rem;">+3,7</span>
+                    <div class="region-stats">
+                        <div class="region-cand-pill">
+                            <img src="/img/candidatos/bolsonaro.webp" alt="PL" class="region-avatar" onerror="this.src='/img/candidatos/22.jpg';" />
+                            <span class="region-party region-party-pl">PL</span>
+                            <span class="region-pct">49,2%</span>
+                            <span class="region-diff">+3,7</span>
+                        </div>
+                        <div class="mini-duel-bar-wrap">
+                            <div class="mini-duel-tick"></div>
+                            <div class="mini-duel-fill" style="left: 50%; width: 48%; background: #3b82f6;"></div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Nordeste -->
-                <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="fw-semibold region-name">Nordeste</span>
-                        <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
+                <div class="region-row-v2">
+                    <div class="region-info">
+                        <span class="region-title">Nordeste</span>
+                        <span class="region-sub">100%</span>
                     </div>
-                    <div class="d-flex align-items-center gap-1 font-mono">
-                        <span class="badge" style="background: @cor1; color: #fff; font-size: 0.7rem;">PT 63,8%</span>
-                        <span class="text-danger small" style="font-size: 0.68rem;">+27,6</span>
+                    <div class="region-stats">
+                        <div class="region-cand-pill">
+                            <img src="/img/candidatos/lula.webp" alt="PT" class="region-avatar" onerror="this.src='/img/candidatos/13.jpg';" />
+                            <span class="region-party region-party-pt">PT</span>
+                            <span class="region-pct">63,8%</span>
+                            <span class="region-diff">-3,0</span>
+                        </div>
+                        <div class="mini-duel-bar-wrap">
+                            <div class="mini-duel-tick"></div>
+                            <div class="mini-duel-fill" style="right: 50%; width: 48%; background: #ef4444;"></div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Centro-Oeste -->
-                <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="fw-semibold region-name">Centro-O.</span>
-                        <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
+                <div class="region-row-v2">
+                    <div class="region-info">
+                        <span class="region-title">Centro-Oeste</span>
+                        <span class="region-sub">100%</span>
                     </div>
-                    <div class="d-flex align-items-center gap-1 font-mono">
-                        <span class="badge" style="background: @cor2; color: #fff; font-size: 0.7rem;">PL 56,5%</span>
-                        <span class="text-info small" style="font-size: 0.68rem;">+13,0</span>
+                    <div class="region-stats">
+                        <div class="region-cand-pill">
+                            <img src="/img/candidatos/bolsonaro.webp" alt="PL" class="region-avatar" onerror="this.src='/img/candidatos/22.jpg';" />
+                            <span class="region-party region-party-pl">PL</span>
+                            <span class="region-pct">56,5%</span>
+                            <span class="region-diff">+2,7</span>
+                        </div>
+                        <div class="mini-duel-bar-wrap">
+                            <div class="mini-duel-tick"></div>
+                            <div class="mini-duel-fill" style="left: 50%; width: 48%; background: #3b82f6;"></div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Sudeste -->
-                <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="fw-semibold region-name">Sudeste</span>
-                        <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
+                <div class="region-row-v2">
+                    <div class="region-info">
+                        <span class="region-title">Sudeste</span>
+                        <span class="region-sub">100%</span>
                     </div>
-                    <div class="d-flex align-items-center gap-1 font-mono">
-                        <span class="badge" style="background: @cor2; color: #fff; font-size: 0.7rem;">PL 51,4%</span>
-                        <span class="text-info small" style="font-size: 0.68rem;">+2,8</span>
+                    <div class="region-stats">
+                        <div class="region-cand-pill">
+                            <img src="/img/candidatos/bolsonaro.webp" alt="PL" class="region-avatar" onerror="this.src='/img/candidatos/22.jpg';" />
+                            <span class="region-party region-party-pl">PL</span>
+                            <span class="region-pct">51,4%</span>
+                            <span class="region-diff">+3,8</span>
+                        </div>
+                        <div class="mini-duel-bar-wrap">
+                            <div class="mini-duel-tick"></div>
+                            <div class="mini-duel-fill" style="left: 50%; width: 48%; background: #3b82f6;"></div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Sul -->
-                <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="fw-semibold region-name">Sul</span>
-                        <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
+                <div class="region-row-v2">
+                    <div class="region-info">
+                        <span class="region-title">Sul</span>
+                        <span class="region-sub">100%</span>
                     </div>
-                    <div class="d-flex align-items-center gap-1 font-mono">
-                        <span class="badge" style="background: @cor2; color: #fff; font-size: 0.7rem;">PL 60,1%</span>
-                        <span class="text-info small" style="font-size: 0.68rem;">+20,2</span>
+                    <div class="region-stats">
+                        <div class="region-cand-pill">
+                            <img src="/img/candidatos/bolsonaro.webp" alt="PL" class="region-avatar" onerror="this.src='/img/candidatos/22.jpg';" />
+                            <span class="region-party region-party-pl">PL</span>
+                            <span class="region-pct">60,1%</span>
+                            <span class="region-diff">+5,5</span>
+                        </div>
+                        <div class="mini-duel-bar-wrap">
+                            <div class="mini-duel-tick"></div>
+                            <div class="mini-duel-fill" style="left: 50%; width: 48%; background: #3b82f6;"></div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Exterior (ZZ) -->
-                <div class="d-flex align-items-center justify-content-between p-1 rounded region-row">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="fw-semibold region-name">Exterior</span>
-                        <span class="badge bg-secondary-subtle text-secondary py-0" style="font-size: 0.65rem;">100%</span>
+                <div class="region-row-v2">
+                    <div class="region-info">
+                        <span class="region-title d-flex align-items-center gap-1">
+                            <i class="bi bi-globe2" style="font-size: 0.8rem; opacity: 0.85;"></i> Exterior
+                        </span>
+                        <span class="region-sub">100%</span>
                     </div>
-                    <div class="d-flex align-items-center gap-1 font-mono">
-                        <span class="badge" style="background: @cor1; color: #fff; font-size: 0.7rem;">PT 47,6%</span>
-                        <span class="text-danger small" style="font-size: 0.68rem;">+0,4</span>
+                    <div class="region-stats">
+                        <div class="region-cand-pill">
+                            <img src="/img/candidatos/lula.webp" alt="PT" class="region-avatar" onerror="this.src='/img/candidatos/13.jpg';" />
+                            <span class="region-party region-party-pt">PT</span>
+                            <span class="region-pct">47,6%</span>
+                            <span class="region-diff">+0,4</span>
+                        </div>
+                        <div class="mini-duel-bar-wrap">
+                            <div class="mini-duel-tick"></div>
+                            <div class="mini-duel-fill" style="right: 50%; width: 46%; background: #ef4444;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Card 2: Últimas Atualizações (Feed em Tempo Real) -->
+        <!-- Card 2: Últimas Atualizações (Feed com Esmaecimento Gradiente Inferior e sem Rollover) -->
         <div class="sidebar-card p-3">
             <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="small fw-bold" style="color: var(--text-title);"><i class="bi bi-clock-history me-1 text-primary"></i> Últimas atualizações</span>
-                <span class="badge bg-success-subtle text-success small py-0 px-1 font-mono" style="font-size: 0.65rem;">Ao vivo</span>
+                <span class="small fw-bold" style="color: var(--text-title); font-size: 0.9rem;">Últimas atualizações</span>
+                <span class="badge bg-danger-subtle text-danger small py-0 px-1 font-mono" style="font-size: 0.65rem;">• Ao vivo</span>
             </div>
 
-            <div class="d-flex flex-column" style="max-height: 380px; overflow-y: auto;">
-                <div class="news-item">
-                    <div class="d-flex align-items-center gap-1 news-meta">
-                        <span class="font-mono fw-semibold" style="color: var(--text-title);">12h51</span> • <span>Rio de Janeiro</span>
+            <!-- Feed com esmaecido gradiente inferior para evitar o rollover/scrollbar -->
+            <div class="news-feed-fade-container">
+                <!-- Notícia 1: Douglas Ruas -->
+                <div class="news-row-v2">
+                    <span class="news-time">12h51</span>
+                    <img src="/img/candidatos/douglas_ruas.webp" alt="Douglas Ruas" class="news-avatar" />
+                    <div class="news-body">
+                        Rio de Janeiro: <strong>Douglas Ruas</strong> é eleito governador.
                     </div>
-                    <div class="small fw-medium news-title">Douglas Ruas é eleito governador no 1º turno com 58,4%.</div>
                 </div>
 
-                <div class="news-item">
-                    <div class="d-flex align-items-center gap-1 news-meta">
-                        <span class="font-mono fw-semibold" style="color: var(--text-title);">03h00</span> • <span>Amazonas</span>
+                <!-- Notícia 2: Amazonas -->
+                <div class="news-row-v2">
+                    <span class="news-time">03h00</span>
+                    <img src="/img/candidatos/eduardo_braga.webp" alt="Eduardo Braga" class="news-avatar" />
+                    <div class="news-body">
+                        Amazonas: <strong>Eduardo Braga</strong> e <strong>Plínio Valério</strong> são eleitos para o Senado.
                     </div>
-                    <div class="small fw-medium news-title">Eduardo Braga e Plínio Valério são eleitos para o Senado Federal.</div>
                 </div>
 
-                <div class="news-item">
-                    <div class="d-flex align-items-center gap-1 news-meta">
-                        <span class="font-mono fw-semibold" style="color: var(--text-title);">03h00</span> • <span>Totalização Nacional</span>
+                <!-- Notícia 3: Seção 1 -->
+                <div class="news-row-v2">
+                    <span class="news-time">03h00</span>
+                    <div class="news-icon-circle">
+                        <i class="bi bi-circle"></i>
                     </div>
-                    <div class="small fw-medium news-title">+1 seção apurada: Flávio Bolsonaro 47,0% · Lula 45,2%.</div>
+                    <div class="news-body">
+                        <div class="fw-bold mb-1" style="color: var(--text-title);">+1 seção</div>
+                        <div><strong>Flávio Bolsonaro</strong> <span class="font-mono fw-bold" style="color: #3b82f6;">47,0%</span></div>
+                        <div><strong>Lula</strong> <span class="font-mono fw-bold" style="color: #ef4444;">45,2%</span></div>
+                    </div>
                 </div>
 
-                <div class="news-item">
-                    <div class="d-flex align-items-center gap-1 news-meta">
-                        <span class="font-mono fw-semibold" style="color: var(--text-title);">01h55</span> • <span>São Paulo</span>
+                <!-- Notícia 4: Seções 6 -->
+                <div class="news-row-v2">
+                    <span class="news-time">01h56</span>
+                    <div class="news-icon-circle">
+                        <i class="bi bi-circle"></i>
                     </div>
-                    <div class="small fw-medium news-title">Tarcísio lidera com 62,7% dos votos válidos para governador.</div>
+                    <div class="news-body">
+                        <div class="fw-bold mb-1" style="color: var(--text-title);">+6 seções</div>
+                        <div><strong>Flávio Bolsonaro</strong> <span class="font-mono fw-bold" style="color: #3b82f6;">47,0%</span></div>
+                        <div><strong>Lula</strong> <span class="font-mono fw-bold" style="color: #ef4444;">45,2%</span></div>
+                    </div>
                 </div>
 
-                <div class="news-item">
-                    <div class="d-flex align-items-center gap-1 news-meta">
-                        <span class="font-mono fw-semibold" style="color: var(--text-title);">00h47</span> • <span>Minas Gerais</span>
+                <!-- Notícia 5: Minas Gerais -->
+                <div class="news-row-v2">
+                    <span class="news-time">00h47</span>
+                    <img src="/img/candidatos/domingos_savio.webp" alt="Domingos Sávio" class="news-avatar" />
+                    <div class="news-body">
+                        Minas Gerais: <strong>Domingos Sávio</strong> e <strong>Marília Campos</strong> são eleitos para o Senado.
                     </div>
-                    <div class="small fw-medium news-title">Domingos Sávio e Marília Campos confirmados para o Senado.</div>
                 </div>
 
-                <div class="news-item">
-                    <div class="d-flex align-items-center gap-1 news-meta">
-                        <span class="font-mono fw-semibold" style="color: var(--text-title);">00h12</span> • <span>Exterior (ZZ)</span>
+                <!-- Notícia 6: Maranhão -->
+                <div class="news-row-v2">
+                    <span class="news-time">00h47</span>
+                    <img src="/img/candidatos/fufuca.webp" alt="Fufuca" class="news-avatar" />
+                    <div class="news-body">
+                        Maranhão: <strong>Fufuca</strong> e <strong>Lahésio Bonfim</strong> são eleitos para o Senado.
                     </div>
-                    <div class="small fw-medium news-title">Urnas 100% totalizadas em Lisboa, Porto, Paris e Tóquio.</div>
+                </div>
+
+                <!-- Notícia 7: São Paulo -->
+                <div class="news-row-v2">
+                    <span class="news-time">00h25</span>
+                    <img src="/img/candidatos/tarcisio.webp" alt="Tarcísio" class="news-avatar" />
+                    <div class="news-body">
+                        São Paulo: <strong>Tarcísio</strong> lidera apuração com <strong>62,7%</strong> dos votos válidos.
+                    </div>
+                </div>
+
+                <!-- Notícia 8: Exterior -->
+                <div class="news-row-v2">
+                    <span class="news-time">00h12</span>
+                    <img src="/img/candidatos/lula.webp" alt="Exterior" class="news-avatar" />
+                    <div class="news-body">
+                        Exterior: Urnas 100% totalizadas em Lisboa, Porto, Paris e Tóquio.
+                    </div>
                 </div>
             </div>
         </div>
