@@ -1,6 +1,6 @@
 @model apuracao.johnmarlon.com.br.Models.ApuracaoViewModel
 
-<div class="map-container mb-4" id="boxMapaBrasil">
+<div class="map-container mb-0" id="boxMapaBrasil">
     <!-- Barra Superior de Modos e Filtros (Inspirado no Pandora / SeuImposto) -->
     <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
         <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -42,17 +42,17 @@
     </div>
 
     <!-- Container do Mapa Interativo Leaflet (CartoDB Dark Matter / Positron) -->
-    <div class="position-relative" style="border-radius: 1rem; overflow: hidden; border: 1px solid var(--border-card); box-shadow: var(--card-shadow);">
-        <div id="mapaInterativoLeaflet" style="height: 480px; width: 100%; z-index: 10;"></div>
+    <div class="position-relative flex-grow-1 map-wrapper-leaflet" style="border-radius: 0.85rem; overflow: hidden; border: 1px solid var(--border-card); box-shadow: var(--card-shadow); min-height: 0;">
+        <div id="mapaInterativoLeaflet" class="mapa-leaflet-frame"></div>
 
         <!-- Badge de Orientação Flutuante no Mapa -->
-        <div class="position-absolute bottom-0 start-0 m-3 px-3 py-1 rounded-pill small" style="z-index: 500; background: var(--bg-card); backdrop-filter: blur(10px); border: 1px solid var(--border-card); color: var(--text-secondary); font-size: 0.72rem; pointer-events: none; box-shadow: var(--card-shadow-sm);">
+        <div class="position-absolute bottom-0 start-0 m-2 px-3 py-1 rounded-pill small" style="z-index: 500; background: var(--bg-card); backdrop-filter: blur(10px); border: 1px solid var(--border-card); color: var(--text-secondary); font-size: 0.72rem; pointer-events: none; box-shadow: var(--card-shadow-sm);">
             <i class="bi bi-cursor me-1 text-primary"></i> Clique em um estado para ver as cidades ou use o zoom
         </div>
 
         <!-- Botão Voltar ao Brasil Flutuante -->
         <button type="button" 
-                class="btn btn-sm btn-header-action position-absolute top-0 start-0 m-3 rounded-pill shadow px-3 py-1 d-flex align-items-center gap-1" 
+                class="btn btn-sm btn-header-action position-absolute top-0 start-0 m-2 rounded-pill shadow px-3 py-1 d-flex align-items-center gap-1" 
                 style="z-index: 500;"
                 onclick="MapaEleicoesLeaflet.alternarVisao('brasil')" 
                 title="Voltar à visão do Brasil">
@@ -61,21 +61,24 @@
     </div>
 
     <!-- Barra Inferior de Linha do Tempo e Apuração (Timeline Scrubber) -->
-    <div class="mt-2 p-2 px-3 rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-2 timeline-bar-box" style="background: var(--bg-card); border: 1px solid var(--border-card); font-size: 0.78rem;">
+    <div class="mt-1 p-2 px-3 rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-2 timeline-bar-box flex-shrink-0" style="background: var(--bg-card); border: 1px solid var(--border-card); font-size: 0.78rem;">
         <div class="d-flex align-items-center gap-2">
             <span class="font-mono fw-bold timeline-clock-text" style="color: var(--text-title);" id="lblLiveClockScrubber">19:04:32</span>
-            <span class="badge bg-secondary-subtle text-secondary small py-0 px-1">Horário de Brasília</span>
+            <span class="badge bg-secondary-subtle text-secondary small py-0 px-1 d-none d-sm-inline">Brasília</span>
         </div>
 
         <div class="d-flex align-items-center gap-2 flex-grow-1 mx-2" style="max-width: 360px;">
-            <span class="text-secondary small font-mono">0%</span>
-            <input type="range" class="form-range flex-grow-1" min="0" max="100" value="100" id="rangeScrubberApuracao" style="height: 4px;" title="Navegar no tempo da apuração" />
-            <span class="fw-bold font-mono" style="color: var(--text-title);">100%</span>
+            <span class="text-secondary small font-mono" id="lblScrubberMin">0%</span>
+            <input type="range" class="form-range flex-grow-1" min="0" max="100" value="100" id="rangeScrubberApuracao" style="height: 4px;" title="Navegar no histórico da apuração" />
+            <span class="fw-bold font-mono" style="color: var(--text-title);" id="lblScrubberCurrent">100%</span>
         </div>
 
         <div class="d-flex align-items-center gap-2">
-            <span class="text-secondary small"><i class="bi bi-people me-1"></i> Acompanhando agora:</span>
-            <span class="badge bg-success text-white py-1 px-2 rounded-pill font-mono">
+            <span class="small font-mono text-secondary d-flex align-items-center gap-1" id="lblContainerPresenca">
+                <i class="bi bi-eye text-primary"></i> 
+                <strong style="color: var(--text-title);" id="lblOnlineCount">1 pessoa</strong> agora
+            </span>
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill py-0 px-2 font-mono" style="font-size: 0.68rem;">
                 <span class="pulse-nav me-1"></span> AO VIVO
             </span>
         </div>

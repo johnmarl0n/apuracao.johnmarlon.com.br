@@ -11,11 +11,48 @@ namespace apuracao.johnmarlon.com.br.Controllers
     {
         private readonly TseService _tseService;
         private readonly IConfiguration _config;
+        private readonly OnlinePresenceService _presenceService;
 
-        public ApuracaoApiController(TseService tseService, IConfiguration config)
+        public ApuracaoApiController(TseService tseService, IConfiguration config, OnlinePresenceService presenceService)
         {
             _tseService = tseService;
             _config = config;
+            _presenceService = presenceService;
+        }
+
+        [HttpGet("presenca")]
+        [HttpPost("presenca")]
+        public IActionResult RegistrarPresenca([FromQuery] string? id = null)
+        {
+            if (!string.IsNullOrWhiteSpace(id))
+            {
+                _presenceService.Ping(id);
+            }
+            int online = _presenceService.GetOnlineCount();
+            return Ok(new
+            {
+                sucesso = true,
+                online = online,
+                texto = online == 1 ? "1 pessoa agora" : $"{online} pessoas agora",
+                dataHora = DateTime.Now.ToString("HH:mm:ss")
+            });
+        }
+
+        [HttpGet("timeline")]
+        public IActionResult ObterTimeline()
+        {
+            var pontos = new[]
+            {
+                new { pct = 0, hora = "17:00", secoes = "0%", cand1 = 49.80, cand2 = 50.20, diff = 0.40, status = "Início da Totalização" },
+                new { pct = 15, hora = "17:45", secoes = "15%", cand1 = 48.90, cand2 = 51.10, diff = 2.20, status = "Apuração Sudeste e Sul aceleradas" },
+                new { pct = 35, hora = "18:30", secoes = "35%", cand1 = 47.60, cand2 = 52.40, diff = 4.80, status = "Interior de SP e PR avançados" },
+                new { pct = 50, hora = "19:15", secoes = "50%", cand1 = 46.85, cand2 = 53.15, diff = 6.30, status = "Pico da diferença pró-oposição" },
+                new { pct = 68, hora = "19:55", secoes = "68%", cand1 = 48.50, cand2 = 51.50, diff = 3.00, status = "Nordeste entra com força na contagem" },
+                new { pct = 85, hora = "20:30", secoes = "85%", cand1 = 50.10, cand2 = 49.90, diff = 0.20, status = "Virada matemática na contagem" },
+                new { pct = 95, hora = "21:10", secoes = "95%", cand1 = 50.85, cand2 = 49.15, diff = 1.70, status = "Definição matemática iminente" },
+                new { pct = 100, hora = "22:00", secoes = "100%", cand1 = 50.90, cand2 = 49.10, diff = 1.80, status = "Totalização 100% Concluída" }
+            };
+            return Ok(new { sucesso = true, timeline = pontos });
         }
 
         [HttpGet("resumo")]

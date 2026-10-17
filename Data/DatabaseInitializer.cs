@@ -87,6 +87,41 @@ namespace apuracao.johnmarlon.com.br.Data
                     CREATE INDEX IX_ApuracaoCandidatos_Numero ON ApuracaoCandidatos (NumeroCandidato);
                 END;
 
+                IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='CandidatosFotos' AND xtype='U')
+                BEGIN
+                    CREATE TABLE CandidatosFotos (
+                        Id INT IDENTITY(1,1) PRIMARY KEY,
+                        NumeroCandidato VARCHAR(10) NOT NULL,
+                        Ano VARCHAR(10) NOT NULL DEFAULT '2026',
+                        NomeUrna NVARCHAR(150) NOT NULL,
+                        Partido VARCHAR(20) NOT NULL,
+                        FotoUrl NVARCHAR(500) NULL,
+                        FotoBlob VARBINARY(MAX) NULL,
+                        ContentType VARCHAR(50) DEFAULT 'image/webp',
+                        DataCriacao DATETIME NOT NULL DEFAULT GETDATE()
+                    );
+                    CREATE UNIQUE INDEX UQ_CandidatosFotos ON CandidatosFotos (NumeroCandidato, Ano);
+                END;
+
+                IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='ApuracaoTimeline' AND xtype='U')
+                BEGIN
+                    CREATE TABLE ApuracaoTimeline (
+                        Id BIGINT IDENTITY(1,1) PRIMARY KEY,
+                        MinutoIndice INT NOT NULL,
+                        HorarioLabel VARCHAR(10) NOT NULL,
+                        PercentualApurado DECIMAL(5,2) NOT NULL,
+                        LulaPerc DECIMAL(5,2) NOT NULL,
+                        BolsonaroPerc DECIMAL(5,2) NOT NULL,
+                        LulaVotos BIGINT NOT NULL DEFAULT 0,
+                        BolsonaroVotos BIGINT NOT NULL DEFAULT 0,
+                        NoticiaTitulo NVARCHAR(300) NULL,
+                        NoticiaAvatar NVARCHAR(200) NULL,
+                        PayloadJson NVARCHAR(MAX) NULL,
+                        DataHora DATETIME NOT NULL DEFAULT GETDATE()
+                    );
+                    CREATE INDEX IX_ApuracaoTimeline_Minuto ON ApuracaoTimeline (MinutoIndice);
+                END;
+
                 BEGIN TRY
                     ALTER TABLE ApuracaoSnapshots ALTER COLUMN DataHoraTse NVARCHAR(100) NULL;
                 END TRY
@@ -95,7 +130,7 @@ namespace apuracao.johnmarlon.com.br.Data
                 ";
 
                 await conn.ExecuteAsync(sql);
-                _logger.LogInformation("Tabelas do MSSQL (ApuracaoSnapshots e ApuracaoCandidatos) verificadas/criadas com sucesso.");
+                _logger.LogInformation("Tabelas do MSSQL (ApuracaoSnapshots, ApuracaoCandidatos, CandidatosFotos e ApuracaoTimeline) verificadas/criadas com sucesso.");
             }
             catch (Exception ex)
             {

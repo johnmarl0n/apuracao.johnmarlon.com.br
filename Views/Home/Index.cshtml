@@ -423,39 +423,162 @@
             border-color: var(--border-card-subtle) !important;
         }
 
-        /* Proporções customizadas do Dashboard (Painel lateral direito reduzido em 15-20%) */
+        /* Altura adaptativa do Mapa Leaflet para preencher a tela inteira */
+        .mapa-leaflet-frame {
+            height: 520px;
+            width: 100%;
+            z-index: 10;
+        }
+
+        /* Proporções customizadas do Dashboard para uso total da altura do viewport sem scroll */
         @@media (min-width: 992px) {
+            .dashboard-localidade-bar {
+                margin-bottom: 0.35rem !important;
+                flex-shrink: 0 !important;
+            }
             .dashboard-layout-row {
                 display: flex !important;
                 flex-wrap: nowrap !important;
+                align-items: stretch !important;
+                gap: 0.75rem !important;
+                flex: 1 1 0 !important;
+                min-height: 0 !important;
+                height: 100% !important;
+                max-height: 100% !important;
+                margin-bottom: 0 !important;
+                overflow: hidden !important;
             }
             .dashboard-col-left {
-                flex: 0 0 31% !important;
-                max-width: 31% !important;
-                width: 31% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                flex: 0 0 27% !important;
+                max-width: 27% !important;
+                width: 27% !important;
+                height: 100% !important;
+                max-height: 100% !important;
+                min-height: 0 !important;
+                overflow: hidden !important;
             }
             .dashboard-col-center {
-                flex: 0 0 49% !important;
-                max-width: 49% !important;
-                width: 49% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                flex: 0 0 53% !important;
+                max-width: 53% !important;
+                width: 53% !important;
+                height: 100% !important;
+                max-height: 100% !important;
+                min-height: 0 !important;
+                overflow: hidden !important;
             }
             .dashboard-col-right {
+                display: flex !important;
+                flex-direction: column !important;
                 flex: 0 0 20% !important;
                 max-width: 20% !important;
                 width: 20% !important;
+                height: 100% !important;
+                max-height: 100% !important;
+                min-height: 0 !important;
+                overflow: hidden !important;
+            }
+
+            /* Coluna Esquerda: Card Duelo enxuto e Gráfico estendido até o final */
+            .dashboard-col-left .duel-side-card {
+                flex-shrink: 0 !important;
+                margin-bottom: 0.5rem !important;
+                padding: 0.65rem 0.85rem !important;
+            }
+            .dashboard-col-left .cand-square-avatar {
+                width: 44px !important;
+                height: 44px !important;
+                border-radius: 0.55rem !important;
+            }
+            .dashboard-col-left .font-serif-headline {
+                font-size: 1.05rem !important;
+                margin-bottom: 0.45rem !important;
+            }
+            .dashboard-col-left .cand-percent-display {
+                font-size: 1.85rem !important;
+            }
+            .dashboard-col-left .card-ao-longo-apuracao {
+                flex: 1 1 0 !important;
+                min-height: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                margin-bottom: 0 !important;
+                padding: 0.65rem 0.85rem !important;
+                overflow: hidden !important;
+            }
+            .dashboard-col-left .card-ao-longo-apuracao .chart-box {
+                flex: 1 1 0 !important;
+                min-height: 0 !important;
+                display: flex !important;
+                align-items: stretch !important;
+                overflow: hidden !important;
+                padding: 0.25rem !important;
+            }
+
+            /* Coluna Centro: Mapa esticado dinamicamente entre filtro e scrubber */
+            #boxMapaBrasil {
+                height: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                min-height: 0 !important;
+            }
+            .map-wrapper-leaflet {
+                flex: 1 1 0 !important;
+                min-height: 0 !important;
+                height: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            .mapa-leaflet-frame {
+                flex: 1 1 0 !important;
+                height: 100% !important;
+                min-height: 0 !important;
+                width: 100% !important;
+            }
+
+            /* Coluna Direita: Por Região enxuto e Feed ocupando o resto com gradiente */
+            .dashboard-col-right .sidebar-card-regions {
+                flex-shrink: 0 !important;
+                margin-bottom: 0.5rem !important;
+                padding: 0.6rem 0.85rem !important;
+            }
+            .dashboard-col-right .region-row-v2 {
+                padding: 2.5px 0 !important;
+            }
+            .dashboard-col-right .sidebar-card-feed {
+                flex: 1 1 0 !important;
+                min-height: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                margin-bottom: 0 !important;
+                padding: 0.65rem 0.85rem !important;
+                overflow: hidden !important;
+            }
+            .dashboard-col-right .news-feed-fade-container {
+                flex: 1 1 0 !important;
+                min-height: 0 !important;
+                height: 100% !important;
+                max-height: none !important;
+                overflow-y: hidden !important;
+            }
+            .dashboard-col-right .news-row-v2 {
+                padding: 0.45rem 0 !important;
             }
         }
 
         @@media (min-width: 1200px) {
             .dashboard-col-left {
-                flex: 0 0 26% !important;
-                max-width: 26% !important;
-                width: 26% !important;
+                flex: 0 0 25% !important;
+                max-width: 25% !important;
+                width: 25% !important;
             }
             .dashboard-col-center {
-                flex: 0 0 55% !important;
-                max-width: 55% !important;
-                width: 55% !important;
+                flex: 0 0 56% !important;
+                max-width: 56% !important;
+                width: 56% !important;
             }
             .dashboard-col-right {
                 flex: 0 0 19% !important;
@@ -466,14 +589,14 @@
 
         @@media (min-width: 1600px) {
             .dashboard-col-left {
-                flex: 0 0 24% !important;
-                max-width: 24% !important;
-                width: 24% !important;
+                flex: 0 0 23% !important;
+                max-width: 23% !important;
+                width: 23% !important;
             }
             .dashboard-col-center {
-                flex: 0 0 58% !important;
-                max-width: 58% !important;
-                width: 58% !important;
+                flex: 0 0 59% !important;
+                max-width: 59% !important;
+                width: 59% !important;
             }
             .dashboard-col-right {
                 flex: 0 0 18% !important;
@@ -485,7 +608,7 @@
 }
 
 <!-- Navegação e Filtro Rápido de Localidade (Drill-down Brasil -> SP -> Cidades) -->
-<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2 dashboard-localidade-bar">
     <div class="d-flex align-items-center flex-wrap gap-2" id="barraLocalidadesContainer">
         <span class="text-secondary small fw-bold text-uppercase me-1">
             <i class="bi bi-geo-alt-fill text-primary"></i> Localidade:
@@ -660,10 +783,21 @@
                     <div class="fw-bold font-mono" style="color: var(--text-title);" id="lblPercBrancosNulos">@((Model.PercentualVotosBrancos + Model.PercentualVotosNulos).ToString("F1"))%</div>
                 </div>
             </div>
+
+            <!-- Contagem Regressiva do 2º Turno integrada -->
+            <div class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top border-themed small" style="font-size: 0.72rem;">
+                <span class="text-secondary"><i class="bi bi-alarm text-info me-1"></i> Abertura das urnas (25/10):</span>
+                <span class="font-mono fw-bold" style="color: var(--text-title);" id="timerDigitsContainer">
+                    <span id="cdDias">00</span><small class="text-secondary">d</small>
+                    <span id="cdHoras">00</span><small class="text-secondary">h</small>
+                    <span id="cdMinutos">00</span><small class="text-secondary">m</small>
+                    <span id="cdSegundos" class="text-warning">00</span><small class="text-secondary">s</small>
+                </span>
+            </div>
         </div>
 
-        <!-- Card "Ao longo da apuração" (Gráfico de Linha Interativo) -->
-        <div class="sidebar-card p-3 mb-3">
+        <!-- Card "Ao longo da apuração" (Gráfico de Linha Interativo com proporção estendida até a base) -->
+        <div class="sidebar-card p-3 card-ao-longo-apuracao">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <span class="small fw-bold" style="color: var(--text-title);">Ao longo da apuração</span>
                 <div class="d-flex align-items-center gap-2 small" style="font-size: 0.7rem;">
@@ -672,48 +806,47 @@
                 </div>
             </div>
 
-            <!-- Gráfico Vetorial em SVG -->
-            <div class="chart-box">
-                <svg viewBox="0 0 300 130" style="width: 100%; height: auto; overflow: visible;">
+            <!-- Gráfico Vetorial em SVG (Escala completa para preencher o card) -->
+            <div class="chart-box flex-grow-1 d-flex flex-column justify-content-between p-2">
+                <svg viewBox="0 0 300 230" style="width: 100%; height: 100%; flex-grow: 1; overflow: visible;">
                     <!-- Linhas horizontais de grade (38% a 54%) -->
-                    <line x1="25" y1="20" x2="295" y2="20" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <line x1="28" y1="20" x2="295" y2="20" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
                     <text x="5" y="23" fill="var(--chart-text)" font-size="8" font-family="monospace">54%</text>
 
-                    <line x1="25" y1="45" x2="295" y2="45" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
-                    <text x="5" y="48" fill="var(--chart-text)" font-size="8" font-family="monospace">50%</text>
+                    <line x1="28" y1="44" x2="295" y2="44" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="47" fill="var(--chart-text)" font-size="8" font-family="monospace">52%</text>
 
-                    <line x1="25" y1="70" x2="295" y2="70" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
-                    <text x="5" y="73" fill="var(--chart-text)" font-size="8" font-family="monospace">46%</text>
+                    <line x1="28" y1="68" x2="295" y2="68" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="71" fill="var(--chart-text)" font-size="8" font-family="monospace">50%</text>
 
-                    <line x1="25" y1="95" x2="295" y2="95" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
-                    <text x="5" y="98" fill="var(--chart-text)" font-size="8" font-family="monospace">42%</text>
+                    <line x1="28" y1="92" x2="295" y2="92" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="95" fill="var(--chart-text)" font-size="8" font-family="monospace">48%</text>
+
+                    <line x1="28" y1="116" x2="295" y2="116" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="119" fill="var(--chart-text)" font-size="8" font-family="monospace">46%</text>
+
+                    <line x1="28" y1="140" x2="295" y2="140" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="143" fill="var(--chart-text)" font-size="8" font-family="monospace">44%</text>
+
+                    <line x1="28" y1="164" x2="295" y2="164" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="167" fill="var(--chart-text)" font-size="8" font-family="monospace">42%</text>
+
+                    <line x1="28" y1="188" x2="295" y2="188" stroke="var(--chart-grid)" stroke-dasharray="2,2" />
+                    <text x="5" y="191" fill="var(--chart-text)" font-size="8" font-family="monospace">38%</text>
 
                     <!-- Curva Cand 2 (Azul/PL) -->
-                    <path d="M 30,50 Q 80,30 150,42 T 290,62" fill="none" stroke="@cor2" stroke-width="2.5" />
-                    <circle cx="290" cy="62" r="3.5" fill="@cor2" />
+                    <path d="M 30,90 Q 75,54 140,68 T 290,105" fill="none" stroke="@cor2" stroke-width="2.5" />
+                    <circle cx="290" cy="105" r="3.5" fill="@cor2" />
 
                     <!-- Curva Cand 1 (Vermelho/PT) -->
-                    <path d="M 30,85 Q 80,105 150,98 T 290,75" fill="none" stroke="@cor1" stroke-width="2.5" />
-                    <circle cx="290" cy="75" r="3.5" fill="@cor1" />
+                    <path d="M 30,166 Q 75,182 140,175 T 290,122" fill="none" stroke="@cor1" stroke-width="2.5" />
+                    <circle cx="290" cy="122" r="3.5" fill="@cor1" />
 
                     <!-- Eixo X (0% a 100%) -->
-                    <text x="30" y="120" fill="var(--chart-text)" font-size="8">0% das seções</text>
-                    <text x="145" y="120" fill="var(--chart-text)" font-size="8" text-anchor="middle">50%</text>
-                    <text x="290" y="120" fill="var(--chart-text)" font-size="8" text-anchor="end">100%</text>
+                    <text x="30" y="218" fill="var(--chart-text)" font-size="8">0% das seções</text>
+                    <text x="145" y="218" fill="var(--chart-text)" font-size="8" text-anchor="middle">50%</text>
+                    <text x="290" y="218" fill="var(--chart-text)" font-size="8" text-anchor="end">100%</text>
                 </svg>
-            </div>
-        </div>
-
-        <!-- Contagem Regressiva 2º Turno (25/10) -->
-        <div class="countdown-strip p-3 text-center">
-            <div class="small text-secondary mb-1" style="font-size: 0.72rem;">
-                <i class="bi bi-alarm text-info me-1"></i> Abertura das urnas do 2º turno (25/10):
-            </div>
-            <div class="d-flex align-items-center justify-content-center gap-2 font-mono fw-bold fs-5" style="color: var(--text-title);" id="timerDigitsContainer">
-                <span id="cdDias">00</span><small class="text-secondary fs-6">d</small>
-                <span id="cdHoras">00</span><small class="text-secondary fs-6">h</small>
-                <span id="cdMinutos">00</span><small class="text-secondary fs-6">m</small>
-                <span id="cdSegundos" class="text-warning">00</span><small class="text-secondary fs-6">s</small>
             </div>
         </div>
     </div>
@@ -730,7 +863,7 @@
     <!-- ========================================== -->
     <div class="col-12 col-xl-3 col-lg-3 dashboard-col-right">
         <!-- Card 1: Por Região (Quem lidera para presidente) -->
-        <div class="sidebar-card p-3 mb-3">
+        <div class="sidebar-card p-3 mb-3 sidebar-card-regions">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <span class="small fw-bold" style="color: var(--text-title);">Por região</span>
                 <span class="text-secondary" style="font-size: 0.7rem;">Quem lidera para presidente</span>
@@ -862,7 +995,7 @@
         </div>
 
         <!-- Card 2: Últimas Atualizações (Feed com Esmaecimento Gradiente Inferior e sem Rollover) -->
-        <div class="sidebar-card p-3">
+        <div class="sidebar-card p-3 sidebar-card-feed">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <span class="small fw-bold" style="color: var(--text-title); font-size: 0.9rem;">Últimas atualizações</span>
                 <span class="badge bg-danger-subtle text-danger small py-0 px-1 font-mono" style="font-size: 0.65rem;">• Ao vivo</span>
@@ -1141,8 +1274,111 @@
             setInterval(tick, 1000);
         }
 
+        // Monitoramento de Pessoas Online em Tempo Real (Presença)
+        let sessionIdPresenca = sessionStorage.getItem("presenca_cid");
+        if (!sessionIdPresenca) {
+            sessionIdPresenca = "usr_" + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+            sessionStorage.setItem("presenca_cid", sessionIdPresenca);
+        }
+
+        async function atualizarPresenca() {
+            try {
+                const res = await fetch(`/api/apuracao/presenca?id=${encodeURIComponent(sessionIdPresenca)}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data && data.online !== undefined) {
+                    const elCount = document.getElementById("lblOnlineCount");
+                    if (elCount) {
+                        elCount.innerText = data.online === 1 ? "1 pessoa" : `${data.online} pessoas`;
+                    }
+                }
+            } catch (err) {
+                console.warn("Falha no heartbeat de presença:", err);
+            }
+        }
+
+        // Histórico da Apuração no Tempo (Scrubber Timeline)
+        let timelinePontos = [];
+        let valoresOriginaisDuelo = null;
+
+        async function carregarTimelineScrubber() {
+            try {
+                const res = await fetch('/api/apuracao/timeline');
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data && data.timeline) {
+                    timelinePontos = data.timeline;
+                }
+            } catch (e) {
+                console.warn("Timeline indisponível:", e);
+            }
+        }
+
+        function configurarScrubberTimeline() {
+            const rangeEl = document.getElementById("rangeScrubberApuracao");
+            if (!rangeEl) return;
+
+            // Salvar valores iniciais ao vivo
+            valoresOriginaisDuelo = {
+                cand1Perc: document.getElementById("cand1Perc") ? document.getElementById("cand1Perc").innerHTML : "",
+                cand2Perc: document.getElementById("cand2Perc") ? document.getElementById("cand2Perc").innerHTML : "",
+                barCand1: document.getElementById("barCand1") ? document.getElementById("barCand1").style.width : "50%",
+                barCand2: document.getElementById("barCand2") ? document.getElementById("barCand2").style.width : "50%",
+                clock: document.getElementById("lblLiveClockScrubber") ? document.getElementById("lblLiveClockScrubber").innerText : "19:04:32"
+            };
+
+            rangeEl.addEventListener("input", (e) => {
+                const val = parseInt(e.target.value, 10);
+                const elCurr = document.getElementById("lblScrubberCurrent");
+                if (elCurr) elCurr.innerText = val + "%";
+
+                if (timelinePontos.length > 0) {
+                    // Encontrar ponto mais próximo
+                    let ponto = timelinePontos[timelinePontos.length - 1];
+                    for (let i = 0; i < timelinePontos.length; i++) {
+                        if (val <= timelinePontos[i].pct) {
+                            ponto = timelinePontos[i];
+                            break;
+                        }
+                    }
+
+                    const elClock = document.getElementById("lblLiveClockScrubber");
+                    if (elClock && ponto.hora) {
+                        elClock.innerText = ponto.hora;
+                    }
+
+                    if (val < 100) {
+                        const elP1 = document.getElementById("cand1Perc");
+                        if (elP1) elP1.innerHTML = `${ponto.cand1.toFixed(2)}<span class="fs-6 text-secondary">%</span>`;
+                        const elP2 = document.getElementById("cand2Perc");
+                        if (elP2) elP2.innerHTML = `${ponto.cand2.toFixed(2)}<span class="fs-6 text-secondary">%</span>`;
+                        const b1 = document.getElementById("barCand1");
+                        if (b1) b1.style.width = ponto.cand1.toFixed(2) + "%";
+                        const b2 = document.getElementById("barCand2");
+                        if (b2) b2.style.width = ponto.cand2.toFixed(2) + "%";
+                        const diffEl = document.getElementById("lblDiffPontos");
+                        if (diffEl) diffEl.innerText = `${ponto.diff.toFixed(2)} pts`;
+                    } else if (valoresOriginaisDuelo) {
+                        const elP1 = document.getElementById("cand1Perc");
+                        if (elP1) elP1.innerHTML = valoresOriginaisDuelo.cand1Perc;
+                        const elP2 = document.getElementById("cand2Perc");
+                        if (elP2) elP2.innerHTML = valoresOriginaisDuelo.cand2Perc;
+                        const b1 = document.getElementById("barCand1");
+                        if (b1) b1.style.width = valoresOriginaisDuelo.barCand1;
+                        const b2 = document.getElementById("barCand2");
+                        if (b2) b2.style.width = valoresOriginaisDuelo.barCand2;
+                    }
+                }
+            });
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             iniciarContagemRegressiva2T();
+            atualizarPresenca();
+            setInterval(atualizarPresenca, 15000);
+            carregarTimelineScrubber().then(() => {
+                configurarScrubberTimeline();
+            });
 
             if (window.MapaEleicoesLeaflet) {
                 MapaEleicoesLeaflet.inicializar("mapaInterativoLeaflet");

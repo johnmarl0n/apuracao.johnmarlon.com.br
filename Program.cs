@@ -15,6 +15,7 @@ builder.Services.AddMemoryCache();
 // Repositórios e Serviços
 builder.Services.AddSingleton<DatabaseInitializer>();
 builder.Services.AddSingleton<ApuracaoRepository>();
+builder.Services.AddSingleton<OnlinePresenceService>();
 builder.Services.AddScoped<TseService>();
 
 var app = builder.Build();
