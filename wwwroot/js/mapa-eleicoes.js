@@ -256,7 +256,7 @@ const MapaEleicoesLeaflet = {
         }
 
         const lblModo = document.getElementById("lblLeafletModoAtual");
-        if (lblModo) lblModo.innerText = `Estado: ${coords?.nome || ufUpper} • Malha de Municípios`;
+        if (lblModo) lblModo.innerText = `Estado: ${coords?.nome || ufUpper}`;
 
         const ibgeCode = this.IbgeUfCodes[ufUpper];
         if (!ibgeCode) return;
@@ -539,7 +539,7 @@ const MapaEleicoesLeaflet = {
         if (visao === 'brasil') {
             btnBr?.classList.add('active');
             if (btnBr) btnBr.innerHTML = `<i class="bi bi-globe-americas me-1 text-primary"></i> Brasil`;
-            if (lblModo) lblModo.innerText = "Brasil • 27 Unidades da Federação";
+            if (lblModo) lblModo.innerText = "Brasil • 27 UFs";
 
             this.map.removeLayer(this.camadaExterior);
             this.camadaMunicipiosGeoJson.clearLayers();

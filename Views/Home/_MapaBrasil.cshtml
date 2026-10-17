@@ -2,37 +2,37 @@
 
 <div class="map-container mb-0 d-flex flex-column h-100" id="boxMapaBrasil" style="gap: 0.25rem;">
     <!-- Barra Superior de Modos e Filtros (Inspirado no Pandora / SeuImposto) -->
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 flex-shrink-0" style="min-height: 32px;">
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-            <div class="btn-group btn-group-sm" role="group">
-                <button type="button" class="btn btn-outline-secondary active py-1 px-2 small fw-semibold" id="btnFiltroMun" onclick="MapaEleicoesLeaflet.alternarVisao('sp')">
+    <div class="d-flex align-items-center justify-content-between flex-nowrap gap-2 flex-shrink-0" style="min-height: 32px;">
+        <div class="d-flex align-items-center gap-2 flex-nowrap">
+            <div class="btn-group btn-group-sm flex-nowrap" role="group">
+                <button type="button" class="btn btn-outline-secondary active py-1 px-2 small fw-semibold text-nowrap" id="btnFiltroMun" onclick="MapaEleicoesLeaflet.alternarVisao('sp')">
                     Municípios
                 </button>
-                <button type="button" class="btn btn-outline-secondary py-1 px-2 small fw-semibold" id="btnFiltroEstados" onclick="MapaEleicoesLeaflet.alternarVisao('brasil')">
+                <button type="button" class="btn btn-outline-secondary py-1 px-2 small fw-semibold text-nowrap" id="btnFiltroEstados" onclick="MapaEleicoesLeaflet.alternarVisao('brasil')">
                     Estados
                 </button>
-                <button type="button" class="btn btn-outline-secondary py-1 px-2 small fw-semibold" onclick="MapaEleicoesLeaflet.alternarVisao('exterior')">
+                <button type="button" class="btn btn-outline-secondary py-1 px-2 small fw-semibold text-nowrap" onclick="MapaEleicoesLeaflet.alternarVisao('exterior')">
                     <i class="bi bi-globe me-1 text-info"></i> Exterior (ZZ)
                 </button>
             </div>
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle" id="lblLeafletModoAtual">
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle text-nowrap d-none d-md-inline-block" id="lblLeafletModoAtual">
                 Brasil • 27 UFs
             </span>
         </div>
 
         <!-- Legenda da Vantagem dos Candidatos (PL vs PT) -->
-        <div class="d-flex align-items-center gap-3 small flex-wrap" style="font-size: 0.75rem;">
-            <div class="d-flex align-items-center gap-1">
+        <div class="d-flex align-items-center gap-2 gap-xl-3 small flex-nowrap" style="font-size: 0.75rem;">
+            <div class="d-flex align-items-center gap-1 text-nowrap">
                 <span style="width: 8px; height: 8px; border-radius: 50%; background: #0c326f; display: inline-block;"></span>
                 <span class="fw-bold" style="color: var(--text-title);">PL</span>
                 <span class="text-secondary">2.905 mun.</span>
             </div>
-            <div class="d-flex align-items-center gap-1">
+            <div class="d-flex align-items-center gap-1 text-nowrap">
                 <span style="width: 8px; height: 8px; border-radius: 50%; background: #c4122d; display: inline-block;"></span>
                 <span class="fw-bold" style="color: var(--text-title);">PT</span>
                 <span class="text-secondary">2.665 mun.</span>
             </div>
-            <div class="d-none d-md-flex align-items-center gap-1 text-secondary" style="font-size: 0.7rem;">
+            <div class="d-none d-xxl-flex align-items-center gap-1 text-secondary text-nowrap" style="font-size: 0.7rem;">
                 <span>vantagem:</span>
                 <span class="px-1 rounded" style="background: rgba(12, 50, 111, 0.5); color: #93c5fd;">até 10</span>
                 <span class="px-1 rounded" style="background: rgba(12, 50, 111, 0.8); color: #ffffff;">25</span>

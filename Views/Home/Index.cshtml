@@ -191,6 +191,7 @@
             justify-content: space-between;
             padding: 0.5rem 0;
             border-bottom: 1px solid var(--border-card-subtle);
+            gap: 6px;
         }
         .region-row-v2:last-child {
             border-bottom: none;
@@ -200,27 +201,33 @@
             display: flex;
             flex-direction: column;
             gap: 1px;
+            min-width: 0;
+            flex-shrink: 0;
         }
         .region-title {
             font-size: 0.85rem;
             font-weight: 700;
             color: var(--text-title);
             line-height: 1.2;
+            white-space: nowrap;
         }
         .region-sub {
             font-size: 0.68rem;
             color: var(--text-secondary);
+            white-space: nowrap;
         }
         .region-stats {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
             gap: 2px;
+            flex-shrink: 0;
         }
         .region-cand-pill {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+            white-space: nowrap;
         }
         .region-avatar {
             width: 22px;
@@ -240,6 +247,7 @@
         .region-party {
             font-size: 0.72rem;
             font-weight: 800;
+            white-space: nowrap;
         }
         .region-party-pl {
             color: #3b82f6;
@@ -252,11 +260,13 @@
             font-weight: 800;
             font-family: var(--font-mono, monospace);
             color: var(--text-title);
+            white-space: nowrap;
         }
         .region-diff {
             font-size: 0.7rem;
             font-family: var(--font-mono, monospace);
             color: var(--text-secondary);
+            white-space: nowrap;
         }
 
         /* Mini-Barra de Vantagem / Duel Bar */
@@ -343,6 +353,8 @@
             font-size: 0.79rem;
             line-height: 1.35;
             color: var(--text-main);
+            overflow-wrap: break-word;
+            word-break: normal;
         }
         .news-body strong {
             color: var(--text-title);
@@ -463,9 +475,9 @@
             .dashboard-col-left {
                 display: flex !important;
                 flex-direction: column !important;
-                flex: 0 0 27% !important;
-                max-width: 27% !important;
-                width: 27% !important;
+                flex: 0 0 26% !important;
+                max-width: 26% !important;
+                width: 26% !important;
                 height: 100% !important;
                 max-height: 100% !important;
                 min-height: 0 !important;
@@ -474,9 +486,9 @@
             .dashboard-col-center {
                 display: flex !important;
                 flex-direction: column !important;
-                flex: 0 0 53% !important;
-                max-width: 53% !important;
-                width: 53% !important;
+                flex: 1 1 0% !important;
+                max-width: none !important;
+                width: auto !important;
                 height: 100% !important;
                 max-height: 100% !important;
                 min-height: 0 !important;
@@ -485,9 +497,9 @@
             .dashboard-col-right {
                 display: flex !important;
                 flex-direction: column !important;
-                flex: 0 0 20% !important;
-                max-width: 20% !important;
-                width: 20% !important;
+                flex: 0 0 27% !important;
+                max-width: 27% !important;
+                width: 27% !important;
                 height: 100% !important;
                 max-height: 100% !important;
                 min-height: 0 !important;
@@ -568,10 +580,10 @@
             .dashboard-col-right .sidebar-card-regions {
                 flex-shrink: 0 !important;
                 margin-bottom: 0.25rem !important;
-                padding: 0.4rem 0.65rem !important;
+                padding: 0.45rem 0.75rem !important;
             }
             .dashboard-col-right .region-row-v2 {
-                padding: 1.5px 0 !important;
+                padding: 2px 0 !important;
             }
             .dashboard-col-right .sidebar-card-feed {
                 flex: 1 1 0 !important;
@@ -579,7 +591,7 @@
                 display: flex !important;
                 flex-direction: column !important;
                 margin-bottom: 0 !important;
-                padding: 0.4rem 0.65rem !important;
+                padding: 0.45rem 0.75rem !important;
                 overflow: hidden !important;
             }
             .dashboard-col-right .news-feed-fade-container {
@@ -596,37 +608,37 @@
 
         @@media (min-width: 1200px) {
             .dashboard-col-left {
-                flex: 0 0 25% !important;
-                max-width: 25% !important;
-                width: 25% !important;
+                flex: 0 0 24.5% !important;
+                max-width: 24.5% !important;
+                width: 24.5% !important;
             }
             .dashboard-col-center {
-                flex: 0 0 56% !important;
-                max-width: 56% !important;
-                width: 56% !important;
+                flex: 1 1 0% !important;
+                max-width: none !important;
+                width: auto !important;
             }
             .dashboard-col-right {
-                flex: 0 0 19% !important;
-                max-width: 19% !important;
-                width: 19% !important;
+                flex: 0 0 26% !important;
+                max-width: 26% !important;
+                width: 26% !important;
             }
         }
 
         @@media (min-width: 1600px) {
             .dashboard-col-left {
-                flex: 0 0 23% !important;
-                max-width: 23% !important;
-                width: 23% !important;
+                flex: 0 0 22% !important;
+                max-width: 22% !important;
+                width: 22% !important;
             }
             .dashboard-col-center {
-                flex: 0 0 59% !important;
-                max-width: 59% !important;
-                width: 59% !important;
+                flex: 1 1 0% !important;
+                max-width: none !important;
+                width: auto !important;
             }
             .dashboard-col-right {
-                flex: 0 0 18% !important;
-                max-width: 18% !important;
-                width: 18% !important;
+                flex: 0 0 24% !important;
+                max-width: 24% !important;
+                width: 24% !important;
             }
         }
     </style>
