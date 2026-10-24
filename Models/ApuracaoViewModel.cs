@@ -5,9 +5,9 @@ namespace apuracao.johnmarlon.com.br.Models
 {
     public class ApuracaoViewModel
     {
-        public string Pleito { get; set; } = "3220";
-        public string Ano { get; set; } = "2026";
-        public string CodigoEleicao { get; set; } = "6257";
+        public string Pleito { get; set; } = "3221";
+        public string Ano { get; set; } = "2026-2T";
+        public string CodigoEleicao { get; set; } = "6258";
         public string TipoEleicao { get; set; } = "Federal"; // Federal ou Estadual
         public string CargoCodigo { get; set; } = "1";
         public string CargoNome { get; set; } = "Presidente";
@@ -45,6 +45,8 @@ namespace apuracao.johnmarlon.com.br.Models
         public List<EleicaoConfiguracao> EleicoesHistoricas { get; set; } = new();
 
         public CidadeDetalhesInfo? InformacoesCidade { get; set; }
+
+        public List<NoticiaItem> Noticias { get; set; } = new();
 
         public bool IsHistorico => Ano != "2026" && !Ano.StartsWith("2026");
     }

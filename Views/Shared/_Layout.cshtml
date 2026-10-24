@@ -3,8 +3,8 @@
     var apuracaoModel = ViewData.Model as ApuracaoViewModel;
     bool isEleicaoAoVivo = apuracaoModel?.AoVivo ?? true;
     bool isFinalizado = (apuracaoModel?.Finalizado ?? false) || (apuracaoModel?.PercentualTotalizado >= 100);
-    bool isHistorico = !isEleicaoAoVivo || isFinalizado || (apuracaoModel != null && apuracaoModel.Ano != "2026");
-    string pleitoBadge = apuracaoModel != null ? $"Pleito {apuracaoModel.Pleito} ({apuracaoModel.Ano})" : "Pleito 3220 (1º Turno)";
+    bool isHistorico = !isEleicaoAoVivo || isFinalizado || (apuracaoModel != null && apuracaoModel.Ano != "2026-2T");
+    string pleitoBadge = apuracaoModel != null ? $"Pleito {apuracaoModel.Pleito} ({apuracaoModel.Ano})" : "Pleito 3221 (2º Turno)";
 }
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -678,7 +678,7 @@
 
                 <div class="d-flex align-items-center gap-2 gap-md-2 flex-wrap">
                     <!-- Botão Exterior (ZZ) -->
-                    <a href="?ano=@(apuracaoModel?.Ano ?? "2026")&cargo=@(apuracaoModel?.CargoCodigo ?? "1")&uf=zz" 
+                    <a href="?ano=@(apuracaoModel?.Ano ?? "2026-2T")&cargo=@(apuracaoModel?.CargoCodigo ?? "1")&uf=zz" 
                        class="btn btn-sm btn-outline-info d-none d-lg-inline-flex align-items-center gap-1 py-1 px-2 small rounded-pill" 
                        title="Ver votação dos brasileiros no exterior (ZZ)">
                         <i class="bi bi-globe-americas"></i>
@@ -736,6 +736,23 @@
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
         </div>
         <div class="offcanvas-body d-flex flex-column gap-4 py-3">
+            <!-- Seção: Eleições Gerais 2026 -->
+            <div>
+                <span class="text-uppercase small fw-bold text-secondary d-block mb-2">
+                    <i class="bi bi-broadcast text-danger me-1"></i> Eleições Gerais 2026
+                </span>
+                <div class="d-flex flex-column gap-2 mb-1">
+                    <a href="/?ano=2026-2T&cargo=1&uf=br" class="menu-history-link d-flex justify-content-between align-items-center p-2 rounded-2 text-decoration-none @(apuracaoModel?.Ano == "2026-2T" ? "border-primary" : "")">
+                        <span class="small fw-semibold menu-history-title"><i class="bi bi-circle-fill text-danger me-2" style="font-size: 0.55rem;"></i>2026 (2º Turno • Ao Vivo)</span>
+                        <span class="badge bg-danger text-white small">Ao Vivo</span>
+                    </a>
+                    <a href="/?ano=2026&cargo=1&uf=br" class="menu-history-link d-flex justify-content-between align-items-center p-2 rounded-2 text-decoration-none @(apuracaoModel?.Ano == "2026" ? "border-primary" : "")">
+                        <span class="small fw-semibold menu-history-title"><i class="bi bi-clock-history me-2 text-secondary"></i>2026 (1º Turno • Homologado)</span>
+                        <span class="badge bg-secondary-subtle text-secondary small">1º Turno</span>
+                    </a>
+                </div>
+            </div>
+
             <!-- Seção 1: Eleições Gerais Anteriores -->
             <div>
                 <span class="text-uppercase small fw-bold text-secondary d-block mb-2">
@@ -940,8 +957,7 @@
         }
         function updateBallotCountdown() {
             const now = new Date();
-            const target = new Date();
-            target.setHours(17, 0, 0, 0); // 17:00 de hoje
+            const target = new Date("2026-10-25T17:00:00-03:00");
 
             const diff = target - now;
             const elClock = document.getElementById("navClosingClock");
@@ -949,17 +965,22 @@
             if (!elText) return;
 
             if (diff > 0) {
-                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 const secs = Math.floor((diff % (1000 * 60)) / 1000);
                 const pad = (n) => n.toString().padStart(2, '0');
-                elText.innerText = `Urnas fecham em ${pad(hours)}h ${pad(mins)}m ${pad(secs)}s`;
+                if (days > 0) {
+                    elText.innerText = `Apuração em ${days}d ${pad(hours)}h ${pad(mins)}m ${pad(secs)}s`;
+                } else {
+                    elText.innerText = `Urnas fecham em ${pad(hours)}h ${pad(mins)}m ${pad(secs)}s`;
+                }
             } else {
                 if (elClock) {
                     elClock.classList.remove("border-warning", "text-warning");
                     elClock.classList.add("border-success", "text-success");
                 }
-                elText.innerHTML = `<i class="bi bi-lock-fill me-1"></i> Urnas encerradas (17:00) • Apuração`;
+                elText.innerHTML = `<i class="bi bi-broadcast text-danger me-1"></i> Urnas encerradas (17:00) • Apuração`;
             }
         }
         function syncThemeIcon() {

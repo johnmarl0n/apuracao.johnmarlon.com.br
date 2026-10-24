@@ -22,16 +22,32 @@
 
         <!-- Legenda da Vantagem dos Candidatos (PL vs PT) -->
         <div class="d-flex align-items-center gap-2 gap-xl-3 small flex-nowrap" style="font-size: 0.75rem;">
-            <div class="d-flex align-items-center gap-1 text-nowrap">
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: #0c326f; display: inline-block;"></span>
-                <span class="fw-bold" style="color: var(--text-title);">PL</span>
-                <span class="text-secondary">2.905 mun.</span>
-            </div>
-            <div class="d-flex align-items-center gap-1 text-nowrap">
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: #c4122d; display: inline-block;"></span>
-                <span class="fw-bold" style="color: var(--text-title);">PT</span>
-                <span class="text-secondary">2.665 mun.</span>
-            </div>
+            @if (Model.PercentualTotalizado > 0)
+            {
+                <div class="d-flex align-items-center gap-1 text-nowrap">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #0c326f; display: inline-block;"></span>
+                    <span class="fw-bold" style="color: var(--text-title);">PL</span>
+                    <span class="text-secondary" id="lblPlacarMunPl">Ao vivo</span>
+                </div>
+                <div class="d-flex align-items-center gap-1 text-nowrap">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #c4122d; display: inline-block;"></span>
+                    <span class="fw-bold" style="color: var(--text-title);">PT</span>
+                    <span class="text-secondary" id="lblPlacarMunPt">Ao vivo</span>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex align-items-center gap-1 text-nowrap">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #0c326f; display: inline-block;"></span>
+                    <span class="fw-bold" style="color: var(--text-title);">PL</span>
+                    <span class="text-secondary">Flávio Bolsonaro</span>
+                </div>
+                <div class="d-flex align-items-center gap-1 text-nowrap">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #c4122d; display: inline-block;"></span>
+                    <span class="fw-bold" style="color: var(--text-title);">PT</span>
+                    <span class="text-secondary">Lula</span>
+                </div>
+            }
             <div class="d-none d-xxl-flex align-items-center gap-1 text-secondary text-nowrap" style="font-size: 0.7rem;">
                 <span>vantagem:</span>
                 <span class="px-1 rounded" style="background: rgba(12, 50, 111, 0.5); color: #93c5fd;">até 10</span>

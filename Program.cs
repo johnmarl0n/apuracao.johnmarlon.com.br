@@ -19,6 +19,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<DatabaseInitializer>();
 builder.Services.AddSingleton<ApuracaoRepository>();
 builder.Services.AddSingleton<OnlinePresenceService>();
+builder.Services.AddSingleton<NoticiasApuracaoService>();
 builder.Services.AddScoped<TseService>();
 
 // Rate Limiting Nativo (.NET 8)
@@ -58,7 +59,7 @@ builder.Services.AddRateLimiter(options =>
             return RateLimitPartition.GetNoLimiter("load_testing");
         }
 
-        return RateLimitPartition.GetSlidingWindowLimiter(ip, _ => new SlidingWindowRateLimiterOptions
+        return RateLimitPartition.GetSlidingWindowLimiter(ip ?? "anonimo", _ => new SlidingWindowRateLimiterOptions
         {
             PermitLimit = 120,
             Window = TimeSpan.FromMinutes(1),

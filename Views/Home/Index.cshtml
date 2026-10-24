@@ -700,15 +700,27 @@
                     Presidente • @(!string.IsNullOrEmpty(Model.NomeMunicipio) ? $"{Model.NomeMunicipio} ({Model.Uf.ToUpperInvariant()})" : (Model.Uf == "br" ? "Brasil" : Model.Uf.ToUpperInvariant()))
                 </span>
                 <span class="badge bg-secondary-subtle text-secondary small py-0 px-2 rounded-pill font-mono" style="font-size: 0.68rem;" id="badgeStatusApuracao">
-                    @(Model.Finalizado ? "• 2º turno · Definido" : "• 2º turno · Ao vivo")
+                    @(Model.Finalizado ? "• 2º turno · Definido" : (Model.PercentualTotalizado > 0 ? "• 2º turno · Ao vivo" : "• 2º turno · Aguardando totalização"))
                 </span>
             </div>
 
             <!-- Título em Serif com Nomes dos Candidatos Coloridos -->
             <h2 class="h5 font-serif-headline mb-2" id="lblHeadlineDuelo">
-                @if (cand1 != null && cand2 != null)
+                @if (Model.Ano == "2026")
                 {
-                    <span class="cand-headline-name-c2">@cand2.NomeUrna</span><span class="cand-headline-connector"> e </span><span class="cand-headline-name-c1">@cand1.NomeUrna</span><span class="cand-headline-connector"> vão ao 2º turno</span>
+                    <span class="cand-headline-name-c2">@(cand2?.NomeUrna ?? "Candidato")</span><span class="cand-headline-connector"> e </span><span class="cand-headline-name-c1">@(cand1?.NomeUrna ?? "Candidato")</span><span class="cand-headline-connector"> foram ao 2º turno</span>
+                }
+                else if (Model.Finalizado && cand1 != null)
+                {
+                    <span class="cand-headline-name-c1">@cand1.NomeUrna</span><span class="cand-headline-connector"> é eleito Presidente da República</span>
+                }
+                else if (Model.PercentualTotalizado > 0 && cand1 != null)
+                {
+                    <span class="cand-headline-name-c1">@cand1.NomeUrna</span><span class="cand-headline-connector"> lidera a apuração para Presidente</span>
+                }
+                else if (cand1 != null && cand2 != null)
+                {
+                    <span class="cand-headline-name-c2">@cand2.NomeUrna</span><span class="cand-headline-connector"> e </span><span class="cand-headline-name-c1">@cand1.NomeUrna</span><span class="cand-headline-connector"> disputam a Presidência</span>
                 }
                 else
                 {
@@ -795,14 +807,29 @@
             <!-- Barra Segmentada com Marcador de 50% -->
             <div class="duel-split-bar mb-2">
                 <div class="threshold-50-marker"></div>
-                <div id="barCand1" style="width: @(cand1?.Percentual.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) ?? "50")%; background-color: @cor1; border-radius: 9999px 0 0 9999px;"></div>
-                <div id="barCand2" style="width: @(cand2?.Percentual.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) ?? "50")%; background-color: @cor2; border-radius: 0 9999px 9999px 0; margin-left: auto;"></div>
+                @if (Model.PercentualTotalizado > 0 && (cand1?.Percentual > 0 || cand2?.Percentual > 0))
+                {
+                    <div id="barCand1" style="width: @(cand1?.Percentual.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) ?? "50")%; background-color: @cor1; border-radius: 9999px 0 0 9999px;"></div>
+                    <div id="barCand2" style="width: @(cand2?.Percentual.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) ?? "50")%; background-color: @cor2; border-radius: 0 9999px 9999px 0; margin-left: auto;"></div>
+                }
+                else
+                {
+                    <div id="barCand1" style="width: 50%; background-color: @cor1; opacity: 0.65; border-radius: 9999px 0 0 9999px;"></div>
+                    <div id="barCand2" style="width: 50%; background-color: @cor2; opacity: 0.65; border-radius: 0 9999px 9999px 0; margin-left: auto;"></div>
+                }
             </div>
 
             <!-- Diferença e Meta -->
             <div class="d-flex align-items-center justify-content-between text-secondary small py-1 border-top border-themed mt-2" style="font-size: 0.74rem;">
-                <span>Diferença: <strong class="font-mono" style="color: var(--text-title);" id="lblDiffPontos">@Math.Abs((cand1?.Percentual ?? 0) - (cand2?.Percentual ?? 0)).ToString("F2") pts</strong> (@diffVotos.ToString("N0") votos)</span>
-                <span>2º turno: <strong class="text-warning">25/10</strong></span>
+                @if (Model.PercentualTotalizado > 0)
+                {
+                    <span>Diferença: <strong class="font-mono" style="color: var(--text-title);" id="lblDiffPontos">@Math.Abs((cand1?.Percentual ?? 0) - (cand2?.Percentual ?? 0)).ToString("F2") pts</strong> (@diffVotos.ToString("N0") votos)</span>
+                }
+                else
+                {
+                    <span>Diferença: <strong class="font-mono text-warning" id="lblDiffPontos">Aguardando apuração</strong></span>
+                }
+                <span>2º turno: <strong class="text-warning">25/10 • 17h</strong></span>
             </div>
 
             <!-- Resumo dos Votos Válidos, Comparecimento e Brancos/Nulos -->
@@ -823,7 +850,7 @@
 
             <!-- Contagem Regressiva do 2º Turno integrada -->
             <div class="d-flex align-items-center justify-content-between pt-1 mt-1 border-top border-themed small" style="font-size: 0.72rem;">
-                <span class="text-secondary"><i class="bi bi-alarm text-info me-1"></i> Abertura das urnas (25/10):</span>
+                <span class="text-secondary"><i class="bi bi-alarm text-info me-1"></i> Abertura da apuração (17h):</span>
                 <span class="font-mono fw-bold" style="color: var(--text-title);" id="timerDigitsContainer">
                     <span id="cdDias">00</span><small class="text-secondary">d</small>
                     <span id="cdHoras">00</span><small class="text-secondary">h</small>
@@ -1039,86 +1066,39 @@
             </div>
 
             <!-- Feed com esmaecido gradiente inferior para evitar o rollover/scrollbar -->
-            <div class="news-feed-fade-container">
-                <!-- Notícia 1: Douglas Ruas -->
-                <div class="news-row-v2">
-                    <span class="news-time">12h51</span>
-                    <img src="/img/candidatos/douglas_ruas.webp" alt="Douglas Ruas" class="news-avatar" />
-                    <div class="news-body">
-                        Rio de Janeiro: <strong>Douglas Ruas</strong> é eleito governador.
+            <div class="news-feed-fade-container" id="newsFeedListContainer">
+                @if (Model.Noticias != null && Model.Noticias.Count > 0)
+                {
+                    @foreach (var notic in Model.Noticias)
+                    {
+                        <div class="news-row-v2 @(notic.Destaque ? "news-row-destaque" : "")">
+                            <span class="news-time">@notic.Hora</span>
+                            @if (!string.IsNullOrEmpty(notic.AvatarUrl))
+                            {
+                                <img src="@notic.AvatarUrl" alt="Foto" class="news-avatar" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline-flex';" />
+                                <div class="news-icon-circle" style="display: none;">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="news-icon-circle">
+                                    <i class="bi @(string.IsNullOrEmpty(notic.Icone) ? "bi-circle" : notic.Icone)"></i>
+                                </div>
+                            }
+                            <div class="news-body">
+                                @Html.Raw(notic.ConteudoHtml)
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="p-3 text-center text-secondary small">
+                        <i class="bi bi-clock-history d-block mb-1 fs-5"></i>
+                        Aguardando início da apuração das urnas às 17h.
                     </div>
-                </div>
-
-                <!-- Notícia 2: Amazonas -->
-                <div class="news-row-v2">
-                    <span class="news-time">03h00</span>
-                    <img src="/img/candidatos/eduardo_braga.webp" alt="Eduardo Braga" class="news-avatar" />
-                    <div class="news-body">
-                        Amazonas: <strong>Eduardo Braga</strong> e <strong>Plínio Valério</strong> são eleitos para o Senado.
-                    </div>
-                </div>
-
-                <!-- Notícia 3: Seção 1 -->
-                <div class="news-row-v2">
-                    <span class="news-time">03h00</span>
-                    <div class="news-icon-circle">
-                        <i class="bi bi-circle"></i>
-                    </div>
-                    <div class="news-body">
-                        <div class="fw-bold mb-1" style="color: var(--text-title);">+1 seção</div>
-                        <div><strong>Flávio Bolsonaro</strong> <span class="font-mono fw-bold" style="color: #3b82f6;">47,0%</span></div>
-                        <div><strong>Lula</strong> <span class="font-mono fw-bold" style="color: #ef4444;">45,2%</span></div>
-                    </div>
-                </div>
-
-                <!-- Notícia 4: Seções 6 -->
-                <div class="news-row-v2">
-                    <span class="news-time">01h56</span>
-                    <div class="news-icon-circle">
-                        <i class="bi bi-circle"></i>
-                    </div>
-                    <div class="news-body">
-                        <div class="fw-bold mb-1" style="color: var(--text-title);">+6 seções</div>
-                        <div><strong>Flávio Bolsonaro</strong> <span class="font-mono fw-bold" style="color: #3b82f6;">47,0%</span></div>
-                        <div><strong>Lula</strong> <span class="font-mono fw-bold" style="color: #ef4444;">45,2%</span></div>
-                    </div>
-                </div>
-
-                <!-- Notícia 5: Minas Gerais -->
-                <div class="news-row-v2">
-                    <span class="news-time">00h47</span>
-                    <img src="/img/candidatos/domingos_savio.webp" alt="Domingos Sávio" class="news-avatar" />
-                    <div class="news-body">
-                        Minas Gerais: <strong>Domingos Sávio</strong> e <strong>Marília Campos</strong> são eleitos para o Senado.
-                    </div>
-                </div>
-
-                <!-- Notícia 6: Maranhão -->
-                <div class="news-row-v2">
-                    <span class="news-time">00h47</span>
-                    <img src="/img/candidatos/fufuca.webp" alt="Fufuca" class="news-avatar" />
-                    <div class="news-body">
-                        Maranhão: <strong>Fufuca</strong> e <strong>Lahésio Bonfim</strong> são eleitos para o Senado.
-                    </div>
-                </div>
-
-                <!-- Notícia 7: São Paulo -->
-                <div class="news-row-v2">
-                    <span class="news-time">00h25</span>
-                    <img src="/img/candidatos/tarcisio.webp" alt="Tarcísio" class="news-avatar" />
-                    <div class="news-body">
-                        São Paulo: <strong>Tarcísio</strong> lidera apuração com <strong>62,7%</strong> dos votos válidos.
-                    </div>
-                </div>
-
-                <!-- Notícia 8: Exterior -->
-                <div class="news-row-v2">
-                    <span class="news-time">00h12</span>
-                    <img src="/img/candidatos/lula.webp" alt="Exterior" class="news-avatar" />
-                    <div class="news-body">
-                        Exterior: Urnas 100% totalizadas em Lisboa, Porto, Paris e Tóquio.
-                    </div>
-                </div>
+                }
             </div>
         </div>
     </div>
@@ -1230,6 +1210,29 @@
                 if (data.candidatos && data.candidatos.length > 0) {
                     const c1 = data.candidatos[0];
                     const c2 = data.candidatos.length > 1 ? data.candidatos[1] : null;
+                    const percTotal = data.percentualTotalizado || 0;
+
+                    // Atualizar Badge de Status
+                    const elBadge = document.getElementById("badgeStatusApuracao");
+                    if (elBadge) {
+                        elBadge.innerText = data.finalizado 
+                            ? "• 2º turno · Definido" 
+                            : (percTotal > 0 ? "• 2º turno · Ao vivo" : "• 2º turno · Aguardando totalização");
+                    }
+
+                    // Atualizar Headline Dinâmica
+                    const elHeadline = document.getElementById("lblHeadlineDuelo");
+                    if (elHeadline) {
+                        if (anoAtual === "2026") {
+                            elHeadline.innerHTML = `<span class="cand-headline-name-c2">${c2 ? c2.nomeUrna : ''}</span><span class="cand-headline-connector"> e </span><span class="cand-headline-name-c1">${c1 ? c1.nomeUrna : ''}</span><span class="cand-headline-connector"> foram ao 2º turno</span>`;
+                        } else if (data.finalizado && c1) {
+                            elHeadline.innerHTML = `<span class="cand-headline-name-c1">${c1.nomeUrna}</span><span class="cand-headline-connector"> é eleito Presidente da República</span>`;
+                        } else if (percTotal > 0 && c1) {
+                            elHeadline.innerHTML = `<span class="cand-headline-name-c1">${c1.nomeUrna}</span><span class="cand-headline-connector"> lidera a apuração para Presidente</span>`;
+                        } else if (c1 && c2) {
+                            elHeadline.innerHTML = `<span class="cand-headline-name-c2">${c2.nomeUrna}</span><span class="cand-headline-connector"> e </span><span class="cand-headline-name-c1">${c1.nomeUrna}</span><span class="cand-headline-connector"> disputam a Presidência</span>`;
+                        }
+                    }
 
                     if (c1) {
                         const elPerc1 = document.getElementById("cand1Perc");
@@ -1237,7 +1240,7 @@
                         const elVotos1 = document.getElementById("cand1Votos");
                         if (elVotos1) elVotos1.innerText = `${c1.votos.toLocaleString('pt-BR')} votos`;
                         const bar1 = document.getElementById("barCand1");
-                        if (bar1) bar1.style.width = c1.percentual.toFixed(2) + "%";
+                        if (bar1) bar1.style.width = (percTotal > 0 ? c1.percentual.toFixed(2) : "50") + "%";
                     }
 
                     if (c2) {
@@ -1246,14 +1249,52 @@
                         const elVotos2 = document.getElementById("cand2Votos");
                         if (elVotos2) elVotos2.innerText = `${c2.votos.toLocaleString('pt-BR')} votos`;
                         const bar2 = document.getElementById("barCand2");
-                        if (bar2) bar2.style.width = c2.percentual.toFixed(2) + "%";
+                        if (bar2) bar2.style.width = (percTotal > 0 ? c2.percentual.toFixed(2) : "50") + "%";
                     }
 
                     if (c1 && c2) {
                         const diffPts = Math.abs(c1.percentual - c2.percentual);
                         const diffV = Math.abs(c1.votos - c2.votos);
                         const elDiff = document.getElementById("lblDiffPontos");
-                        if (elDiff) elDiff.innerText = `${diffPts.toFixed(2)} pts`;
+                        if (elDiff) {
+                            elDiff.innerText = percTotal > 0 ? `${diffPts.toFixed(2)} pts` : "Aguardando apuração";
+                        }
+                    }
+                }
+
+                // Atualizar Votos Válidos, Comparecimento e Brancos/Nulos
+                if (data.votosValidos !== undefined) {
+                    const elVv = document.getElementById("lblVotosValidos");
+                    if (elVv) elVv.innerText = data.votosValidos.toLocaleString('pt-BR');
+                }
+                if (data.percentualComparecimento !== undefined) {
+                    const elComp = document.getElementById("lblPercComparecimento");
+                    if (elComp) elComp.innerText = data.percentualComparecimento.toFixed(1) + "%";
+                }
+                if (data.percentualVotosBrancos !== undefined && data.percentualVotosNulos !== undefined) {
+                    const elBn = document.getElementById("lblPercBrancosNulos");
+                    if (elBn) elBn.innerText = (data.percentualVotosBrancos + data.percentualVotosNulos).toFixed(1) + "%";
+                }
+
+                // Atualizar Feed de Notícias em tempo real
+                if (data.noticias && data.noticias.length > 0) {
+                    const containerNoticias = document.getElementById("newsFeedListContainer");
+                    if (containerNoticias) {
+                        let htmlFeed = '';
+                        data.noticias.forEach(n => {
+                            const avatarHtml = n.avatarUrl 
+                                ? `<img src="${n.avatarUrl}" alt="Foto" class="news-avatar" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline-flex';" /><div class="news-icon-circle" style="display: none;"><i class="bi bi-person-fill"></i></div>`
+                                : `<div class="news-icon-circle"><i class="bi ${n.icone || 'bi-circle'}"></i></div>`;
+                            
+                            htmlFeed += `
+                                <div class="news-row-v2 ${n.destaque ? 'news-row-destaque' : ''}">
+                                    <span class="news-time">${n.hora || ''}</span>
+                                    ${avatarHtml}
+                                    <div class="news-body">${n.conteudoHtml || ''}</div>
+                                </div>
+                            `;
+                        });
+                        containerNoticias.innerHTML = htmlFeed;
                     }
                 }
 
@@ -1285,12 +1326,13 @@
             }
         }
 
-        // Contagem Regressiva para 25/10
+        // Contagem Regressiva para Início da Apuração (25/10 às 17h)
         function iniciarContagemRegressiva2T() {
-            const target = new Date("2026-10-25T08:00:00-03:00").getTime();
+            const target = new Date("2026-10-25T17:00:00-03:00").getTime();
             function tick() {
                 const agora = new Date().getTime();
                 const diff = target - agora;
+                const elContainer = document.getElementById("timerDigitsContainer");
                 if (diff > 0) {
                     const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
                     const horas = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -1305,6 +1347,8 @@
                     if (elH) elH.innerText = String(horas).padStart(2, '0');
                     if (elM) elM.innerText = String(minutos).padStart(2, '0');
                     if (elS) elS.innerText = String(segundos).padStart(2, '0');
+                } else if (elContainer) {
+                    elContainer.innerHTML = '<span class="text-danger fw-bold"><i class="bi bi-broadcast me-1"></i> Apuração em andamento</span>';
                 }
             }
             tick();

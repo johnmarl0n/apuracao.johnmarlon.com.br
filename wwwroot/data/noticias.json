@@ -1,0 +1,52 @@
+[
+  {
+    "id": "abertura_urnas",
+    "hora": "17h00",
+    "dataHora": "2026-10-25T17:00:00",
+    "titulo": "TSE Oficial",
+    "conteudoHtml": "TSE: Urnas encerradas às 17h em todo o Brasil. Início da totalização oficial do 2º Turno.",
+    "icone": "bi-shield-check",
+    "tipo": "tse_urna",
+    "destaque": true
+  },
+  {
+    "id": "preparacao_tse",
+    "hora": "16h00",
+    "dataHora": "2026-10-25T16:00:00",
+    "titulo": "Reta Final",
+    "conteudoHtml": "Reta final: Faltam poucos minutos para o encerramento da votação no horário de Brasília.",
+    "icone": "bi-clock-history",
+    "tipo": "aviso",
+    "destaque": false
+  },
+  {
+    "id": "exterior_europa",
+    "hora": "13h00",
+    "dataHora": "2026-10-25T13:00:00",
+    "titulo": "Exterior",
+    "conteudoHtml": "Exterior: Urnas encerradas nos consulados da Europa (Lisboa, Londres, Paris e Roma).",
+    "icone": "bi-globe2",
+    "tipo": "aviso",
+    "destaque": false
+  },
+  {
+    "id": "exterior_asia",
+    "hora": "10h00",
+    "dataHora": "2026-10-25T10:00:00",
+    "titulo": "Exterior",
+    "conteudoHtml": "Exterior: Votação 100% concluída na Ásia e Oceania (Tóquio, Seul, Sydney e Wellington).",
+    "icone": "bi-globe2",
+    "tipo": "aviso",
+    "destaque": false
+  },
+  {
+    "id": "abertura_nacional",
+    "hora": "08h00",
+    "dataHora": "2026-10-25T08:00:00",
+    "titulo": "Início da Votação",
+    "conteudoHtml": "Abertura oficial: Seções eleitorais abertas em todo o território nacional para o 2º Turno das Eleições 2026.",
+    "icone": "bi-box-arrow-in-right",
+    "tipo": "aviso",
+    "destaque": false
+  }
+]

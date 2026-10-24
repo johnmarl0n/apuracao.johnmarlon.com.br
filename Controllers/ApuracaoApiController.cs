@@ -62,9 +62,9 @@ namespace apuracao.johnmarlon.com.br.Controllers
             [FromQuery] string? cargo = null,
             [FromQuery] string? uf = "br",
             [FromQuery] string? municipio = null,
-            [FromQuery] string? ano = "2026")
+            [FromQuery] string? ano = null)
         {
-            var dados = await _tseService.ObterApuracaoAsync(cargo, uf ?? "br", municipio, ano ?? "2026");
+            var dados = await _tseService.ObterApuracaoAsync(cargo, uf ?? "br", municipio, ano);
 
             return Ok(new
             {
@@ -104,7 +104,21 @@ namespace apuracao.johnmarlon.com.br.Controllers
                     votosNulos = dados.VotosNulos,
                     percentualVotosNulos = dados.PercentualVotosNulos
                 },
-                candidatos = dados.Candidatos
+                candidatos = dados.Candidatos,
+                noticias = dados.Noticias
+            });
+        }
+
+        [HttpGet("noticias")]
+        public async Task<IActionResult> ObterNoticias([FromQuery] string? ano = null)
+        {
+            var dados = await _tseService.ObterApuracaoAsync(cargo: "1", uf: "br", municipio: null, ano: ano);
+            return Ok(new
+            {
+                sucesso = true,
+                ano = dados.Ano,
+                total = dados.Noticias.Count,
+                noticias = dados.Noticias
             });
         }
 

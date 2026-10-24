@@ -5,7 +5,7 @@ namespace apuracao.johnmarlon.com.br.Models
 {
     public class MapaBrasilDto
     {
-        public string Ano { get; set; } = "2026";
+        public string Ano { get; set; } = "2026-2T";
         public string Cargo { get; set; } = "1";
         public int TotalEstados { get; set; } = 27;
         public int EstadosTotalizados { get; set; }

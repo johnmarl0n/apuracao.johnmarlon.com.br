@@ -20,6 +20,7 @@ namespace apuracao.johnmarlon.com.br.Services
         private readonly HttpClient _http;
         private readonly IMemoryCache _cache;
         private readonly ApuracaoRepository _repo;
+        private readonly NoticiasApuracaoService _noticiasService;
         private readonly IConfiguration _config;
         private readonly ILogger<TseService> _logger;
 
@@ -458,20 +459,22 @@ namespace apuracao.johnmarlon.com.br.Services
             HttpClient http,
             IMemoryCache cache,
             ApuracaoRepository repo,
+            NoticiasApuracaoService noticiasService,
             IConfiguration config,
             ILogger<TseService> logger)
         {
             _http = http;
             _cache = cache;
             _repo = repo;
+            _noticiasService = noticiasService;
             _config = config;
             _logger = logger;
 
             _baseUrl = _config["Tse:BaseUrl"] ?? "https://resultados.tse.jus.br/oficial/";
-            _ano = _config["Tse:AnoEleicao"] ?? "2026";
-            _pleito = _config["Tse:Pleito"] ?? "3220";
-            _eleicaoFederal = _config["Tse:EleicaoFederal"] ?? "6257";
-            _eleicaoEstadual = _config["Tse:EleicaoEstadual"] ?? "6259";
+            _ano = _config["Tse:AnoEleicao"] ?? "2026-2T";
+            _pleito = _config["Tse:Pleito"] ?? "3221";
+            _eleicaoFederal = _config["Tse:EleicaoFederal"] ?? "6258";
+            _eleicaoEstadual = _config["Tse:EleicaoEstadual"] ?? "6260";
             _cacheSeconds = int.TryParse(_config["Tse:IntervaloCacheSegundos"], out var s) ? s : 20;
 
             if (!_http.DefaultRequestHeaders.Contains("User-Agent"))
@@ -491,7 +494,8 @@ namespace apuracao.johnmarlon.com.br.Services
 
             return new List<EleicaoConfiguracao>
             {
-                new EleicaoConfiguracao { Ano = "2026", Pleito = "3220", Descricao = "Eleições Gerais 2026 (1º Turno)", Tipo = "Geral", EleicaoFederal = "6257", EleicaoEstadual = "6259", EleicaoDistrital = "6261", AoVivo = true, Historica = false }
+                new EleicaoConfiguracao { Ano = "2026-2T", Pleito = "3221", Descricao = "Eleições Gerais 2026 (2º Turno)", Tipo = "Geral", EleicaoFederal = "6258", EleicaoEstadual = "6260", EleicaoDistrital = "6262", AoVivo = true, Historica = false },
+                new EleicaoConfiguracao { Ano = "2026", Pleito = "3220", Descricao = "Eleições Gerais 2026 (1º Turno)", Tipo = "Geral", EleicaoFederal = "6257", EleicaoEstadual = "6259", EleicaoDistrital = "6261", AoVivo = false, Historica = false }
             };
         }
 
@@ -514,7 +518,7 @@ namespace apuracao.johnmarlon.com.br.Services
             };
         }
 
-        public async Task<ApuracaoViewModel> ObterApuracaoAsync(string? cargo = null, string uf = "br", string? municipio = null, string ano = "2026")
+        public async Task<ApuracaoViewModel> ObterApuracaoAsync(string? cargo = null, string uf = "br", string? municipio = null, string? ano = null)
         {
             // Sanitização de entradas contra Cache-Bypassing e DoS no TSE
             ano = string.IsNullOrWhiteSpace(ano) || ano.Length > 10 ? _ano : ano.Trim();
@@ -561,10 +565,12 @@ namespace apuracao.johnmarlon.com.br.Services
             string cacheKey = $"apuracao_{eleicao.Ano}_{codigoEleicao}_{uf}_{municipio ?? "all"}_{cargo}";
             if (_cache.TryGetValue(cacheKey, out ApuracaoViewModel? cachedVm) && cachedVm != null)
             {
+                cachedVm.Noticias = _noticiasService.ObterNoticias(cachedVm);
                 return cachedVm;
             }
 
             var vm = await ConsultarTseAsync(eleicao, codigoEleicao, cargo, uf, municipio);
+            vm.Noticias = _noticiasService.ObterNoticias(vm);
             _cache.Set(cacheKey, vm, TimeSpan.FromSeconds(_cacheSeconds));
             return vm;
         }
@@ -1052,8 +1058,9 @@ namespace apuracao.johnmarlon.com.br.Services
             { "zz", "Exterior (Votos no Mundo)" }
         };
 
-        public async Task<MapaBrasilDto> ObterMapaBrasilAsync(string ano = "2026")
+        public async Task<MapaBrasilDto> ObterMapaBrasilAsync(string? ano = null)
         {
+            ano = string.IsNullOrWhiteSpace(ano) ? _ano : ano.Trim();
             string cacheKey = $"mapa_brasil_{ano}";
             if (_cache.TryGetValue(cacheKey, out MapaBrasilDto? cached) && cached != null)
             {

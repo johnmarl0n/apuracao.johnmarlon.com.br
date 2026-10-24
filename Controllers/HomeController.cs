@@ -33,7 +33,7 @@ namespace apuracao.johnmarlon.com.br.Controllers
             [FromQuery] string? cargo = null,
             [FromQuery] string uf = "br",
             [FromQuery] string? municipio = null,
-            [FromQuery] string ano = "2026")
+            [FromQuery] string? ano = null)
         {
             var model = await _tseService.ObterApuracaoAsync(cargo, uf, municipio, ano);
             return View(model);
@@ -44,17 +44,24 @@ namespace apuracao.johnmarlon.com.br.Controllers
             [FromQuery] string? cargo = null,
             [FromQuery] string uf = "br",
             [FromQuery] string? municipio = null,
-            [FromQuery] string ano = "2026")
+            [FromQuery] string? ano = null)
         {
             var model = await _tseService.ObterApuracaoAsync(cargo, uf, municipio, ano);
             return Json(model);
         }
 
         [HttpGet]
-        public async Task<IActionResult> DadosMapaBrasil([FromQuery] string ano = "2026")
+        public async Task<IActionResult> DadosMapaBrasil([FromQuery] string? ano = null)
         {
             var mapa = await _tseService.ObterMapaBrasilAsync(ano);
             return Json(mapa);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Noticias([FromQuery] string? ano = null)
+        {
+            var model = await _tseService.ObterApuracaoAsync(cargo: "1", uf: "br", municipio: null, ano: ano);
+            return Json(model.Noticias);
         }
 
         [HttpGet]

@@ -444,7 +444,7 @@ const MapaEleicoesLeaflet = {
         const modalEl = document.getElementById("modalZonasEleitorais");
         if (!modalEl) {
             // Se modal não existe na página, navega para a apuração da cidade
-            const ano = window.anoAtual || '2026';
+            const ano = window.anoAtual || '2026-2T';
             window.location.href = `?ano=${ano}&cargo=1&uf=${uf.toLowerCase()}&municipio=${cod}`;
             return;
         }
@@ -515,7 +515,7 @@ const MapaEleicoesLeaflet = {
                     const bsModal = bootstrap.Modal.getInstance(modalEl);
                     if (bsModal) bsModal.hide();
                     window.scrollTo({ top: 0, behavior: 'smooth' });
-                    const ano = window.anoAtual || '2026';
+                    const ano = window.anoAtual || '2026-2T';
                     window.location.href = `?ano=${ano}&cargo=1&uf=${uf.toLowerCase()}&municipio=${cod}`;
                 }
             };
@@ -598,7 +598,7 @@ const MapaEleicoesLeaflet = {
             marker.bindTooltip(tooltipHtml, { className: 'leaflet-tooltip-dark' });
 
             marker.on('click', () => {
-                const ano = window.anoAtual || '2026';
+                const ano = window.anoAtual || '2026-2T';
                 window.location.href = `?ano=${ano}&cargo=1&uf=zz&municipio=${c.codigo}`;
             });
 
