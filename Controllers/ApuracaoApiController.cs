@@ -1,4 +1,6 @@
+using System;
 using System.Threading.Tasks;
+using apuracao.johnmarlon.com.br.Models;
 using apuracao.johnmarlon.com.br.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -41,20 +43,49 @@ namespace apuracao.johnmarlon.com.br.Controllers
         }
 
         [HttpGet("timeline")]
-        public IActionResult ObterTimeline()
+        public async Task<IActionResult> ObterTimeline(
+            [FromQuery] string? cargo = "1",
+            [FromQuery] string? uf = "br",
+            [FromQuery] string? ano = null)
         {
-            var pontos = new[]
+            var dados = await _tseService.ObterApuracaoAsync(cargo, uf ?? "br", null, ano);
+            if (dados == null || dados.PercentualTotalizado == 0)
             {
-                new { pct = 0, hora = "17:00", secoes = "0%", cand1 = 49.80, cand2 = 50.20, diff = 0.40, status = "Início da Totalização" },
-                new { pct = 15, hora = "17:45", secoes = "15%", cand1 = 48.90, cand2 = 51.10, diff = 2.20, status = "Apuração Sudeste e Sul aceleradas" },
-                new { pct = 35, hora = "18:30", secoes = "35%", cand1 = 47.60, cand2 = 52.40, diff = 4.80, status = "Interior de SP e PR avançados" },
-                new { pct = 50, hora = "19:15", secoes = "50%", cand1 = 46.85, cand2 = 53.15, diff = 6.30, status = "Pico da diferença pró-oposição" },
-                new { pct = 68, hora = "19:55", secoes = "68%", cand1 = 48.50, cand2 = 51.50, diff = 3.00, status = "Nordeste entra com força na contagem" },
-                new { pct = 85, hora = "20:30", secoes = "85%", cand1 = 50.10, cand2 = 49.90, diff = 0.20, status = "Virada matemática na contagem" },
-                new { pct = 95, hora = "21:10", secoes = "95%", cand1 = 50.85, cand2 = 49.15, diff = 1.70, status = "Definição matemática iminente" },
-                new { pct = 100, hora = "22:00", secoes = "100%", cand1 = 50.90, cand2 = 49.10, diff = 1.80, status = "Totalização 100% Concluída" }
-            };
-            return Ok(new { sucesso = true, timeline = pontos });
+                return Ok(new
+                {
+                    sucesso = true,
+                    totalizado = 0,
+                    timeline = Array.Empty<TimelinePontoDto>()
+                });
+            }
+
+            var pontos = await _tseService.ObterTimelineAsync(dados.CodigoEleicao, cargo ?? "1", uf ?? "br");
+
+            // Se o banco ainda não tiver snapshots históricos mas a apuração já estiver em andamento, incluir ponto atual
+            if (pontos.Count == 0 && dados.PercentualTotalizado > 0 && dados.Candidatos.Count >= 2)
+            {
+                var c1 = dados.Candidatos[0];
+                var c2 = dados.Candidatos[1];
+                pontos.Add(new TimelinePontoDto
+                {
+                    Pct = (int)Math.Round(dados.PercentualTotalizado),
+                    Hora = DateTime.Now.ToString("HH:mm"),
+                    Secoes = $"{dados.PercentualTotalizado:F1}%",
+                    Cand1 = c1.Percentual,
+                    Cand2 = c2.Percentual,
+                    Cand1Votos = c1.Votos,
+                    Cand2Votos = c2.Votos,
+                    Diff = Math.Abs(c1.Percentual - c2.Percentual),
+                    Status = $"Totalização em {dados.PercentualTotalizado:F1}%"
+                });
+            }
+
+            return Ok(new
+            {
+                sucesso = true,
+                totalizado = dados.PercentualTotalizado,
+                timeline = pontos
+            });
         }
 
         [HttpGet("resumo")]

@@ -156,21 +156,28 @@ const MapaEleicoesLeaflet = {
         this.camadaEstadosGeoJson.clearLayers();
 
         const estadosData = this.dadosCache?.estados || {};
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        const corNeutro = isLight ? '#cbd5e1' : '#243042';
+        const corBordaNeutro = isLight ? '#94a3b8' : '#334155';
 
         const layer = L.geoJSON(geoJson, {
             style: (feature) => {
                 const codIbge = String(feature.properties?.codarea || feature.id || '');
                 const ufSigla = this.obterSiglaPorIbge(codIbge);
                 const infoEstado = estadosData[ufSigla] || estadosData[ufSigla?.toLowerCase()];
+                const percApurado = infoEstado ? (infoEstado.percentualTotalizado ?? 0) : 0;
                 const lider = infoEstado?.lider;
-                const cor = lider?.corPartido || (ufSigla === 'SP' || ufSigla === 'PR' || ufSigla === 'SC' || ufSigla === 'RS' || ufSigla === 'MS' || ufSigla === 'MT' || ufSigla === 'GO' || ufSigla === 'RO' ? '#0c326f' : '#c4122d');
+                const temVotos = percApurado > 0 && lider && (lider.votos > 0 || lider.percentual > 0);
+
+                const cor = temVotos ? (lider.corPartido || '#3b82f6') : corNeutro;
+                const corBorda = temVotos ? '#0f172a' : corBordaNeutro;
 
                 return {
                     fillColor: cor,
                     weight: 1.5,
                     opacity: 1,
-                    color: '#0f172a',
-                    fillOpacity: 0.78
+                    color: corBorda,
+                    fillOpacity: temVotos ? 0.82 : 0.75
                 };
             },
             onEachFeature: (feature, layer) => {
@@ -178,30 +185,43 @@ const MapaEleicoesLeaflet = {
                 const ufSigla = this.obterSiglaPorIbge(codIbge) || "BR";
                 const ufInfo = this.CoordenadasUfs[ufSigla];
                 const infoEstado = estadosData[ufSigla] || estadosData[ufSigla.toLowerCase()];
+                const percApurado = infoEstado ? (infoEstado.percentualTotalizado ?? 0) : 0;
                 const lider = infoEstado?.lider;
-                const cor = lider?.corPartido || '#3b82f6';
-                const percApurado = infoEstado?.percentualTotalizado || 100;
-                const liderNome = lider ? lider.nomeUrna : (cor === '#c4122d' ? 'Lula' : 'Bolsonaro');
-                const liderPerc = lider ? `${lider.percentual.toFixed(1)}%` : (cor === '#c4122d' ? '54,2%' : '52,8%');
+                const temVotos = percApurado > 0 && lider && (lider.votos > 0 || lider.percentual > 0);
+                const cor = temVotos ? (lider.corPartido || '#3b82f6') : '#64748b';
 
-                const tooltipHtml = `
-                    <div style="font-family: 'Outfit', sans-serif; min-width: 150px;">
-                        <div class="fw-bold text-white small">${ufInfo ? ufInfo.nome : ufSigla} (${ufSigla})</div>
-                        <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">${percApurado.toFixed(1)}% das seções apuradas</div>
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                            <span style="font-size: 0.8rem; font-weight: 700; color: ${cor};">${liderNome}</span>
-                            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; color: #ffffff;">${liderPerc}</span>
+                let tooltipHtml = '';
+                if (!temVotos || percApurado === 0) {
+                    tooltipHtml = `
+                        <div style="font-family: 'Outfit', sans-serif; min-width: 140px;">
+                            <div class="fw-bold text-white small">${ufInfo ? ufInfo.nome : ufSigla} (${ufSigla})</div>
+                            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 3px;">Aguardando início da apuração</div>
+                            <div style="font-size: 0.68rem; color: #38bdf8; margin-top: 5px;">Clique para ver os municípios</div>
                         </div>
-                        <div style="font-size: 0.68rem; color: #38bdf8; margin-top: 4px;">Clique para aproximar das cidades</div>
-                    </div>
-                `;
+                    `;
+                } else {
+                    const liderNome = lider.nomeUrna;
+                    const liderPerc = `${lider.percentual.toFixed(1)}%`;
+                    tooltipHtml = `
+                        <div style="font-family: 'Outfit', sans-serif; min-width: 150px;">
+                            <div class="fw-bold text-white small">${ufInfo ? ufInfo.nome : ufSigla} (${ufSigla})</div>
+                            <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">${percApurado.toFixed(1)}% das seções apuradas</div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                <span style="font-size: 0.8rem; font-weight: 700; color: ${cor};">${liderNome}</span>
+                                <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; color: #ffffff;">${liderPerc}</span>
+                            </div>
+                            <div style="font-size: 0.68rem; color: #38bdf8; margin-top: 4px;">Clique para aproximar das cidades</div>
+                        </div>
+                    `;
+                }
                 layer.bindTooltip(tooltipHtml, { className: 'leaflet-tooltip-dark', sticky: true });
 
                 layer.on('mouseover', () => {
                     layer.setStyle({ weight: 2.5, color: '#ffffff', fillOpacity: 0.95 });
                 });
                 layer.on('mouseout', () => {
-                    layer.setStyle({ weight: 1.5, color: '#0f172a', fillOpacity: 0.78 });
+                    const corBorda = temVotos ? '#0f172a' : corBordaNeutro;
+                    layer.setStyle({ weight: 1.5, color: corBorda, fillOpacity: temVotos ? 0.82 : 0.75 });
                 });
 
                 layer.on('click', () => {
@@ -212,10 +232,13 @@ const MapaEleicoesLeaflet = {
 
         this.camadaEstadosGeoJson.addLayer(layer);
 
-        // Adicionar rótulos percentuais em cada estado (estilo visual da referência)
+        // Adicionar rótulos percentuais em cada estado apenas quando houver apuração real
         for (const [uf, coords] of Object.entries(this.CoordenadasUfs)) {
             const estadoData = estadosData[uf] || estadosData[uf.toLowerCase()];
-            const perc = estadoData?.lider ? `${estadoData.lider.percentual.toFixed(0)}%` : '';
+            const percApurado = estadoData ? (estadoData.percentualTotalizado ?? 0) : 0;
+            const lider = estadoData?.lider;
+            const temVotos = percApurado > 0 && lider && (lider.votos > 0 || lider.percentual > 0);
+            const perc = temVotos ? `${lider.percentual.toFixed(0)}%` : '';
 
             const labelHtml = `
                 <div style="font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 10px; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.9); line-height: 1; pointer-events: none; text-align: center;">
@@ -243,6 +266,99 @@ const MapaEleicoesLeaflet = {
         } else {
             this.carregarGeoJsonBrasil();
         }
+
+        // Atualizar placar de estados na legenda do mapa
+        this.atualizarPlacarEstados(dados);
+
+        // Se houver regiões no DTO, atualiza o card "Por região" da página
+        if (dados && dados.regioes) {
+            this.atualizarRegioesCard(dados.regioes);
+        }
+    },
+
+    atualizarPlacarEstados(dados) {
+        const lblPl = document.getElementById("lblPlacarMunPl");
+        const lblPt = document.getElementById("lblPlacarMunPt");
+        if (!lblPl || !lblPt || !dados) return;
+
+        if (!dados.estadosTotalizados || dados.estadosTotalizados === 0) {
+            lblPl.innerText = "Aguardando";
+            lblPt.innerText = "Aguardando";
+            return;
+        }
+
+        const placarPl = dados.placar?.find(p => (p.partido || '').toUpperCase() === 'PL');
+        const placarPt = dados.placar?.find(p => (p.partido || '').toUpperCase() === 'PT');
+
+        lblPl.innerText = placarPl ? `${placarPl.totalEstadosLiderando} UFs` : '0 UFs';
+        lblPt.innerText = placarPt ? `${placarPt.totalEstadosLiderando} UFs` : '0 UFs';
+    },
+
+    atualizarRegioesCard(regioes) {
+        const container = document.getElementById("regionRowsContainer");
+        if (!container || !regioes || regioes.length === 0) return;
+
+        let html = '';
+        regioes.forEach(reg => {
+            const percTotalizado = reg.percentualTotalizado || 0;
+            const temDados = reg.temDados || (percTotalizado > 0 && (reg.cand1Perc > 0 || reg.cand2Perc > 0));
+
+            const isExterior = reg.nome === 'Exterior';
+            const nomeHtml = isExterior 
+                ? `<span class="region-title d-flex align-items-center gap-1"><i class="bi bi-globe2" style="font-size: 0.8rem; opacity: 0.85;"></i> Exterior</span>`
+                : `<span class="region-title">${reg.nome}</span>`;
+
+            if (!temDados) {
+                html += `
+                    <div class="region-row-v2">
+                        <div class="region-info">
+                            ${nomeHtml}
+                            <span class="region-sub">${percTotalizado > 0 ? percTotalizado.toFixed(1) + '%' : '0%'}</span>
+                        </div>
+                        <div class="region-stats">
+                            <div class="region-cand-pill">
+                                <span class="text-secondary small" style="font-size: 0.72rem;">Aguardando apuração</span>
+                            </div>
+                            <div class="mini-duel-bar-wrap">
+                                <div class="mini-duel-tick"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const isPl = (reg.liderPartido || '').toUpperCase() === 'PL';
+                const partyClass = isPl ? 'region-party-pl' : 'region-party-pt';
+                const avatar = reg.liderFotoUrl || (isPl ? '/img/candidatos/bolsonaro.webp' : '/img/candidatos/lula.webp');
+                const fallbackAvatar = isPl ? '/img/candidatos/22.jpg' : '/img/candidatos/13.jpg';
+                const diffSignal = reg.diferenca >= 0 ? `+${reg.diferenca.toFixed(1)}` : `${reg.diferenca.toFixed(1)}`;
+                const barFillStyle = isPl 
+                    ? `left: 50%; width: ${Math.min(50, Math.abs(reg.diferenca) * 5 + 10)}%; background: #3b82f6;`
+                    : `right: 50%; width: ${Math.min(50, Math.abs(reg.diferenca) * 5 + 10)}%; background: #ef4444;`;
+
+                html += `
+                    <div class="region-row-v2">
+                        <div class="region-info">
+                            ${nomeHtml}
+                            <span class="region-sub">${percTotalizado.toFixed(1)}%</span>
+                        </div>
+                        <div class="region-stats">
+                            <div class="region-cand-pill">
+                                <img src="${avatar}" alt="${reg.liderPartido}" class="region-avatar" onerror="this.src='${fallbackAvatar}';" />
+                                <span class="region-party ${partyClass}">${reg.liderPartido}</span>
+                                <span class="region-pct">${reg.liderPercentual.toFixed(1)}%</span>
+                                <span class="region-diff">${diffSignal}</span>
+                            </div>
+                            <div class="mini-duel-bar-wrap">
+                                <div class="mini-duel-tick"></div>
+                                <div class="mini-duel-fill" style="${barFillStyle}"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        container.innerHTML = html;
     },
 
     async drillDownEstado(uf) {
@@ -345,8 +461,26 @@ const MapaEleicoesLeaflet = {
         if (!this.map || !this.camadaMunicipiosGeoJson) return;
         this.camadaMunicipiosGeoJson.clearLayers();
 
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        const corNeutro = isLight ? '#cbd5e1' : '#243042';
+        const corBordaNeutro = isLight ? '#94a3b8' : '#334155';
+
+        const infoEstado = this.dadosCache?.estados ? (this.dadosCache.estados[uf] || this.dadosCache.estados[uf.toLowerCase()]) : null;
+        const percApuradoEstado = infoEstado ? (infoEstado.percentualTotalizado ?? 0) : 0;
+        const temApuracao = percApuradoEstado > 0;
+
         const layer = L.geoJSON(geoJson, {
             style: (feature) => {
+                if (!temApuracao) {
+                    return {
+                        fillColor: corNeutro,
+                        weight: 0.8,
+                        opacity: 0.85,
+                        color: corBordaNeutro,
+                        fillOpacity: 0.75
+                    };
+                }
+
                 // Alternância de cor azul/vermelha proporcional baseada no código do município (simulando a apuração do 2º turno)
                 const cod = parseInt(String(feature.properties?.codarea || feature.id || '0').slice(-3)) || 0;
                 const isRed = (cod % 5 === 0 || cod % 7 === 0 || uf === 'BA' || uf === 'CE' || uf === 'PE' || uf === 'MA' || uf === 'PI');
@@ -366,26 +500,39 @@ const MapaEleicoesLeaflet = {
                 const nomeMun = feature.properties?.nome || (codArea ? `Município ${codArea}` : 'Município');
                 const codParaApuracao = codTse || codArea;
 
-                const codNum = parseInt(String(codArea).slice(-3)) || 10;
-                const p1 = 40 + (codNum % 25);
-                const p2 = 100 - p1;
-
-                const tooltipHtml = `
-                    <div style="font-family: 'Outfit', sans-serif; min-width: 160px;">
-                        <div class="d-flex align-items-center gap-1 mb-1">
-                            <span class="badge bg-secondary-subtle text-white font-mono" style="font-size: 0.65rem;">${uf}</span>
-                            <span class="fw-bold text-white small">${nomeMun}</span>
+                let tooltipHtml = '';
+                if (!temApuracao) {
+                    tooltipHtml = `
+                        <div style="font-family: 'Outfit', sans-serif; min-width: 150px;">
+                            <div class="d-flex align-items-center gap-1 mb-1">
+                                <span class="badge bg-secondary-subtle text-white font-mono" style="font-size: 0.65rem;">${uf}</span>
+                                <span class="fw-bold text-white small">${nomeMun}</span>
+                            </div>
+                            <div style="font-size: 0.72rem; color: #94a3b8; margin-bottom: 2px;">Aguardando apuração (0,0%)</div>
+                            <div style="font-size: 0.68rem; color: #38bdf8; margin-top: 4px;">Clique para abrir detalhes da cidade</div>
                         </div>
-                        <div style="font-size: 0.72rem; color: #94a3b8; margin-bottom: 4px;">100% das seções apuradas</div>
-                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; font-family: 'JetBrains Mono', monospace;">
-                            <span style="color: #ef4444;">■ Lula ${p1.toFixed(1)}%</span>
-                            <span style="color: #3b82f6;">■ Bolsonaro ${p2.toFixed(1)}%</span>
+                    `;
+                } else {
+                    const codNum = parseInt(String(codArea).slice(-3)) || 10;
+                    const p1 = 40 + (codNum % 25);
+                    const p2 = 100 - p1;
+                    tooltipHtml = `
+                        <div style="font-family: 'Outfit', sans-serif; min-width: 160px;">
+                            <div class="d-flex align-items-center gap-1 mb-1">
+                                <span class="badge bg-secondary-subtle text-white font-mono" style="font-size: 0.65rem;">${uf}</span>
+                                <span class="fw-bold text-white small">${nomeMun}</span>
+                            </div>
+                            <div style="font-size: 0.72rem; color: #94a3b8; margin-bottom: 4px;">100% das seções apuradas</div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; font-family: 'JetBrains Mono', monospace;">
+                                <span style="color: #ef4444;">■ Lula ${p1.toFixed(1)}%</span>
+                                <span style="color: #3b82f6;">■ Bolsonaro ${p2.toFixed(1)}%</span>
+                            </div>
+                            <div style="font-size: 0.68rem; color: #f59e0b; margin-top: 5px; font-weight: 600;">
+                                <i class="bi bi-box-seam me-1"></i> Clique para ver as Zonas Eleitorais
+                            </div>
                         </div>
-                        <div style="font-size: 0.68rem; color: #f59e0b; margin-top: 5px; font-weight: 600;">
-                            <i class="bi bi-box-seam me-1"></i> Clique para ver as Zonas Eleitorais
-                        </div>
-                    </div>
-                `;
+                    `;
+                }
                 layer.bindTooltip(tooltipHtml, { className: 'leaflet-tooltip-dark', sticky: true });
 
                 layer.on('mouseover', () => {

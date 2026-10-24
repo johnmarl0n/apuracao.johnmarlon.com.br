@@ -11,6 +11,7 @@ namespace apuracao.johnmarlon.com.br.Models
         public int EstadosTotalizados { get; set; }
         public Dictionary<string, MapaUfItemDto> Estados { get; set; } = new(StringComparer.OrdinalIgnoreCase);
         public List<PlacarLiderDto> Placar { get; set; } = new();
+        public List<MapaRegiaoItemDto> Regioes { get; set; } = new();
     }
 
     public class MapaUfItemDto
@@ -46,4 +47,36 @@ namespace apuracao.johnmarlon.com.br.Models
         public bool LideraExterior { get; set; }
         public List<string> Ufs { get; set; } = new();
     }
+
+    public class MapaRegiaoItemDto
+    {
+        public string Nome { get; set; } = "";
+        public decimal PercentualTotalizado { get; set; }
+        public int SecoesTotalizadas { get; set; }
+        public int TotalSecoes { get; set; }
+        public string? LiderNumero { get; set; }
+        public string? LiderNome { get; set; }
+        public string? LiderPartido { get; set; }
+        public string? LiderCor { get; set; }
+        public string? LiderFotoUrl { get; set; }
+        public decimal LiderPercentual { get; set; }
+        public decimal Diferenca { get; set; }
+        public decimal Cand1Perc { get; set; }
+        public decimal Cand2Perc { get; set; }
+        public bool TemDados => PercentualTotalizado > 0 && (Cand1Perc > 0 || Cand2Perc > 0);
+    }
+
+    public class TimelinePontoDto
+    {
+        public int Pct { get; set; }
+        public string Hora { get; set; } = "";
+        public string Secoes { get; set; } = "";
+        public decimal Cand1 { get; set; }
+        public decimal Cand2 { get; set; }
+        public int Cand1Votos { get; set; }
+        public int Cand2Votos { get; set; }
+        public decimal Diff { get; set; }
+        public string Status { get; set; } = "";
+    }
 }
+

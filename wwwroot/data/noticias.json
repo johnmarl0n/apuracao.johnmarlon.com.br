@@ -48,5 +48,35 @@
     "icone": "bi-box-arrow-in-right",
     "tipo": "aviso",
     "destaque": false
+  },
+  {
+    "id": "vespera_tse_preparativos",
+    "hora": "12h00",
+    "dataHora": "2026-10-24T12:00:00",
+    "titulo": "TSE Preparativos",
+    "conteudoHtml": "TSE: Auditoria dos sistemas e carga final das urnas eletrônicas concluídas com sucesso em todos os 27 TREs.",
+    "icone": "bi-shield-check",
+    "tipo": "aviso",
+    "destaque": true
+  },
+  {
+    "id": "vespera_horario_votacao",
+    "hora": "10h30",
+    "dataHora": "2026-10-24T10:30:00",
+    "titulo": "Horário de Votação",
+    "conteudoHtml": "Horário de votação: Seções abrem neste domingo (25/10) das 8h às 17h pelo horário unificado de Brasília.",
+    "icone": "bi-clock-history",
+    "tipo": "aviso",
+    "destaque": false
+  },
+  {
+    "id": "vespera_etitulo_aviso",
+    "hora": "09h00",
+    "dataHora": "2026-10-24T09:00:00",
+    "titulo": "e-Título",
+    "conteudoHtml": "e-Título: Eleitores podem baixar e emitir a via digital até às 23h59 deste sábado para votar no domingo.",
+    "icone": "bi-phone",
+    "tipo": "aviso",
+    "destaque": false
   }
 ]

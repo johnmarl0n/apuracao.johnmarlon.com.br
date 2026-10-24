@@ -566,11 +566,32 @@ namespace apuracao.johnmarlon.com.br.Services
             if (_cache.TryGetValue(cacheKey, out ApuracaoViewModel? cachedVm) && cachedVm != null)
             {
                 cachedVm.Noticias = _noticiasService.ObterNoticias(cachedVm);
+                if (cargo == "1" && uf == "br" && string.IsNullOrEmpty(municipio) && (cachedVm.Regioes == null || cachedVm.Regioes.Count == 0))
+                {
+                    try
+                    {
+                        var mapaCached = await ObterMapaBrasilAsync(eleicao.Ano);
+                        cachedVm.Regioes = mapaCached.Regioes;
+                    }
+                    catch { }
+                }
                 return cachedVm;
             }
 
             var vm = await ConsultarTseAsync(eleicao, codigoEleicao, cargo, uf, municipio);
             vm.Noticias = _noticiasService.ObterNoticias(vm);
+            if (cargo == "1" && uf == "br" && string.IsNullOrEmpty(municipio))
+            {
+                try
+                {
+                    var mapa = await ObterMapaBrasilAsync(eleicao.Ano);
+                    vm.Regioes = mapa.Regioes;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning("Falha ao anexar regiões na apuração: {Msg}", ex.Message);
+                }
+            }
             _cache.Set(cacheKey, vm, TimeSpan.FromSeconds(_cacheSeconds));
             return vm;
         }
@@ -1073,13 +1094,19 @@ namespace apuracao.johnmarlon.com.br.Services
                 Cargo = "1"
             };
 
+            var eleicoesAtuais = ObterEleicoesConfiguradas();
+            var eleicoesHistoricas = ObterEleicoesHistoricas();
+            var eleicao = eleicoesAtuais.FirstOrDefault(e => e.Ano.Equals(ano, StringComparison.OrdinalIgnoreCase))
+                          ?? eleicoesHistoricas.FirstOrDefault(e => e.Ano.Equals(ano, StringComparison.OrdinalIgnoreCase))
+                          ?? eleicoesAtuais.First();
+
             var ufs = NomesUfs.Keys.ToList();
 
             var tasks = ufs.Select(async uf =>
             {
                 try
                 {
-                    var vm = await ObterApuracaoAsync(cargo: "1", uf: uf, municipio: null, ano: ano);
+                    var vm = await ConsultarTseAsync(eleicao, eleicao.EleicaoFederal, "1", uf, null);
                     return (Uf: uf, Vm: vm);
                 }
                 catch (Exception ex)
@@ -1121,52 +1148,57 @@ namespace apuracao.johnmarlon.com.br.Services
                     }
 
                     var lider = vm.Candidatos[0];
-                    ufItem.Lider = new MapaCandidatoResumoDto
-                    {
-                        Numero = lider.Numero,
-                        NomeUrna = lider.NomeUrna,
-                        Partido = lider.Partido ?? "",
-                        CorPartido = lider.CorPartido ?? "#3b82f6",
-                        Percentual = lider.Percentual,
-                        Votos = lider.Votos,
-                        FotoUrl = lider.FotoUrl
-                    };
+                    bool temVotosApurados = vm.PercentualTotalizado > 0 && lider.Votos > 0;
 
-                    if (vm.Candidatos.Count > 1)
+                    if (temVotosApurados)
                     {
-                        var vice = vm.Candidatos[1];
-                        ufItem.ViceLider = new MapaCandidatoResumoDto
-                        {
-                            Numero = vice.Numero,
-                            NomeUrna = vice.NomeUrna,
-                            Partido = vice.Partido ?? "",
-                            CorPartido = vice.CorPartido ?? "#64748b",
-                            Percentual = vice.Percentual,
-                            Votos = vice.Votos,
-                            FotoUrl = vice.FotoUrl
-                        };
-                    }
-
-                    if (!placarDict.TryGetValue(lider.Numero, out var placar))
-                    {
-                        placar = new PlacarLiderDto
+                        ufItem.Lider = new MapaCandidatoResumoDto
                         {
                             Numero = lider.Numero,
                             NomeUrna = lider.NomeUrna,
                             Partido = lider.Partido ?? "",
-                            CorPartido = lider.CorPartido ?? "#3b82f6"
+                            CorPartido = lider.CorPartido ?? "#3b82f6",
+                            Percentual = lider.Percentual,
+                            Votos = lider.Votos,
+                            FotoUrl = lider.FotoUrl
                         };
-                        placarDict[lider.Numero] = placar;
-                    }
 
-                    if (uf == "zz")
-                    {
-                        placar.LideraExterior = true;
-                    }
-                    else
-                    {
-                        placar.TotalEstadosLiderando++;
-                        placar.Ufs.Add(uf.ToUpperInvariant());
+                        if (vm.Candidatos.Count > 1)
+                        {
+                            var vice = vm.Candidatos[1];
+                            ufItem.ViceLider = new MapaCandidatoResumoDto
+                            {
+                                Numero = vice.Numero,
+                                NomeUrna = vice.NomeUrna,
+                                Partido = vice.Partido ?? "",
+                                CorPartido = vice.CorPartido ?? "#64748b",
+                                Percentual = vice.Percentual,
+                                Votos = vice.Votos,
+                                FotoUrl = vice.FotoUrl
+                            };
+                        }
+
+                        if (!placarDict.TryGetValue(lider.Numero, out var placar))
+                        {
+                            placar = new PlacarLiderDto
+                            {
+                                Numero = lider.Numero,
+                                NomeUrna = lider.NomeUrna,
+                                Partido = lider.Partido ?? "",
+                                CorPartido = lider.CorPartido ?? "#3b82f6"
+                            };
+                            placarDict[lider.Numero] = placar;
+                        }
+
+                        if (uf == "zz")
+                        {
+                            placar.LideraExterior = true;
+                        }
+                        else
+                        {
+                            placar.TotalEstadosLiderando++;
+                            placar.Ufs.Add(uf.ToUpperInvariant());
+                        }
                     }
                 }
                 else if (ano == "2022")
@@ -1220,8 +1252,120 @@ namespace apuracao.johnmarlon.com.br.Services
                 .ThenByDescending(p => p.LideraExterior ? 1 : 0)
                 .ToList();
 
+            // Totalização e agregação das 6 regiões (Norte, Nordeste, Centro-Oeste, Sudeste, Sul, Exterior)
+            var regioesDef = new List<(string Nome, string[] Ufs)>
+            {
+                ("Norte", new[] { "AC", "AP", "AM", "PA", "RO", "RR", "TO" }),
+                ("Nordeste", new[] { "AL", "BA", "CE", "MA", "PB", "PE", "PI", "RN", "SE" }),
+                ("Centro-Oeste", new[] { "DF", "GO", "MT", "MS" }),
+                ("Sudeste", new[] { "ES", "MG", "RJ", "SP" }),
+                ("Sul", new[] { "PR", "RS", "SC" }),
+                ("Exterior", new[] { "ZZ" })
+            };
+
+            var regioes1T = new Dictionary<string, (string Cand, string Part, string Cor, string Foto, decimal Perc, decimal Diff, decimal P1, decimal P2)>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "Norte", ("Flávio Bolsonaro", "PL", "#3b82f6", "/img/candidatos/bolsonaro.webp", 49.2m, 3.7m, 45.5m, 49.2m) },
+                { "Nordeste", ("Lula", "PT", "#ef4444", "/img/candidatos/lula.webp", 63.8m, -3.0m, 63.8m, 30.8m) },
+                { "Centro-Oeste", ("Flávio Bolsonaro", "PL", "#3b82f6", "/img/candidatos/bolsonaro.webp", 56.5m, 2.7m, 33.8m, 56.5m) },
+                { "Sudeste", ("Flávio Bolsonaro", "PL", "#3b82f6", "/img/candidatos/bolsonaro.webp", 51.4m, 3.8m, 41.6m, 51.4m) },
+                { "Sul", ("Flávio Bolsonaro", "PL", "#3b82f6", "/img/candidatos/bolsonaro.webp", 60.1m, 5.5m, 31.4m, 60.1m) },
+                { "Exterior", ("Lula", "PT", "#ef4444", "/img/candidatos/lula.webp", 47.6m, 0.4m, 47.6m, 43.2m) }
+            };
+
+            var listaRegioes = new List<MapaRegiaoItemDto>();
+            foreach (var r in regioesDef)
+            {
+                var regItem = new MapaRegiaoItemDto { Nome = r.Nome };
+
+                if (ano == "2026")
+                {
+                    // Visualizando explicitamente o 1º Turno (Oficial)
+                    if (regioes1T.TryGetValue(r.Nome, out var d1t))
+                    {
+                        regItem.PercentualTotalizado = 100m;
+                        regItem.LiderNome = d1t.Cand;
+                        regItem.LiderPartido = d1t.Part;
+                        regItem.LiderCor = d1t.Cor;
+                        regItem.LiderFotoUrl = d1t.Foto;
+                        regItem.LiderPercentual = d1t.Perc;
+                        regItem.Diferenca = d1t.Diff;
+                        regItem.Cand1Perc = d1t.P1;
+                        regItem.Cand2Perc = d1t.P2;
+                    }
+                }
+                else
+                {
+                    // 2º Turno (2026-2T) ou apuração ao vivo
+                    int secoesTotais = 0;
+                    int secoesApuradas = 0;
+                    var votosPorCandidato = new Dictionary<string, (string Nome, string Partido, string Cor, string Foto, int Votos)>();
+
+                    foreach (var ufSigla in r.Ufs)
+                    {
+                        var (_, vmUf) = resultados.FirstOrDefault(x => x.Uf.Equals(ufSigla, StringComparison.OrdinalIgnoreCase));
+                        if (vmUf != null)
+                        {
+                            secoesTotais += vmUf.TotalSecoes;
+                            secoesApuradas += vmUf.SecoesTotalizadas;
+
+                            if (vmUf.Candidatos != null)
+                            {
+                                foreach (var c in vmUf.Candidatos)
+                                {
+                                    if (!votosPorCandidato.TryGetValue(c.Numero, out var candAcum))
+                                    {
+                                        candAcum = (c.NomeUrna, c.Partido ?? "", c.CorPartido ?? "#3b82f6", c.FotoUrl ?? "", 0);
+                                    }
+                                    candAcum.Votos += c.Votos;
+                                    votosPorCandidato[c.Numero] = candAcum;
+                                }
+                            }
+                        }
+                    }
+
+                    regItem.TotalSecoes = secoesTotais;
+                    regItem.SecoesTotalizadas = secoesApuradas;
+                    regItem.PercentualTotalizado = secoesTotais > 0 ? Math.Round((decimal)secoesApuradas / secoesTotais * 100m, 1) : 0m;
+
+                    var ordenados = votosPorCandidato.Values.OrderByDescending(v => v.Votos).ToList();
+                    int totalValidosRegiao = ordenados.Sum(v => v.Votos);
+
+                    if (totalValidosRegiao > 0 && regItem.PercentualTotalizado > 0 && ordenados.Count > 0)
+                    {
+                        var liderReg = ordenados[0];
+                        regItem.LiderNome = liderReg.Nome;
+                        regItem.LiderPartido = liderReg.Partido;
+                        regItem.LiderCor = liderReg.Cor;
+                        regItem.LiderFotoUrl = liderReg.Foto;
+                        regItem.LiderPercentual = Math.Round((decimal)liderReg.Votos / totalValidosRegiao * 100m, 1);
+
+                        if (ordenados.Count > 1)
+                        {
+                            var viceReg = ordenados[1];
+                            decimal vicePerc = Math.Round((decimal)viceReg.Votos / totalValidosRegiao * 100m, 1);
+                            regItem.Diferenca = Math.Round(regItem.LiderPercentual - vicePerc, 1);
+
+                            var candPt = ordenados.FirstOrDefault(x => x.Partido.Equals("PT", StringComparison.OrdinalIgnoreCase));
+                            var candPl = ordenados.FirstOrDefault(x => x.Partido.Equals("PL", StringComparison.OrdinalIgnoreCase));
+                            regItem.Cand1Perc = candPt.Votos > 0 ? Math.Round((decimal)candPt.Votos / totalValidosRegiao * 100m, 1) : 0m;
+                            regItem.Cand2Perc = candPl.Votos > 0 ? Math.Round((decimal)candPl.Votos / totalValidosRegiao * 100m, 1) : 0m;
+                        }
+                    }
+                }
+
+                listaRegioes.Add(regItem);
+            }
+
+            dto.Regioes = listaRegioes;
+
             _cache.Set(cacheKey, dto, TimeSpan.FromSeconds(15));
             return dto;
+        }
+
+        public async Task<List<TimelinePontoDto>> ObterTimelineAsync(string codigoEleicao, string cargo, string uf)
+        {
+            return await _repo.ObterTimelineAsync(codigoEleicao, cargo, uf);
         }
     }
 }

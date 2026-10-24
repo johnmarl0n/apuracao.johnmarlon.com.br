@@ -47,6 +47,7 @@ namespace apuracao.johnmarlon.com.br.Models
         public CidadeDetalhesInfo? InformacoesCidade { get; set; }
 
         public List<NoticiaItem> Noticias { get; set; } = new();
+        public List<MapaRegiaoItemDto> Regioes { get; set; } = new();
 
         public bool IsHistorico => Ano != "2026" && !Ano.StartsWith("2026");
     }

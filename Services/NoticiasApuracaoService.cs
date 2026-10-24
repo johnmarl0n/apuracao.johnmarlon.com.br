@@ -98,13 +98,14 @@ namespace apuracao.johnmarlon.com.br.Services
 
         private List<NoticiaItem> GerarNoticiasSegundoTurno(ApuracaoViewModel vm)
         {
+            var agora = DateTime.Now;
             var noticias = new List<NoticiaItem>();
 
-            // 1. Tentar ler notícias manuais de wwwroot/data/noticias.json
+            // 1. Tentar ler notícias manuais de wwwroot/data/noticias.json filtrando por horário que já chegou
             var noticiasCustom = CarregarNoticiasCustomizadas();
             if (noticiasCustom.Count > 0)
             {
-                noticias.AddRange(noticiasCustom);
+                noticias.AddRange(noticiasCustom.Where(n => n.DataHora <= agora));
             }
 
             var cand1 = vm.Candidatos.Count > 0 ? vm.Candidatos[0] : null;
@@ -113,64 +114,52 @@ namespace apuracao.johnmarlon.com.br.Services
             // 2. Se a apuração ainda não começou (0% apurado)
             if (vm.PercentualTotalizado == 0 && vm.SecoesTotalizadas == 0)
             {
-                // Marcos informativos do dia do 2º turno
-                if (!noticias.Any(n => n.Id == "abertura_urnas"))
+                var marcos25 = new[]
+                {
+                    new { Id = "abertura_urnas", Hora = "17h00", Data = new DateTime(2026, 10, 25, 17, 0, 0), Icone = "bi-shield-check", Html = "TSE: Urnas encerradas às 17h em todo o Brasil. Início da totalização oficial do 2º Turno.", Tipo = "tse_urna", Destaque = true },
+                    new { Id = "preparacao_tse", Hora = "16h00", Data = new DateTime(2026, 10, 25, 16, 0, 0), Icone = "bi-clock-history", Html = "Reta final: Faltam poucos minutos para o encerramento da votação no horário de Brasília.", Tipo = "aviso", Destaque = false },
+                    new { Id = "exterior_europa", Hora = "13h00", Data = new DateTime(2026, 10, 25, 13, 0, 0), Icone = "bi-globe2", Html = "Exterior: Votação encerrada nos consulados da Europa (Lisboa, Londres, Paris e Roma).", Tipo = "aviso", Destaque = false },
+                    new { Id = "exterior_asia", Hora = "10h00", Data = new DateTime(2026, 10, 25, 10, 0, 0), Icone = "bi-globe2", Html = "Exterior: Votação 100% concluída na Ásia e Oceania (Tóquio, Seul, Sydney e Wellington).", Tipo = "aviso", Destaque = false },
+                    new { Id = "abertura_nacional", Hora = "08h00", Data = new DateTime(2026, 10, 25, 8, 0, 0), Icone = "bi-box-arrow-in-right", Html = "Abertura oficial: Seções eleitorais abertas em todo o território nacional para o 2º Turno das Eleições 2026.", Tipo = "aviso", Destaque = false }
+                };
+
+                foreach (var m in marcos25)
+                {
+                    if (agora >= m.Data && !noticias.Any(n => n.Id == m.Id))
+                    {
+                        noticias.Add(new NoticiaItem
+                        {
+                            Id = m.Id,
+                            Hora = m.Hora,
+                            DataHora = m.Data,
+                            Icone = m.Icone,
+                            ConteudoHtml = m.Html,
+                            Tipo = m.Tipo,
+                            Destaque = m.Destaque
+                        });
+                    }
+                }
+
+                // Se for véspera ou antes da abertura das urnas e nenhuma notícia customizada estiver disponível
+                if (!noticias.Any())
                 {
                     noticias.Add(new NoticiaItem
                     {
-                        Id = "abertura_urnas",
-                        Hora = "17h00",
+                        Id = "vespera_tse_auto",
+                        Hora = agora.ToString("HH\\hmm"),
+                        DataHora = agora,
                         Icone = "bi-shield-check",
-                        ConteudoHtml = "TSE: Urnas encerradas às 17h em todo o Brasil. Início da totalização oficial do 2º Turno.",
-                        Tipo = "tse_urna",
+                        ConteudoHtml = "TSE: Auditoria dos sistemas e carga final das urnas concluídas com sucesso em todo o país.",
+                        Tipo = "aviso",
                         Destaque = true
                     });
-                }
-
-                if (!noticias.Any(n => n.Id == "preparacao_tse"))
-                {
                     noticias.Add(new NoticiaItem
                     {
-                        Id = "preparacao_tse",
-                        Hora = "16h00",
+                        Id = "vespera_horario_auto",
+                        Hora = "10h30",
+                        DataHora = agora.Date.AddHours(10).AddMinutes(30),
                         Icone = "bi-clock-history",
-                        ConteudoHtml = "Reta final: Faltam poucos minutos para o encerramento da votação no horário de Brasília.",
-                        Tipo = "aviso"
-                    });
-                }
-
-                if (!noticias.Any(n => n.Id == "exterior_europa"))
-                {
-                    noticias.Add(new NoticiaItem
-                    {
-                        Id = "exterior_europa",
-                        Hora = "13h00",
-                        Icone = "bi-globe2",
-                        ConteudoHtml = "Exterior: Votação encerrada nos consulados da Europa (Lisboa, Londres, Paris e Roma).",
-                        Tipo = "aviso"
-                    });
-                }
-
-                if (!noticias.Any(n => n.Id == "exterior_asia"))
-                {
-                    noticias.Add(new NoticiaItem
-                    {
-                        Id = "exterior_asia",
-                        Hora = "10h00",
-                        Icone = "bi-globe2",
-                        ConteudoHtml = "Exterior: Votação 100% concluída na Ásia e Oceania (Tóquio, Seul, Sydney e Wellington).",
-                        Tipo = "aviso"
-                    });
-                }
-
-                if (!noticias.Any(n => n.Id == "abertura_nacional"))
-                {
-                    noticias.Add(new NoticiaItem
-                    {
-                        Id = "abertura_nacional",
-                        Hora = "08h00",
-                        Icone = "bi-box-arrow-in-right",
-                        ConteudoHtml = "Abertura oficial: Seções eleitorais abertas em todo o território nacional para o 2º Turno das Eleições 2026.",
+                        ConteudoHtml = "Horário de votação: Seções abrem neste domingo (25/10) das 8h às 17h pelo horário de Brasília.",
                         Tipo = "aviso"
                     });
                 }
@@ -179,8 +168,8 @@ namespace apuracao.johnmarlon.com.br.Services
             {
                 // 3. Apuração EM ANDAMENTO ou CONCLUÍDA (> 0% apurado)
                 string horaAtual = !string.IsNullOrWhiteSpace(vm.DataHoraTse) && vm.DataHoraTse.Length >= 5
-                    ? vm.DataHoraTse.Split(' ').LastOrDefault()?.Substring(0, 5).Replace(":", "h") ?? DateTime.Now.ToString("HH\\hmm")
-                    : DateTime.Now.ToString("HH\\hmm");
+                    ? vm.DataHoraTse.Split(' ').LastOrDefault()?.Substring(0, 5).Replace(":", "h") ?? agora.ToString("HH\\hmm")
+                    : agora.ToString("HH\\hmm");
 
                 // Se a eleição foi concluída / matematicamente definida
                 if (vm.Finalizado && cand1 != null)
@@ -189,6 +178,7 @@ namespace apuracao.johnmarlon.com.br.Services
                     {
                         Id = "eleicao_definida",
                         Hora = horaAtual,
+                        DataHora = agora,
                         AvatarUrl = ObterAvatarCandidato(cand1.Numero),
                         ConteudoHtml = $"TSE homologa resultado: <strong>{cand1.NomeUrna}</strong> ({cand1.Partido}) é eleito <strong>Presidente da República</strong> com <strong>{cand1.Percentual:F2}%</strong> dos votos válidos.",
                         Tipo = "eleito",
@@ -206,6 +196,7 @@ namespace apuracao.johnmarlon.com.br.Services
                     {
                         Id = $"parcial_{vm.SecoesTotalizadas}",
                         Hora = horaAtual,
+                        DataHora = agora,
                         Icone = "bi-circle",
                         ConteudoHtml = $"<div class=\"fw-bold mb-1\" style=\"color: var(--text-title);\">+{vm.SecoesTotalizadas:N0} seções ({vm.PercentualTotalizado:F2}%)</div>" +
                                        $"<div><strong>{cand1.NomeUrna}</strong> <span class=\"font-mono fw-bold\" style=\"color: {cor1};\">{cand1.Percentual:F2}%</span> ({cand1.Votos:N0} votos)</div>" +
@@ -221,6 +212,7 @@ namespace apuracao.johnmarlon.com.br.Services
                     noticias.Add(new NoticiaItem
                     {
                         Hora = "Reta Final",
+                        DataHora = agora.AddMinutes(-5),
                         AvatarUrl = ObterAvatarCandidato(cand1.Numero),
                         ConteudoHtml = $"Apuração atinge a reta final no país com <strong>{vm.PercentualTotalizado:F1}%</strong> das urnas totalizadas. <strong>{cand1.NomeUrna}</strong> mantém a dianteira.",
                         Tipo = "lideranca"
@@ -232,6 +224,7 @@ namespace apuracao.johnmarlon.com.br.Services
                     noticias.Add(new NoticiaItem
                     {
                         Hora = "50%+",
+                        DataHora = agora.AddMinutes(-15),
                         Icone = "bi-bar-chart-steps",
                         ConteudoHtml = $"Mais da metade das urnas apuradas no Brasil (<strong>{vm.PercentualTotalizado:F1}%</strong>). Diferença atual de <strong>{diffVotos:N0} votos</strong> entre os candidatos.",
                         Tipo = "apuracao"
@@ -242,6 +235,7 @@ namespace apuracao.johnmarlon.com.br.Services
                     noticias.Add(new NoticiaItem
                     {
                         Hora = "Parciais",
+                        DataHora = agora.AddMinutes(-30),
                         AvatarUrl = ObterAvatarCandidato(cand1.Numero),
                         ConteudoHtml = $"Grandes colégios eleitorais aceleram a apuração. <strong>{cand1.NomeUrna}</strong> lidera com <strong>{cand1.Percentual:F2}%</strong>.",
                         Tipo = "lideranca"
@@ -252,6 +246,7 @@ namespace apuracao.johnmarlon.com.br.Services
                 noticias.Add(new NoticiaItem
                 {
                     Hora = "Exterior",
+                    DataHora = new DateTime(2026, 10, 25, 17, 5, 0),
                     Icone = "bi-globe2",
                     ConteudoHtml = "Exterior (ZZ): Urnas totalizadas nos consulados do mundo (Lisboa, Londres, Paris, Tóquio).",
                     Tipo = "apuracao"
@@ -261,13 +256,18 @@ namespace apuracao.johnmarlon.com.br.Services
                 noticias.Add(new NoticiaItem
                 {
                     Hora = "17h00",
+                    DataHora = new DateTime(2026, 10, 25, 17, 0, 0),
                     Icone = "bi-shield-check",
                     ConteudoHtml = "TSE: Urnas encerradas em todo o país. Transmissão e totalização de votos iniciadas.",
                     Tipo = "tse_urna"
                 });
             }
 
-            return noticias.Take(15).ToList();
+            return noticias
+                .Where(n => n.DataHora <= agora)
+                .OrderByDescending(n => n.DataHora)
+                .Take(15)
+                .ToList();
         }
 
         private static string ObterAvatarCandidato(string? numero)

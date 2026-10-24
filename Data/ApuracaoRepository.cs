@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using apuracao.johnmarlon.com.br.Models;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -152,6 +154,108 @@ namespace apuracao.johnmarlon.com.br.Data
             {
                 _logger.LogError(ex, "Erro ao salvar snapshot de apuração no MSSQL.");
                 return 0;
+            }
+        }
+
+        public async Task<List<TimelinePontoDto>> ObterTimelineAsync(string codigoEleicao, string cargo, string uf)
+        {
+            if (string.IsNullOrWhiteSpace(_connStr)) return new List<TimelinePontoDto>();
+
+            try
+            {
+                using var conn = new SqlConnection(_connStr);
+                await conn.OpenAsync();
+
+                var sqlSnapshots = @"
+                    SELECT TOP 100
+                        s.Id,
+                        s.PercentualTotalizado,
+                        s.DataHoraTse,
+                        s.DataHoraColeta,
+                        s.SecoesTotalizadas,
+                        s.TotalSecoes
+                    FROM ApuracaoSnapshots s
+                    WHERE s.CodigoEleicao = @CodigoEleicao
+                      AND s.Cargo = @Cargo
+                      AND s.Uf = @Uf
+                      AND ISNULL(s.CodigoMunicipio, '') = ''
+                      AND s.PercentualTotalizado > 0
+                    ORDER BY s.PercentualTotalizado ASC, s.Id ASC;";
+
+                var snapshots = (await conn.QueryAsync<dynamic>(sqlSnapshots, new { CodigoEleicao = codigoEleicao, Cargo = cargo, Uf = uf })).ToList();
+                if (!snapshots.Any()) return new List<TimelinePontoDto>();
+
+                var snapshotIds = snapshots.Select(s => (long)s.Id).ToList();
+
+                var sqlCands = @"
+                    SELECT 
+                        c.SnapshotId,
+                        c.NumeroCandidato,
+                        c.NomeUrna,
+                        c.TotalVotos,
+                        c.PercentualVotos
+                    FROM ApuracaoCandidatos c
+                    WHERE c.SnapshotId IN @Ids
+                    ORDER BY c.SnapshotId, c.PercentualVotos DESC;";
+
+                var cands = (await conn.QueryAsync<dynamic>(sqlCands, new { Ids = snapshotIds })).ToList();
+                var candsBySnap = cands.GroupBy(c => (long)c.SnapshotId).ToDictionary(g => g.Key, g => g.ToList());
+
+                var result = new List<TimelinePontoDto>();
+                decimal ultimoPct = -1;
+
+                foreach (var s in snapshots)
+                {
+                    decimal pct = (decimal)s.PercentualTotalizado;
+                    if (Math.Abs(pct - ultimoPct) < 0.5m) continue;
+                    ultimoPct = pct;
+
+                    long sId = (long)s.Id;
+                    candsBySnap.TryGetValue(sId, out var snapCands);
+
+                    var c1 = snapCands != null && snapCands.Count > 0 ? snapCands[0] : null;
+                    var c2 = snapCands != null && snapCands.Count > 1 ? snapCands[1] : null;
+
+                    decimal p1 = c1 != null ? (decimal)c1.PercentualVotos : 0m;
+                    decimal p2 = c2 != null ? (decimal)c2.PercentualVotos : 0m;
+                    int v1 = c1 != null ? (int)c1.TotalVotos : 0;
+                    int v2 = c2 != null ? (int)c2.TotalVotos : 0;
+
+                    string horaFormatada = "";
+                    if (s.DataHoraTse != null)
+                    {
+                        string dht = (string)s.DataHoraTse;
+                        if (dht.Length >= 5 && dht.Contains(":"))
+                        {
+                            var parts = dht.Split(' ');
+                            horaFormatada = parts.Length > 1 ? parts[1].Substring(0, Math.Min(5, parts[1].Length)) : dht.Substring(0, 5);
+                        }
+                    }
+                    if (string.IsNullOrEmpty(horaFormatada))
+                    {
+                        horaFormatada = ((DateTime)s.DataHoraColeta).ToString("HH:mm");
+                    }
+
+                    result.Add(new TimelinePontoDto
+                    {
+                        Pct = (int)Math.Round(pct),
+                        Hora = horaFormatada,
+                        Secoes = $"{pct:F1}%",
+                        Cand1 = p1,
+                        Cand2 = p2,
+                        Cand1Votos = v1,
+                        Cand2Votos = v2,
+                        Diff = Math.Abs(p1 - p2),
+                        Status = pct >= 100m ? "Totalização 100% Concluída" : $"Totalização em {pct:F1}%"
+                    });
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao consultar timeline no MSSQL.");
+                return new List<TimelinePontoDto>();
             }
         }
     }
