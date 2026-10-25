@@ -1090,10 +1090,18 @@
         let cargoAtual = "@Model.CargoCodigo";
         let ufAtual = "@Model.Uf";
         let municipioAtual = "@(Model.CodigoMunicipio ?? "")";
+        let cand1Nome = "@(cand1?.NomeUrna ?? "Lula")";
+        let cand1Partido = "@(cand1?.Partido ?? "PT")";
+        let cand2Nome = "@(cand2?.NomeUrna ?? (Model.Ano == "2026" ? "Jair Bolsonaro" : "Flávio Bolsonaro"))";
+        let cand2Partido = "@(cand2?.Partido ?? "PL")";
         window.anoAtual = anoAtual;
         window.cargoAtual = cargoAtual;
         window.ufAtual = ufAtual;
         window.municipioAtual = municipioAtual;
+        window.cand1Nome = cand1Nome;
+        window.cand1Partido = cand1Partido;
+        window.cand2Nome = cand2Nome;
+        window.cand2Partido = cand2Partido;
 
         // Navegação fluida para município sem recarregar a tela (SPA) e subindo suavemente
         window.navegarParaCidadeSemReload = async function(nomeMun, cod, uf) {

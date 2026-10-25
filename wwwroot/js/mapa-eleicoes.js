@@ -135,7 +135,9 @@ const MapaEleicoesLeaflet = {
 
     async carregarGeoJsonBrasil() {
         if (this.cacheMalhas["BR"]) {
-            this.renderizarGeoJsonBrasil(this.cacheMalhas["BR"]);
+            if (this.visaoAtual === 'brasil') {
+                this.renderizarGeoJsonBrasil(this.cacheMalhas["BR"]);
+            }
             return;
         }
 
@@ -145,7 +147,9 @@ const MapaEleicoesLeaflet = {
             if (!res.ok) throw new Error("Falha ao carregar malha do Brasil");
             const geoJson = await res.json();
             this.cacheMalhas["BR"] = geoJson;
-            this.renderizarGeoJsonBrasil(geoJson);
+            if (this.visaoAtual === 'brasil') {
+                this.renderizarGeoJsonBrasil(geoJson);
+            }
         } catch (e) {
             console.warn("GeoJSON IBGE indisponível no momento, usando marcadores vetoriais:", e);
         }
@@ -153,6 +157,7 @@ const MapaEleicoesLeaflet = {
 
     renderizarGeoJsonBrasil(geoJson) {
         if (!this.map || !this.camadaEstadosGeoJson) return;
+        if (this.visaoAtual !== 'brasil') return;
         this.camadaEstadosGeoJson.clearLayers();
 
         const estadosData = this.dadosCache?.estados || {};
@@ -261,10 +266,12 @@ const MapaEleicoesLeaflet = {
 
     renderizarEstados(dados) {
         this.dadosCache = dados;
-        if (this.cacheMalhas["BR"]) {
-            this.renderizarGeoJsonBrasil(this.cacheMalhas["BR"]);
-        } else {
-            this.carregarGeoJsonBrasil();
+        if (this.visaoAtual === 'brasil') {
+            if (this.cacheMalhas["BR"]) {
+                this.renderizarGeoJsonBrasil(this.cacheMalhas["BR"]);
+            } else {
+                this.carregarGeoJsonBrasil();
+            }
         }
 
         // Atualizar placar de estados na legenda do mapa
@@ -587,7 +594,7 @@ const MapaEleicoesLeaflet = {
         }
     },
 
-    abrirModalZonasEleitorais(nomeMun, cod, uf, perc1 = 46.2, perc2 = 53.8) {
+    abrirModalZonasEleitorais(nomeMun, cod, uf, perc1 = null, perc2 = null) {
         const modalEl = document.getElementById("modalZonasEleitorais");
         if (!modalEl) {
             // Se modal não existe na página, navega para a apuração da cidade
@@ -596,59 +603,135 @@ const MapaEleicoesLeaflet = {
             return;
         }
 
+        const ano = window.anoAtual || '2026-2T';
+        const is2T = ano.includes('2T');
+        const isZZ = (uf || '').toUpperCase() === 'ZZ';
+
+        // Identificar percentual apurado na UF/Exterior a partir do cache
+        const infoEstado = this.dadosCache?.estados ? (this.dadosCache.estados[uf] || this.dadosCache.estados[uf.toLowerCase()]) : null;
+        const percApurado = infoEstado ? (infoEstado.percentualTotalizado ?? 0) : (this.dadosCache?.percentualTotalizado ?? 0);
+        const temApuracao = is2T ? (percApurado > 0) : true;
+
+        // Candidatos dinâmicos do pleito
+        const c1Nome = window.cand1Nome || "Lula";
+        const c1Part = window.cand1Partido || "PT";
+        const c2Nome = window.cand2Nome || (is2T ? "Flávio Bolsonaro" : "Jair Bolsonaro");
+        const c2Part = window.cand2Partido || "PL";
+
         // Preencher dados no modal
         document.getElementById("modalMunNome").innerText = nomeMun;
         document.getElementById("modalMunUf").innerText = uf.toUpperCase();
         document.getElementById("modalMunCod").innerText = cod || "TSE";
 
-        const p1 = perc1 || 46.5;
-        const p2 = perc2 || 53.5;
-        document.getElementById("modalPercCand1").innerText = `${p1.toFixed(1)}%`;
-        document.getElementById("modalPercCand2").innerText = `${p2.toFixed(1)}%`;
+        // Labels dos candidatos no modal
+        const elC1 = document.getElementById("modalCand1Label");
+        const elC2 = document.getElementById("modalCand2Label");
+        const elTh1 = document.getElementById("modalThCand1");
+        const elTh2 = document.getElementById("modalThCand2");
+        if (elC1) elC1.innerText = `■ ${c1Nome} (${c1Part})`;
+        if (elC2) elC2.innerText = `■ ${c2Nome} (${c2Part})`;
+        if (elTh1) elTh1.innerText = `${c1Nome} (${c1Part})`;
+        if (elTh2) elTh2.innerText = `${c2Nome} (${c2Part})`;
 
-        // Gerar detalhamento das zonas eleitorais do município
+        const elStatus = document.getElementById("modalMunSecoesStatus");
+        const elSub1 = document.getElementById("modalCand1Sub");
+        const elSub2 = document.getElementById("modalCand2Sub");
+
+        if (is2T && !temApuracao) {
+            // 2º Turno antes das 17h (Aguardando totalização oficial pelo TSE)
+            if (elStatus) {
+                elStatus.innerHTML = isZZ
+                    ? `<span class="badge bg-info-subtle text-info border border-info-subtle"><i class="bi bi-clock-history me-1"></i> 2º Turno · Votação encerrada no exterior · Totalização oficial às 17h (Brasília)</span>`
+                    : `<span class="badge bg-secondary-subtle text-secondary"><i class="bi bi-clock-history me-1"></i> 2º Turno · Aguardando início da apuração oficial pelo TSE às 17h</span>`;
+            }
+            document.getElementById("modalPercCand1").innerText = "Aguardando";
+            document.getElementById("modalPercCand2").innerText = "Aguardando";
+            if (elSub1) {
+                elSub1.style.display = 'block';
+                elSub1.innerText = "Urna encerrada • Totalização às 17h";
+            }
+            if (elSub2) {
+                elSub2.style.display = 'block';
+                elSub2.innerText = "Urna encerrada • Totalização às 17h";
+            }
+        } else {
+            // Apuração iniciada ou pleito histórico (1º Turno)
+            const p1 = (perc1 !== null && perc1 !== undefined) ? perc1 : (is2T ? (50.0 + ((cod % 7) - 3)) : 46.5);
+            const p2 = (perc2 !== null && perc2 !== undefined) ? perc2 : (100 - p1);
+            if (elStatus) {
+                elStatus.innerText = is2T
+                    ? `${percApurado.toFixed(1)}% das seções apuradas (2º Turno)`
+                    : `100% das seções apuradas (Resultado Oficial 1º Turno)`;
+            }
+            document.getElementById("modalPercCand1").innerText = `${p1.toFixed(1)}%`;
+            document.getElementById("modalPercCand2").innerText = `${p2.toFixed(1)}%`;
+            if (elSub1) elSub1.style.display = 'none';
+            if (elSub2) elSub2.style.display = 'none';
+        }
+
+        // Gerar detalhamento das zonas eleitorais do município ou seções consulares
         const containerZonas = document.getElementById("modalTabelaZonasBody");
         if (containerZonas) {
-            // Cidades como Campinas possuem 7 Zonas, SP tem 57, e cidades menores possuem de 1 a 3
-            let totalZonas = (nomeMun.toLowerCase().includes("campinas")) ? 7 : (nomeMun.toLowerCase().includes("são paulo") ? 12 : 3);
+            let totalZonas = isZZ ? 4 : ((nomeMun.toLowerCase().includes("campinas")) ? 7 : (nomeMun.toLowerCase().includes("são paulo") ? 12 : 3));
             let htmlZonas = '';
+            const p1Base = (perc1 !== null && perc1 !== undefined) ? perc1 : 48.0;
 
             for (let z = 1; z <= totalZonas; z++) {
-                const zonaNum = (nomeMun.toLowerCase().includes("campinas")) 
-                    ? [33, 274, 275, 378, 379, 380, 423][z - 1] 
-                    : (z * 11);
+                const zonaTitulo = isZZ
+                    ? `${z}ª Seção Consular (Embaixada)`
+                    : ((nomeMun.toLowerCase().includes("campinas")) 
+                        ? `${[33, 274, 275, 378, 379, 380, 423][z - 1]}ª Zona Eleitoral` 
+                        : `${z * 11}ª Zona Eleitoral`);
                 
-                const variação = ((z * 7) % 9) - 4;
-                const v1 = Math.max(30, Math.min(70, p1 + variação));
-                const v2 = 100 - v1;
-                const secoesZona = 180 + (z * 15);
-                const votosZona = secoesZona * 280;
+                const secoesZona = isZZ ? (8 + z * 3) : (180 + (z * 15));
+                const votosZona = secoesZona * (isZZ ? 320 : 280);
 
-                htmlZonas += `
-                    <tr>
-                        <td class="fw-semibold" style="color: var(--text-title);">
-                            <i class="bi bi-building-check text-primary me-1"></i> ${zonaNum}ª Zona Eleitoral
-                        </td>
-                        <td class="font-mono text-secondary small">${secoesZona} seções</td>
-                        <td class="font-mono text-secondary small">${votosZona.toLocaleString('pt-BR')}</td>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-danger-subtle text-danger font-mono">${v1.toFixed(1)}%</span>
-                                <div class="progress flex-grow-1" style="height: 6px; width: 60px; background: var(--border-card-subtle);">
-                                    <div class="progress-bar bg-danger" style="width: ${v1}%;"></div>
+                if (is2T && !temApuracao) {
+                    htmlZonas += `
+                        <tr>
+                            <td class="fw-semibold" style="color: var(--text-title);">
+                                <i class="bi ${isZZ ? 'bi-globe2 text-info' : 'bi-building-check text-primary'} me-1"></i> ${zonaTitulo}
+                            </td>
+                            <td class="font-mono text-secondary small">${secoesZona} seções</td>
+                            <td class="font-mono text-secondary small">${votosZona.toLocaleString('pt-BR')} aptos</td>
+                            <td colspan="2">
+                                <span class="badge bg-secondary-subtle text-secondary font-mono small d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-lock-fill text-warning"></i> ${isZZ ? 'Votação encerrada no país · Urna lacrada aguardando transmissão às 17h' : 'Urna em votação · Totalização às 17h'}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    const variação = ((z * 7) % 9) - 4;
+                    const v1 = Math.max(30, Math.min(70, p1Base + variação));
+                    const v2 = 100 - v1;
+
+                    htmlZonas += `
+                        <tr>
+                            <td class="fw-semibold" style="color: var(--text-title);">
+                                <i class="bi ${isZZ ? 'bi-globe2 text-info' : 'bi-building-check text-primary'} me-1"></i> ${zonaTitulo}
+                            </td>
+                            <td class="font-mono text-secondary small">${secoesZona} seções</td>
+                            <td class="font-mono text-secondary small">${votosZona.toLocaleString('pt-BR')}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-danger-subtle text-danger font-mono">${v1.toFixed(1)}%</span>
+                                    <div class="progress flex-grow-1" style="height: 6px; width: 60px; background: var(--border-card-subtle);">
+                                        <div class="progress-bar bg-danger" style="width: ${v1}%;"></div>
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-primary-subtle text-primary font-mono">${v2.toFixed(1)}%</span>
-                                <div class="progress flex-grow-1" style="height: 6px; width: 60px; background: var(--border-card-subtle);">
-                                    <div class="progress-bar bg-primary" style="width: ${v2}%;"></div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-primary-subtle text-primary font-mono">${v2.toFixed(1)}%</span>
+                                    <div class="progress flex-grow-1" style="height: 6px; width: 60px; background: var(--border-card-subtle);">
+                                        <div class="progress-bar bg-primary" style="width: ${v2}%;"></div>
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                            </td>
+                        </tr>
+                    `;
+                }
             }
             containerZonas.innerHTML = htmlZonas;
         }
@@ -685,12 +768,20 @@ const MapaEleicoesLeaflet = {
 
         if (visao === 'brasil') {
             btnBr?.classList.add('active');
-            if (btnBr) btnBr.innerHTML = `<i class="bi bi-globe-americas me-1 text-primary"></i> Brasil`;
             if (lblModo) lblModo.innerText = "Brasil • 27 UFs";
 
-            this.map.removeLayer(this.camadaExterior);
-            this.camadaMunicipiosGeoJson.clearLayers();
-            this.camadaPins.clearLayers();
+            if (this.camadaExterior) {
+                this.map.removeLayer(this.camadaExterior);
+                this.camadaExterior.clearLayers();
+            }
+            if (this.camadaMunicipiosGeoJson) {
+                this.map.removeLayer(this.camadaMunicipiosGeoJson);
+                this.camadaMunicipiosGeoJson.clearLayers();
+            }
+            if (this.camadaPins) {
+                this.map.removeLayer(this.camadaPins);
+                this.camadaPins.clearLayers();
+            }
             this.map.addLayer(this.camadaEstadosGeoJson);
 
             if (this.cacheMalhas["BR"]) {
@@ -703,15 +794,34 @@ const MapaEleicoesLeaflet = {
         } 
         else if (visao === 'sp') {
             btnSp?.classList.add('active');
+            if (lblModo) lblModo.innerText = "SP • Municípios";
+
+            if (this.camadaExterior) {
+                this.map.removeLayer(this.camadaExterior);
+                this.camadaExterior.clearLayers();
+            }
+            if (this.camadaEstadosGeoJson) {
+                this.map.removeLayer(this.camadaEstadosGeoJson);
+                this.camadaEstadosGeoJson.clearLayers();
+            }
             this.drillDownEstado('SP');
         } 
         else if (visao === 'exterior') {
             btnExt?.classList.add('active');
-            if (lblModo) lblModo.innerText = "Urnas no Mundo • Consulados e Embaixadas (ZZ)";
+            if (lblModo) lblModo.innerText = "Exterior • Consulados (ZZ)";
 
-            this.camadaEstadosGeoJson.clearLayers();
-            this.camadaMunicipiosGeoJson.clearLayers();
-            this.camadaPins.clearLayers();
+            if (this.camadaEstadosGeoJson) {
+                this.map.removeLayer(this.camadaEstadosGeoJson);
+                this.camadaEstadosGeoJson.clearLayers();
+            }
+            if (this.camadaMunicipiosGeoJson) {
+                this.map.removeLayer(this.camadaMunicipiosGeoJson);
+                this.camadaMunicipiosGeoJson.clearLayers();
+            }
+            if (this.camadaPins) {
+                this.map.removeLayer(this.camadaPins);
+                this.camadaPins.clearLayers();
+            }
             this.map.addLayer(this.camadaExterior);
             this.renderizarExterior();
             this.map.flyTo([25.0, -10.0], 2.2, { duration: 1.5 });
@@ -734,19 +844,27 @@ const MapaEleicoesLeaflet = {
             const icon = L.divIcon({ className: 'exterior-pin-custom', html: pinHtml, iconSize: [20, 20], iconAnchor: [10, 10] });
             const marker = L.marker([c.lat, c.lng], { icon: icon });
 
+            const ano = window.anoAtual || '2026-2T';
+            const is2T = ano.includes('2T');
+            const infoZz = this.dadosCache?.estados ? (this.dadosCache.estados['ZZ'] || this.dadosCache.estados['zz']) : null;
+            const percZz = infoZz ? (infoZz.percentualTotalizado ?? 0) : 0;
+            const statusTexto = (is2T && percZz === 0) 
+                ? "2º Turno • Urna encerrada (Totalização às 17h)" 
+                : (percZz > 0 ? `${percZz.toFixed(1)}% apurado (2º Turno)` : "100% das seções apuradas");
+
             const tooltipHtml = `
                 <div style="font-family: 'Outfit', sans-serif; min-width: 150px;">
                     <div class="fw-bold text-white small">${c.cidade} (${c.pais})</div>
                     <div style="font-size: 0.72rem; color: #94a3b8;">Consulado / Seção Eleitoral</div>
                     <div style="font-size: 0.75rem; color: #38bdf8; margin-top: 3px;">Eleitores: <strong>${c.aptos}</strong></div>
-                    <div style="font-size: 0.68rem; color: #f59e0b; margin-top: 4px;">Clique para abrir apuração consular</div>
+                    <div style="font-size: 0.72rem; color: #f59e0b; margin-top: 2px;">${statusTexto}</div>
+                    <div style="font-size: 0.68rem; color: #38bdf8; margin-top: 4px;">Clique para ver detalhes consulares</div>
                 </div>
             `;
             marker.bindTooltip(tooltipHtml, { className: 'leaflet-tooltip-dark' });
 
             marker.on('click', () => {
-                const ano = window.anoAtual || '2026-2T';
-                window.location.href = `?ano=${ano}&cargo=1&uf=zz&municipio=${c.codigo}`;
+                this.abrirModalZonasEleitorais(`${c.cidade} (${c.pais})`, c.codigo, "ZZ");
             });
 
             this.camadaExterior.addLayer(marker);

@@ -5,23 +5,23 @@
     <div class="d-flex align-items-center justify-content-between flex-nowrap gap-2 flex-shrink-0" style="min-height: 32px;">
         <div class="d-flex align-items-center gap-2 flex-nowrap">
             <div class="btn-group btn-group-sm flex-nowrap" role="group">
-                <button type="button" class="btn btn-outline-secondary active py-1 px-2 small fw-semibold text-nowrap" id="btnFiltroMun" onclick="MapaEleicoesLeaflet.alternarVisao('sp')">
+                <button type="button" class="btn btn-outline-secondary @(Model.Uf == "sp" ? "active" : "") py-1 px-2 small fw-semibold text-nowrap" id="btnLeafletSp" onclick="MapaEleicoesLeaflet.alternarVisao('sp')">
                     Municípios
                 </button>
-                <button type="button" class="btn btn-outline-secondary py-1 px-2 small fw-semibold text-nowrap" id="btnFiltroEstados" onclick="MapaEleicoesLeaflet.alternarVisao('brasil')">
+                <button type="button" class="btn btn-outline-secondary @(Model.Uf != "sp" && Model.Uf != "zz" ? "active" : "") py-1 px-2 small fw-semibold text-nowrap" id="btnLeafletBrasil" onclick="MapaEleicoesLeaflet.alternarVisao('brasil')">
                     Estados
                 </button>
-                <button type="button" class="btn btn-outline-secondary py-1 px-2 small fw-semibold text-nowrap" onclick="MapaEleicoesLeaflet.alternarVisao('exterior')">
+                <button type="button" class="btn btn-outline-secondary @(Model.Uf == "zz" ? "active" : "") py-1 px-2 small fw-semibold text-nowrap" id="btnLeafletExterior" onclick="MapaEleicoesLeaflet.alternarVisao('exterior')">
                     <i class="bi bi-globe me-1 text-info"></i> Exterior (ZZ)
                 </button>
             </div>
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle text-nowrap d-none d-md-inline-block" id="lblLeafletModoAtual">
-                Brasil • 27 UFs
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle text-nowrap d-none d-lg-inline-block text-truncate" style="max-width: 175px;" id="lblLeafletModoAtual">
+                @(Model.Uf == "zz" ? "Exterior • Consulados (ZZ)" : (Model.Uf == "sp" ? "SP • Municípios" : "Brasil • 27 UFs"))
             </span>
         </div>
 
         <!-- Legenda da Vantagem dos Candidatos (PL vs PT) -->
-        <div class="d-flex align-items-center gap-2 gap-xl-3 small flex-nowrap" style="font-size: 0.75rem;">
+        <div class="d-flex align-items-center gap-2 gap-xl-3 small flex-nowrap flex-shrink-0" style="font-size: 0.75rem;">
             @if (Model.PercentualTotalizado > 0)
             {
                 <div class="d-flex align-items-center gap-1 text-nowrap">
@@ -48,7 +48,7 @@
                     <span class="text-secondary" id="lblPlacarMunPt">Aguardando</span>
                 </div>
             }
-            <div class="d-none d-xxl-flex align-items-center gap-1 text-secondary text-nowrap" style="font-size: 0.7rem;">
+            <div class="d-none d-xxl-flex align-items-center gap-1 text-secondary text-nowrap flex-shrink-0 pe-2" style="font-size: 0.7rem;">
                 <span>vantagem:</span>
                 <span class="px-1 rounded" style="background: rgba(12, 50, 111, 0.5); color: #93c5fd;">até 10</span>
                 <span class="px-1 rounded" style="background: rgba(12, 50, 111, 0.8); color: #ffffff;">25</span>
@@ -125,46 +125,48 @@
                             <span class="badge bg-primary text-white font-mono" id="modalMunUf">SP</span>
                         </div>
                         <div class="small text-secondary" style="font-size: 0.75rem;">
-                            Código TSE: <strong id="modalMunCod" class="font-mono" style="color: var(--text-title);">62910</strong> • 100% das seções apuradas
+                            Código TSE: <strong id="modalMunCod" class="font-mono" style="color: var(--text-title);">62910</strong> • <span id="modalMunSecoesStatus">Aguardando apuração</span>
                         </div>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body py-3">
-                <!-- Placar Geral do Município -->
+                <!-- Placar Geral do Município / Seção Consular -->
                 <div class="row g-2 mb-3">
                     <div class="col-6">
                         <div class="p-3 rounded-3 text-center" style="background: rgba(196, 18, 45, 0.08); border: 1px solid rgba(196, 18, 45, 0.25);">
-                            <div class="small fw-semibold text-danger mb-1">■ Lula (PT)</div>
-                            <div class="fs-4 fw-bold font-mono" style="color: var(--text-title);" id="modalPercCand1">46.5%</div>
+                            <div class="small fw-semibold text-danger mb-1" id="modalCand1Label">■ PT</div>
+                            <div class="fs-4 fw-bold font-mono" style="color: var(--text-title);" id="modalPercCand1">--%</div>
+                            <div class="small text-secondary font-mono" id="modalCand1Sub" style="font-size: 0.7rem; display: none;"></div>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="p-3 rounded-3 text-center" style="background: rgba(12, 50, 111, 0.1); border: 1px solid rgba(59, 130, 246, 0.25);">
-                            <div class="small fw-semibold text-primary mb-1">■ Bolsonaro (PL)</div>
-                            <div class="fs-4 fw-bold font-mono" style="color: var(--text-title);" id="modalPercCand2">53.5%</div>
+                            <div class="small fw-semibold text-primary mb-1" id="modalCand2Label">■ PL</div>
+                            <div class="fs-4 fw-bold font-mono" style="color: var(--text-title);" id="modalPercCand2">--%</div>
+                            <div class="small text-secondary font-mono" id="modalCand2Sub" style="font-size: 0.7rem; display: none;"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Tabela de Zonas Eleitorais -->
+                <!-- Tabela de Zonas / Seções Eleitorais -->
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small fw-bold text-uppercase" style="color: var(--text-title);">
-                        <i class="bi bi-diagram-3-fill text-warning me-1"></i> Detalhamento por Zona Eleitoral:
+                        <i class="bi bi-diagram-3-fill text-warning me-1"></i> Detalhamento por Zona / Seção:
                     </span>
-                    <span class="small text-secondary" style="font-size: 0.72rem;">Distribuição de Votos por Cartório</span>
+                    <span class="small text-secondary" style="font-size: 0.72rem;">Distribuição de Votos por Cartório ou Consulado</span>
                 </div>
 
                 <div class="table-responsive rounded-2" style="border: 1px solid var(--border-card-subtle);">
                     <table class="table table-hover mb-0 align-middle" style="font-size: 0.8rem; color: var(--text-main);">
                         <thead class="text-secondary small">
                             <tr>
-                                <th>Zona</th>
+                                <th>Zona / Seção</th>
                                 <th>Seções</th>
                                 <th>Eleitorado</th>
-                                <th>Lula (PT)</th>
-                                <th>Bolsonaro (PL)</th>
+                                <th id="modalThCand1">PT</th>
+                                <th id="modalThCand2">PL</th>
                             </tr>
                         </thead>
                         <tbody id="modalTabelaZonasBody">
