@@ -62,6 +62,34 @@ BEGIN
 END;
 GO
 
+-- 3. Tabela de Urnas com Votação Estendida (Pós-17h autorizadas por fila/senhas STF/TSE)
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='UrnasVotacaoEstendida' AND xtype='U')
+BEGIN
+    CREATE TABLE UrnasVotacaoEstendida (
+        Id INT IDENTITY(1,1) PRIMARY KEY,
+        Ano VARCHAR(10) NOT NULL DEFAULT '2026-2T',
+        Uf VARCHAR(5) NOT NULL,
+        Municipio NVARCHAR(150) NOT NULL,
+        CodigoMunicipio VARCHAR(10) NULL,
+        Zona INT NOT NULL,
+        Secao INT NOT NULL,
+        LocalVotacao NVARCHAR(250) NULL,
+        HorarioFechamento VARCHAR(10) NOT NULL,
+        MotivoExtensao NVARCHAR(250) NULL,
+        EleitoresAptos INT NOT NULL DEFAULT 0,
+        Comparecimento INT NOT NULL DEFAULT 0,
+        VotosCand1 INT NOT NULL DEFAULT 0,
+        VotosCand2 INT NOT NULL DEFAULT 0,
+        VotosBrancos INT NOT NULL DEFAULT 0,
+        VotosNulos INT NOT NULL DEFAULT 0,
+        TotalVotos INT NOT NULL DEFAULT 0,
+        DataCriacao DATETIME NOT NULL DEFAULT GETDATE()
+    );
+
+    CREATE INDEX IX_UrnasVotacaoEstendida_Uf_Mun ON UrnasVotacaoEstendida (Uf, CodigoMunicipio);
+END;
+GO
+
 -- ============================================================
 -- EXEMPLOS DE CONSULTAS ANALÍTICAS POSTERIORES
 -- ============================================================

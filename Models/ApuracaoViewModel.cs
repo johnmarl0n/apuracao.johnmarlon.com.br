@@ -33,9 +33,15 @@ namespace apuracao.johnmarlon.com.br.Models
         public decimal PercentualVotosNulos { get; set; }
 
         public bool Finalizado { get; set; }
+        public bool MatematicamenteEleito { get; set; }
+        public string? NomeEleitoMatematico { get; set; }
+        public string? PartidoEleitoMatematico { get; set; }
+        public decimal? PercentualEleitoMatematico { get; set; }
         public bool AoVivo { get; set; } = true;
         public string? DataHoraTse { get; set; }
         public DateTime DataHoraAtualizacao { get; set; } = DateTime.Now;
+
+        public UrnasPos17hResumoDto? UrnasPos17h { get; set; }
 
         public List<CandidatoItemViewModel> Candidatos { get; set; } = new();
 

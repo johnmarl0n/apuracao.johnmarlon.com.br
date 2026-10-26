@@ -229,5 +229,41 @@ namespace apuracao.johnmarlon.com.br.Controllers
                 });
             }
         }
+
+        [HttpGet("urnas-pos-17h")]
+        public async Task<IActionResult> ObterUrnasPos17h([FromQuery] string? uf = null, [FromQuery] string? busca = null)
+        {
+            var resumo = await _tseService.ObterUrnasPos17hResumoAsync();
+            var todasSecoes = await _tseService.ObterTodasUrnasPos17hAsync();
+
+            var query = todasSecoes.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(uf) && !uf.Equals("todas", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.Where(s => s.Uf.Equals(uf.Trim(), StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(busca))
+            {
+                string termo = busca.Trim().ToLowerInvariant();
+                query = query.Where(s =>
+                    s.Municipio.ToLowerInvariant().Contains(termo) ||
+                    s.LocalVotacao.ToLowerInvariant().Contains(termo) ||
+                    s.Zona.ToString() == termo ||
+                    s.Secao.ToString() == termo ||
+                    s.MotivoExtensao.ToLowerInvariant().Contains(termo)
+                );
+            }
+
+            var filtradas = query.ToList();
+
+            return Ok(new
+            {
+                sucesso = true,
+                resumo = resumo,
+                totalFiltradas = filtradas.Count,
+                secoes = filtradas
+            });
+        }
     }
 }

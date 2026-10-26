@@ -171,18 +171,36 @@ namespace apuracao.johnmarlon.com.br.Services
                     ? vm.DataHoraTse.Split(' ').LastOrDefault()?.Substring(0, 5).Replace(":", "h") ?? agora.ToString("HH\\hmm")
                     : agora.ToString("HH\\hmm");
 
-                // Se a eleição foi concluída / matematicamente definida
-                if (vm.Finalizado && cand1 != null)
+                // Se a eleição foi concluída ou matematicamente definida
+                if ((vm.MatematicamenteEleito || vm.Finalizado) && cand1 != null)
                 {
+                    string statusTexto = vm.Finalizado ? "TSE homologa resultado" : "Matematicamente Definido";
+                    string statusSufixo = vm.Finalizado ? "eleito" : "matematicamente eleito";
                     noticias.Insert(0, new NoticiaItem
                     {
                         Id = "eleicao_definida",
                         Hora = horaAtual,
                         DataHora = agora,
                         AvatarUrl = ObterAvatarCandidato(cand1.Numero),
-                        ConteudoHtml = $"TSE homologa resultado: <strong>{cand1.NomeUrna}</strong> ({cand1.Partido}) é eleito <strong>Presidente da República</strong> com <strong>{cand1.Percentual:F2}%</strong> dos votos válidos.",
+                        ConteudoHtml = $"<strong>{statusTexto}:</strong> <strong>{cand1.NomeUrna}</strong> ({cand1.Partido}) é {statusSufixo} <strong>Presidente da República</strong> com <strong>{cand1.Percentual:F2}%</strong> dos votos válidos ({cand1.Votos:N0} votos).",
                         Tipo = "eleito",
                         Destaque = true
+                    });
+                }
+
+                // Notícia da Auditoria das Urnas Pós-17h (TSE / STF)
+                if (vm.UrnasPos17h != null && vm.UrnasPos17h.TotalUrnas > 0)
+                {
+                    var u17 = vm.UrnasPos17h;
+                    noticias.Add(new NoticiaItem
+                    {
+                        Id = "auditoria_urnas_pos17h",
+                        Hora = "19h00",
+                        DataHora = agora.Date.AddHours(19),
+                        Icone = "bi-shield-shaded",
+                        ConteudoHtml = $"Auditoria TSE/STF: <strong>{u17.TotalUrnas:N0} seções</strong> concluíram votação após 17h (até {u17.HorarioUltimoFechamento}). Total de <strong>{u17.TotalVotos:N0} votos</strong> auditados ({u17.NomeCand1} {u17.PercentualCand1:F1}% vs {u17.NomeCand2} {u17.PercentualCand2:F1}%).",
+                        Tipo = "apuracao",
+                        Destaque = false
                     });
                 }
 

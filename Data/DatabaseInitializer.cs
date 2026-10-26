@@ -122,6 +122,31 @@ namespace apuracao.johnmarlon.com.br.Data
                     CREATE INDEX IX_ApuracaoTimeline_Minuto ON ApuracaoTimeline (MinutoIndice);
                 END;
 
+                IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='UrnasVotacaoEstendida' AND xtype='U')
+                BEGIN
+                    CREATE TABLE UrnasVotacaoEstendida (
+                        Id INT IDENTITY(1,1) PRIMARY KEY,
+                        Ano VARCHAR(10) NOT NULL DEFAULT '2026-2T',
+                        Uf VARCHAR(5) NOT NULL,
+                        Municipio NVARCHAR(150) NOT NULL,
+                        CodigoMunicipio VARCHAR(10) NULL,
+                        Zona INT NOT NULL,
+                        Secao INT NOT NULL,
+                        LocalVotacao NVARCHAR(250) NULL,
+                        HorarioFechamento VARCHAR(10) NOT NULL,
+                        MotivoExtensao NVARCHAR(250) NULL,
+                        EleitoresAptos INT NOT NULL DEFAULT 0,
+                        Comparecimento INT NOT NULL DEFAULT 0,
+                        VotosCand1 INT NOT NULL DEFAULT 0,
+                        VotosCand2 INT NOT NULL DEFAULT 0,
+                        VotosBrancos INT NOT NULL DEFAULT 0,
+                        VotosNulos INT NOT NULL DEFAULT 0,
+                        TotalVotos INT NOT NULL DEFAULT 0,
+                        DataCriacao DATETIME NOT NULL DEFAULT GETDATE()
+                    );
+                    CREATE INDEX IX_UrnasVotacaoEstendida_Uf_Mun ON UrnasVotacaoEstendida (Uf, CodigoMunicipio);
+                END;
+
                 BEGIN TRY
                     ALTER TABLE ApuracaoSnapshots ALTER COLUMN DataHoraTse NVARCHAR(100) NULL;
                 END TRY
@@ -130,7 +155,7 @@ namespace apuracao.johnmarlon.com.br.Data
                 ";
 
                 await conn.ExecuteAsync(sql);
-                _logger.LogInformation("Tabelas do MSSQL (ApuracaoSnapshots, ApuracaoCandidatos, CandidatosFotos e ApuracaoTimeline) verificadas/criadas com sucesso.");
+                _logger.LogInformation("Tabelas do MSSQL (ApuracaoSnapshots, ApuracaoCandidatos, CandidatosFotos, ApuracaoTimeline e UrnasVotacaoEstendida) verificadas/criadas com sucesso.");
             }
             catch (Exception ex)
             {

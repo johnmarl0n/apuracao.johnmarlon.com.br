@@ -18,6 +18,8 @@ Construída em **ASP.NET Core 8.0 MVC**, com arquitetura em cache volátil de m�
 
 - [Visão Geral & Interface](#-visão-geral--interface)
 - [Arquitetura do Dashboard (3 Colunas em 100vh)](#-arquitetura-do-dashboard-3-colunas-em-100vh)
+- [Auditoria Especial: Urnas com Votação Estendida (Pós-17h)](#-auditoria-especial-urnas-com-votação-estendida-pós-17h)
+- [Algoritmo de "Matematicamente Eleito" & Encerramento](#-algoritmo-de-matematicamente-eleito--encerramento)
 - [Mapa Interativo Cartográfico (Leaflet + GeoJSON)](#-mapa-interativo-cartográfico-leaflet--geojson)
 - [Monitoramento de Usuários Online (Ao Vivo)](#-monitoramento-de-usuários-online-ao-vivo)
 - [Linha do Tempo Interativa (Timeline Scrubber)](#-linha-do-tempo-interativa-timeline-scrubber)
@@ -58,24 +60,25 @@ O dashboard é organizado em 3 colunas independentes e balanceadas:
 │                          │                             │                               │
 │ 1. Card Duelo 2º Turno:  │ 1. Filtros de Visão:        │ 1. Card Por Região:           │
 │    • Avatares Squircle   │    • Municípios (SP)        │    • Norte, Nordeste,         │
-│    • Headline Serifada   │    • Estados (Brasil)       │      Centro-Oeste, Sudeste,    │
-│    • Percentuais Grandes │    • Exterior (ZZ)          │      Sul e Exterior           │
-│    • Barra Duelo (50%)   │                             │    • Mini-barras e fotos      │
-│    • Diferença de Votos  │ 2. Mapa Interativo Leaflet: │                               │
-│    • Comparecimento      │    • Camada CartoDB         │ 2. Card Últimas Atualizações: │
-│    • Regressiva 25/10    │    • GeoJSON 645 municípios │    • Feed ao vivo com fotos   │
-│                          │    • Tooltip com placar     │    • Máscara de gradiente     │
-│ 2. Ao Longo da Apuração: │                             │      inferior (sem rollover)  │
-│    • Gráfico SVG temporal│ 3. Timeline Scrubber:       │                               │
-│      esticado até a base │    • Relógio de Brasília    │                               │
-│                          │    • Range Slider (0-100%)  │                               │
-│                          │    • Contador Online Ao Vivo│                               │
+│    • Selo [ELEITO] Acima │    • Estados (Brasil)       │      Centro-Oeste, Sudeste,    │
+│    • Headline Serifada   │    • Exterior (ZZ)          │      Sul e Exterior           │
+│    • Percentuais Grandes │                             │    • Mini-barras e fotos      │
+│    • Barra Duelo (50%)   │ 2. Mapa Interativo Leaflet: │                               │
+│    • Diferença de Votos  │    • Camada CartoDB         │ 2. Widget Auditoria Pós-17h:  │
+│    • Comparecimento      │    • GeoJSON 645 municípios │    • 1.428 urnas estendidas   │
+│    • Regressiva 25/10    │    • Tooltip com placar     │    • Placar C1 x C2 pós-17h   │
+│                          │                             │    • Botão para Modal Oficial │
+│ 2. Ao Longo da Apuração: │ 3. Timeline Scrubber:       │                               │
+│    • Gráfico SVG temporal│    • Relógio de Brasília    │ 3. Card Últimas Atualizações: │
+│      esticado até a base │    • Range Slider (0-100%)  │    • Feed ao vivo com fotos   │
+│                          │    • Contador Online Ao Vivo│    • Máscara de gradiente     │
 └──────────────────────────┴─────────────────────────────┴───────────────────────────────┘
 ```
 
 1. **Coluna Esquerda (Card Duelo & Evolução Temporal):**
    - **Identidade Visual Refinada:** Avatares em formato *squircle* com fotos reais dos candidatos ou iniciais sobre o gradiente partidário.
-   - **Headline Serifada:** Destaque editorial moderno (*"Flávio Bolsonaro e Lula vão ao 2º turno"*).
+   - **Selo "ELEITO" de Alta Visibilidade:** Quando o resultado é matematicamente definido ou homologado, uma pílula verde esmeralda com ícone de check (`[✔ ELEITO]`) posiciona-se **acima do nome do vencedor**, mantendo o avatar 100% desobstruído e ambos os candidatos alinhados horizontalmente na mesma linha de base.
+   - **Headline Serifada Dinâmica:** Atualiza em tempo real (*"Lula está matematicamente eleito Presidente da República"*).
    - **Métricas Chave:** Votos válidos, comparecimento, brancos, nulos e contagem regressiva para abertura das urnas do 2º turno (25/10).
    - **Gráfico Vetorial ("Ao longo da apuração"):** Curvas em SVG responsivo que acompanham a evolução de cada candidato de 0% a 100% das seções apuradas.
 
@@ -84,9 +87,41 @@ O dashboard é organizado em 3 colunas independentes e balanceadas:
    - **Barra de Linha do Tempo (Scrubber):** Permite rebobinar o tempo e ver a configuração da disputa hora a hora durante a totalização.
    - **Contador de Presença Online:** Exibe a quantidade de usuários ativos acompanhando a página em tempo real.
 
-3. **Coluna Direita (Votação por Região & Feed de Notícias):**
+3. **Coluna Direita (Votação por Região, Auditoria & Feed de Notícias):**
    - **Liderança Regional:** Desempenho nas 5 regiões do Brasil (Norte, Nordeste, Centro-Oeste, Sudeste, Sul) e no Exterior com mini-barras duel e percentuais de liderança.
-   - **Feed com Fade Gradiente:** Linha do tempo de acontecimentos e eleições estaduais com efeito de esmaecimento suave no rodapé (`mask-image`), eliminando barras de rolagem e sensação de rollover.
+   - **Widget de Auditoria das Urnas Pós-17h:** Bloco com resumo de seções estendidas (até 19h) e acesso ao modal analítico pesquisável.
+   - **Feed com Fade Gradiente:** Linha do tempo de acontecimentos e notícias automáticas de vitória com efeito de esmaecimento suave no rodapé (`mask-image`), eliminando barras de rolagem e sensação de rollover.
+
+---
+
+## 🛡️ Auditoria Especial: Urnas com Votação Estendida (Pós-17h)
+
+Em virtude de determinação do **TSE e do STF** (Resolução TSE nº 23.736), eleitores que se encontravam nas filas às 17h receberam senhas numeradas oficiais, estendendo o horário de votação em diversas seções até às 19h.
+
+A plataforma incorpora um módulo exclusivo de auditoria e transparência eleitoral:
+
+- **Widget Resumo no Feed:** Exibe o consolidado nacional (1.428 urnas estendidas, 418.350 votos apurados, último fechamento às 18h58 e a divisão exata de votos entre os candidatos).
+- **Modal de Auditoria Detalhada (`#modalUrnasPos17h`):**
+  - **4 Indicadores Globais:** Total de Urnas, Votos Totais, Horário de Encerramento e Proporção entre candidatos.
+  - **Filtro por UF:** Filtragem instantânea por estado (SP, RJ, MG, BA, CE, AM, RS, PR, etc.).
+  - **Busca Textual em Tempo Real:** Filtra simultaneamente por nome da cidade, zona eleitoral, número da seção ou escola/local de votação.
+  - **Tabela com Scroll Interno:** Detalhamento seção a seção contendo horário de emissão do Boletim de Urna (BU), votos por candidato, brancos, nulos e o motivo legal registrado.
+- **Armazenamento e Resiliência:** Suporte híbrido com persistência no SQL Server (`UrnasVotacaoEstendida`) e fallback de alta disponibilidade em JSON estruturado ([`urnas_pos_17h.json`](file:///e:/99.Projetos/CSharp/VS2022/apuracao.johnmarlon.com.br/wwwroot/data/urnas_pos_17h.json)).
+
+---
+
+## 👑 Algoritmo de "Matematicamente Eleito" & Encerramento
+
+Para antecipar a confirmação jornalística do vencedor antes dos 100% dos votos totalizados pelo TSE:
+
+- **Critério Seguro Absoluto (Zero Risco):**
+  $$\Delta V = V_1 - V_2$$
+  $$V_{restantes\_max} = (TotalSecoes - SecoesTotalizadas) \times EleitoresAptosPorSecao \times 1.15$$
+  Quando a vantagem do 1º colocado supera o número máximo teórico de votos que o 2º colocado ainda poderia obter em todas as seções pendentes somadas ($\Delta V > V_{restantes\_max}$):
+  1. O sistema marca o candidato como `Eleito = true` e situação `"Matematicamente Eleito"`.
+  2. O Card Duelo ativa o badge verde `[✔ ELEITO]` acima do nome do vencedor e o badge `• MATEMATICAMENTE ELEITO` no topo.
+  3. A manchete editorial consagra a vitória (*"[Nome] está matematicamente eleito Presidente da República"*).
+  4. O [`NoticiasApuracaoService.cs`](file:///e:/99.Projetos/CSharp/VS2022/apuracao.johnmarlon.com.br/Services/NoticiasApuracaoService.cs) dispara automaticamente uma notícia urgente no topo do feed com foto oficial e percentual consolidado.
 
 ---
 
@@ -169,6 +204,7 @@ A classe [DatabaseInitializer.cs](file:///e:/99.Projetos/CSharp/VS2022/apuracao.
 2. **`ApuracaoCandidatos`**: Votos nominais, situação (Eleito, 2º Turno) e percentuais de cada candidato.
 3. **`ApuracaoTimeline`**: Armazena a curva de evolução da apuração ao longo do tempo (pontos de amostragem por hora/minuto).
 4. **`CandidatosFotos`**: Cadastro de fotos e avatares oficiais associados ao número de urna e ano do pleito.
+5. **`UrnasVotacaoEstendida`**: Registro analítico das seções com votação estendida após 17h autorizadas por distribuição de senhas (STF/TSE - Resolução nº 23.736), horários de fechamento e votos por candidato.
 
 ---
 
@@ -177,30 +213,36 @@ A classe [DatabaseInitializer.cs](file:///e:/99.Projetos/CSharp/VS2022/apuracao.
 ```text
 apuracao.johnmarlon.com.br/
 ├── Controllers/
-│   ├── ApuracaoApiController.cs # Endpoints REST de resumo, presença, timeline e municípios
+│   ├── ApuracaoApiController.cs # Endpoints REST de resumo, presença, timeline, municípios e urnas pós-17h
 │   ├── AuthController.cs        # Login, autenticação e logout de sessão
 │   └── HomeController.cs        # View principal, renderização de dados e mapa Brasil
 ├── Data/
 │   ├── ApuracaoRepository.cs    # Operações Dapper no SQL Server (Snapshots e histórico)
 │   └── DatabaseInitializer.cs   # DDL automática: tabelas, índices e constraints
 ├── Models/
-│   ├── ApuracaoViewModel.cs     # ViewModels da tela, candidatos e métricas
+│   ├── ApuracaoViewModel.cs     # ViewModels da tela, candidatos, status de eleito e métricas
 │   ├── MapaBrasilDto.cs         # DTOs para UFs, exterior e placar de estados
+│   ├── UrnaPos17hModel.cs       # Modelos e DTOs de auditoria de urnas com votação estendida (17h-19h)
 │   └── Tse/
 │       └── TseDto.cs            # Mapeamento do JSON oficial da CDN do TSE
 ├── Services/
 │   ├── DadosHistoricosTse.cs    # Base homologada consolidada (2002 a 2022)
+│   ├── NoticiasApuracaoService.cs # Feed inteligente com notícias automáticas de vitória e auditoria
 │   ├── OnlinePresenceService.cs # Monitor de usuários online concorrentes em memória
-│   └── TseService.cs            # Engine de consumo HTTP, cache volátil e normalização
+│   └── TseService.cs            # Engine de consumo HTTP, cálculo de matematicamente eleito e cache
 ├── Views/
 │   ├── Auth/
 │   │   └── Login.cshtml         # Tela de autenticação administrativa
 │   ├── Home/
-│   │   ├── Index.cshtml         # Dashboard 3 colunas em 100vh com duelo e feed
+│   │   ├── Index.cshtml         # Dashboard 3 colunas em 100vh com duelo, feed e modal de auditoria
 │   │   └── _MapaBrasil.cshtml   # Partial view Leaflet com scrubber e presença
 │   └── Shared/
 │       └── _Layout.cshtml       # Master template (Navbar, tema claro/escuro, offcanvas)
 ├── wwwroot/
+│   ├── data/
+│   │   ├── municipios.json      # Catálogo oficial de municípios do TSE
+│   │   ├── noticias.json        # Notícias e comunicados customizados
+│   │   └── urnas_pos_17h.json   # Base estruturada de auditoria de seções pós-17h
 │   ├── img/
 │   │   └── candidatos/          # Fotos oficiais dos candidatos (formato squircle/webp)
 │   ├── js/
@@ -306,6 +348,33 @@ A plataforma expõe endpoints abertos e protegidos para consumo externo em JSON:
 ### 5. Dados Agregados do Mapa
 - **Rota:** `GET /Home/DadosMapaBrasil?ano=2026`
 - **Retorno:** Status de todas as 27 UFs + ZZ, líder e vice-líder por estado e o placar geral de estados liderados.
+
+### 6. Auditoria de Urnas Pós-17h (STF / TSE)
+- **Rota:** `GET /api/apuracao/urnas-pos-17h`
+- **Parâmetros Opcionais:**
+  - `uf`: Filtro por sigla da UF (`sp`, `rj`, `ba`, `todas`, etc.)
+  - `busca`: Termo de pesquisa livre para filtragem instantânea por município, zona eleitoral, número da seção ou escola
+- **Retorno:**
+  ```json
+  {
+    "sucesso": true,
+    "resumo": {
+      "totalUrnas": 1428,
+      "totalVotos": 418350,
+      "totalEleitoresAptos": 512400,
+      "percentualComparecimento": 81.65,
+      "horarioUltimoFechamento": "18h58",
+      "votosCand1": 215450,
+      "percentualCand1": 52.88,
+      "nomeCand1": "Flávio Bolsonaro",
+      "votosCand2": 191980,
+      "percentualCand2": 47.12,
+      "nomeCand2": "Lula"
+    },
+    "totalFiltradas": 14,
+    "secoes": [ ... ]
+  }
+  ```
 
 ---
 

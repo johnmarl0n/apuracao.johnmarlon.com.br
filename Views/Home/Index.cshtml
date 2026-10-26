@@ -699,14 +699,18 @@
                 <span class="text-secondary small fw-semibold" style="font-size: 0.72rem;" id="lblDuelLocalidadeSubtitulo">
                     Presidente • @(!string.IsNullOrEmpty(Model.NomeMunicipio) ? $"{Model.NomeMunicipio} ({Model.Uf.ToUpperInvariant()})" : (Model.Uf == "br" ? "Brasil" : Model.Uf.ToUpperInvariant()))
                 </span>
-                <span class="badge bg-secondary-subtle text-secondary small py-0 px-2 rounded-pill font-mono" style="font-size: 0.68rem;" id="badgeStatusApuracao">
-                    @(Model.Finalizado ? "• 2º turno · Definido" : (Model.PercentualTotalizado > 0 ? "• 2º turno · Ao vivo" : "• 2º turno · Aguardando totalização"))
+                <span class="badge @(Model.MatematicamenteEleito ? "bg-success text-white fw-bold shadow-sm" : "bg-secondary-subtle text-secondary") small py-0 px-2 rounded-pill font-mono" style="font-size: 0.68rem;" id="badgeStatusApuracao">
+                    @(Model.Finalizado ? "• 2º turno · Definido" : (Model.MatematicamenteEleito ? "• MATEMATICAMENTE ELEITO" : (Model.PercentualTotalizado > 0 ? "• 2º turno · Ao vivo" : "• 2º turno · Aguardando totalização")))
                 </span>
             </div>
 
             <!-- Título em Serif com Nomes dos Candidatos Coloridos -->
             <h2 class="h5 font-serif-headline mb-2" id="lblHeadlineDuelo">
-                @if (Model.Ano == "2026")
+                @if (Model.MatematicamenteEleito && cand1 != null)
+                {
+                    <span class="cand-headline-name-c1">@cand1.NomeUrna</span><span class="cand-headline-connector"> está matematicamente eleito Presidente da República</span>
+                }
+                else if (Model.Ano == "2026")
                 {
                     <span class="cand-headline-name-c2">@(cand2?.NomeUrna ?? "Candidato")</span><span class="cand-headline-connector"> e </span><span class="cand-headline-name-c1">@(cand1?.NomeUrna ?? "Candidato")</span><span class="cand-headline-connector"> foram ao 2º turno</span>
                 }
@@ -734,7 +738,7 @@
                 @if (cand1 != null)
                 {
                     <div class="d-flex align-items-center gap-2 flex-grow-1">
-                        <div class="cand-square-avatar" style="background: @cor1;">
+                        <div class="cand-square-avatar" style="background: @cor1; @(Model.MatematicamenteEleito || cand1.Eleito ? "box-shadow: 0 0 10px rgba(34, 197, 94, 0.45); border: 2px solid #22c55e;" : "")">
                             @if (!string.IsNullOrWhiteSpace(cand1.FotoUrl))
                             {
                                 <img src="@cand1.FotoUrl" alt="@cand1.NomeUrna" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
@@ -749,7 +753,19 @@
                                 <div>@(cand1.NomeUrna.Substring(0, Math.Min(2, cand1.NomeUrna.Length)))</div>
                             }
                         </div>
-                        <div>
+                        <div class="d-flex flex-column justify-content-center">
+                            @if (Model.MatematicamenteEleito || cand1.Eleito)
+                            {
+                                <div class="mb-1" id="boxBadgeEleitoCand1">
+                                    <span class="badge bg-success text-white fw-bold px-2 py-0 rounded-pill font-mono shadow-sm d-inline-flex align-items-center gap-1" style="font-size: 0.65rem; letter-spacing: 0.02em;">
+                                        <i class="bi bi-check-circle-fill"></i> ELEITO
+                                    </span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="mb-1" id="boxBadgeEleitoCand1" style="display: none;"></div>
+                            }
                             <div class="cand-title-name fw-bold small lh-1 mb-1">@cand1.NomeUrna</div>
                             <div class="small font-mono fw-bold" style="font-size: 0.72rem; color: @cor1;">@cand1.Partido @cand1.Numero</div>
                         </div>
@@ -760,11 +776,29 @@
                 @if (cand2 != null)
                 {
                     <div class="d-flex align-items-center justify-content-end gap-2 flex-grow-1 text-end">
-                        <div>
+                        <div class="d-flex flex-column justify-content-center text-end">
+                            @if (cand2.Eleito)
+                            {
+                                <div class="mb-1" id="boxBadgeEleitoCand2">
+                                    <span class="badge bg-success text-white fw-bold px-2 py-0 rounded-pill font-mono shadow-sm d-inline-flex align-items-center gap-1" style="font-size: 0.65rem; letter-spacing: 0.02em;">
+                                        <i class="bi bi-check-circle-fill"></i> ELEITO
+                                    </span>
+                                </div>
+                            }
+                            else if (Model.MatematicamenteEleito || (cand1 != null && cand1.Eleito))
+                            {
+                                <div class="mb-1" id="boxBadgeEleitoCand2" style="height: 18px; visibility: hidden;">
+                                    <span class="badge px-2 py-0 rounded-pill font-mono" style="font-size: 0.65rem;">ELEITO</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="mb-1" id="boxBadgeEleitoCand2" style="display: none;"></div>
+                            }
                             <div class="cand-title-name fw-bold small lh-1 mb-1">@cand2.NomeUrna</div>
                             <div class="small font-mono fw-bold" style="font-size: 0.72rem; color: @cor2;">@cand2.Partido @cand2.Numero</div>
                         </div>
-                        <div class="cand-square-avatar" style="background: @cor2;">
+                        <div class="cand-square-avatar" style="background: @cor2; @(cand2.Eleito ? "box-shadow: 0 0 10px rgba(34, 197, 94, 0.45); border: 2px solid #22c55e;" : "")">
                             @if (!string.IsNullOrWhiteSpace(cand2.FotoUrl))
                             {
                                 <img src="@cand2.FotoUrl" alt="@cand2.NomeUrna" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
@@ -1041,6 +1075,31 @@
                 <span class="badge bg-danger-subtle text-danger small py-0 px-1 font-mono" style="font-size: 0.65rem;">• Ao vivo</span>
             </div>
 
+            @if (Model.UrnasPos17h != null)
+            {
+                var u17 = Model.UrnasPos17h;
+                <!-- Card de Auditoria Especial: Urnas Pós-17h (TSE / STF) -->
+                <div class="p-2 mb-2 rounded-3 border border-warning border-opacity-50" style="background: rgba(234, 179, 8, 0.08); flex-shrink: 0;">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="small fw-bold text-warning d-flex align-items-center gap-1" style="font-size: 0.74rem;">
+                            <i class="bi bi-shield-check"></i> Urnas Pós-17h (até @u17.HorarioUltimoFechamento)
+                        </span>
+                        <span class="badge bg-warning text-dark font-mono" style="font-size: 0.62rem;">TSE • STF</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between text-secondary mb-1" style="font-size: 0.7rem;">
+                        <span><strong class="font-mono" style="color: var(--text-title);">@u17.TotalUrnas.ToString("N0")</strong> seções estendidas</span>
+                        <span><strong class="font-mono" style="color: var(--text-title);">@u17.TotalVotos.ToString("N0")</strong> votos</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mb-1 font-mono" style="font-size: 0.7rem;">
+                        <span style="color: @u17.CorCand1;">■ @u17.PartidoCand1: <strong>@u17.PercentualCand1.ToString("F1")%</strong></span>
+                        <span style="color: @u17.CorCand2;">■ @u17.PartidoCand2: <strong>@u17.PercentualCand2.ToString("F1")%</strong></span>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-warning w-100 py-0 rounded-pill font-mono" style="font-size: 0.68rem; font-weight: 600;" onclick="abrirModalUrnasPos17h()">
+                        <i class="bi bi-table me-1"></i> Ver Seções e Votos Pós-17h
+                    </button>
+                </div>
+            }
+
             <!-- Feed com esmaecido gradiente inferior para evitar o rollover/scrollbar -->
             <div class="news-feed-fade-container" id="newsFeedListContainer">
                 @if (Model.Noticias != null && Model.Noticias.Count > 0)
@@ -1080,6 +1139,125 @@
     </div>
 </div>
 
+<!-- Modal Detalhado de Auditoria: Urnas Fechadas Após 17h (STF / TSE) -->
+<div class="modal fade" id="modalUrnasPos17h" tabindex="-1" aria-labelledby="modalUrnasPos17hLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border-card); box-shadow: var(--card-shadow); color: var(--text-main);">
+            <div class="modal-header border-bottom border-themed pb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="p-2 rounded-circle bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-shield-lock-fill fs-5"></i>
+                    </span>
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <h5 class="modal-title fw-bold mb-0" style="color: var(--text-title);" id="modalUrnasPos17hLabel">Auditoria: Seções com Votação Estendida (17h às 19h)</h5>
+                            <span class="badge bg-warning text-dark font-mono">TSE • STF</span>
+                        </div>
+                        <div class="small text-secondary" style="font-size: 0.76rem;">
+                            Urnas que fecharam após às 17h com entrega oficial de senhas aos eleitores na fila (Resolução TSE nº 23.736)
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body py-3">
+                <!-- 4 Cards de Estatísticas Globais -->
+                <div class="row g-2 mb-3">
+                    <div class="col-6 col-md-3">
+                        <div class="p-2 rounded-3 border border-themed text-center" style="background: rgba(255,255,255,0.03);">
+                            <div class="text-secondary small" style="font-size: 0.7rem;">Urnas Estendidas</div>
+                            <div class="fs-5 fw-bold font-mono text-warning" id="modalU17TotalUrnas">--</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-2 rounded-3 border border-themed text-center" style="background: rgba(255,255,255,0.03);">
+                            <div class="text-secondary small" style="font-size: 0.7rem;">Votos Auditados</div>
+                            <div class="fs-5 fw-bold font-mono" style="color: var(--text-title);" id="modalU17TotalVotos">--</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-2 rounded-3 border border-themed text-center" style="background: rgba(255,255,255,0.03);">
+                            <div class="text-secondary small" style="font-size: 0.7rem;">Último Fechamento</div>
+                            <div class="fs-5 fw-bold font-mono text-info" id="modalU17UltimoHorario">18h58</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-2 rounded-3 border border-themed text-center" style="background: rgba(255,255,255,0.03);">
+                            <div class="text-secondary small" style="font-size: 0.7rem;">Divisão de Votos Pós-17h</div>
+                            <div class="small font-mono fw-bold d-flex justify-content-center gap-2 mt-1" id="modalU17DivisaoVotos">
+                                <span class="text-primary" id="modalU17PercCand1">--%</span>
+                                <span class="text-secondary">x</span>
+                                <span class="text-danger" id="modalU17PercCand2">--%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barra de Ferramentas / Busca e Filtros -->
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-12 col-md-7">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-transparent border-themed text-secondary"><i class="bi bi-search"></i></span>
+                            <input type="text" id="inputBuscaUrnasPos17h" class="form-control bg-transparent border-themed" style="color: var(--text-title);" placeholder="Buscar por Município, Zona, Seção ou Local..." onkeyup="filtrarTabelaUrnasPos17h()">
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-5 d-flex align-items-center gap-2 justify-content-md-end">
+                        <span class="text-secondary small" style="font-size: 0.72rem;">Filtrar UF:</span>
+                        <select id="selectFiltroUfUrnasPos17h" class="form-select form-select-sm bg-transparent border-themed w-auto" style="color: var(--text-title);" onchange="filtrarTabelaUrnasPos17h()">
+                            <option value="todas">Todas as UFs</option>
+                            <option value="SP">São Paulo (SP)</option>
+                            <option value="RJ">Rio de Janeiro (RJ)</option>
+                            <option value="MG">Minas Gerais (MG)</option>
+                            <option value="BA">Bahia (BA)</option>
+                            <option value="CE">Ceará (CE)</option>
+                            <option value="AM">Amazonas (AM)</option>
+                            <option value="PR">Paraná (PR)</option>
+                            <option value="RS">Rio Grande do Sul (RS)</option>
+                        </select>
+                        <span class="badge bg-secondary-subtle text-secondary small font-mono" id="badgeContagemUrnasFiltradas">0 seções</span>
+                    </div>
+                </div>
+
+                <!-- Tabela com Scroll Interno -->
+                <div class="table-responsive" style="max-height: 380px;">
+                    <table class="table table-sm table-hover align-middle mb-0 font-mono" style="font-size: 0.76rem; color: var(--text-main);">
+                        <thead class="sticky-top" style="background: var(--bg-card); z-index: 5;">
+                            <tr class="border-bottom border-themed text-secondary">
+                                <th>UF</th>
+                                <th>Município</th>
+                                <th class="text-center">Zona</th>
+                                <th class="text-center">Seção</th>
+                                <th class="text-center">Fechamento</th>
+                                <th class="text-end text-primary" id="thModalCand1">PL</th>
+                                <th class="text-end text-danger" id="thModalCand2">PT</th>
+                                <th class="text-end">Brancos/Nulos</th>
+                                <th class="text-end">Total Votos</th>
+                                <th>Motivo da Extensão</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyUrnasPos17h">
+                            <tr>
+                                <td colspan="10" class="text-center py-4 text-secondary">
+                                    <div class="spinner-border spinner-border-sm text-warning me-2" role="status"></div>
+                                    Carregando dados oficiais de auditoria...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer border-top border-themed py-2 d-flex justify-content-between">
+                <span class="text-secondary small" style="font-size: 0.72rem;">
+                    <i class="bi bi-info-circle me-1"></i> Dados auditados a partir dos Boletins de Urna (BUs) registrados no repositório do TSE.
+                </span>
+                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="~/js/geolocalizacao.js" asp-append-version="true"></script>
@@ -1102,6 +1280,98 @@
         window.cand1Partido = cand1Partido;
         window.cand2Nome = cand2Nome;
         window.cand2Partido = cand2Partido;
+
+        // Controle e auditoria de urnas fechadas pós-17h (STF / TSE)
+        let cacheUrnasPos17h = null;
+
+        window.abrirModalUrnasPos17h = async function() {
+            const modalEl = document.getElementById("modalUrnasPos17h");
+            if (!modalEl) return;
+            const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            bsModal.show();
+
+            if (!cacheUrnasPos17h) {
+                try {
+                    const resp = await fetch('/api/apuracao/urnas-pos-17h');
+                    const data = await resp.json();
+                    if (data && data.sucesso) {
+                        cacheUrnasPos17h = data;
+                        renderizarModalUrnasPos17h(data);
+                    }
+                } catch (err) {
+                    console.error("Erro ao carregar auditoria de urnas pós-17h:", err);
+                }
+            } else {
+                renderizarModalUrnasPos17h(cacheUrnasPos17h);
+            }
+        };
+
+        function renderizarModalUrnasPos17h(data) {
+            if (!data) return;
+            const res = data.resumo;
+            if (res) {
+                const elTotalUrnas = document.getElementById("modalU17TotalUrnas");
+                const elTotalVotos = document.getElementById("modalU17TotalVotos");
+                const elUltimo = document.getElementById("modalU17UltimoHorario");
+                const elP1 = document.getElementById("modalU17PercCand1");
+                const elP2 = document.getElementById("modalU17PercCand2");
+                const thC1 = document.getElementById("thModalCand1");
+                const thC2 = document.getElementById("thModalCand2");
+
+                if (elTotalUrnas) elTotalUrnas.innerText = res.totalUrnas.toLocaleString('pt-BR');
+                if (elTotalVotos) elTotalVotos.innerText = res.totalVotos.toLocaleString('pt-BR');
+                if (elUltimo) elUltimo.innerText = res.horarioUltimoFechamento || "18h58";
+                if (elP1) elP1.innerText = `${res.nomeCand1} ${res.percentualCand1.toFixed(1)}%`;
+                if (elP2) elP2.innerText = `${res.nomeCand2} ${res.percentualCand2.toFixed(1)}%`;
+                if (thC1) thC1.innerText = `${res.partidoCand1} (${res.nomeCand1})`;
+                if (thC2) thC2.innerText = `${res.partidoCand2} (${res.nomeCand2})`;
+            }
+
+            filtrarTabelaUrnasPos17h();
+        }
+
+        window.filtrarTabelaUrnasPos17h = function() {
+            if (!cacheUrnasPos17h || !cacheUrnasPos17h.secoes) return;
+            const busca = (document.getElementById("inputBuscaUrnasPos17h")?.value || "").trim().toLowerCase();
+            const ufSel = (document.getElementById("selectFiltroUfUrnasPos17h")?.value || "todas").toLowerCase();
+
+            const filtradas = cacheUrnasPos17h.secoes.filter(s => {
+                const matchUf = ufSel === "todas" || s.uf.toLowerCase() === ufSel;
+                if (!matchUf) return false;
+                if (!busca) return true;
+                return s.municipio.toLowerCase().includes(busca) ||
+                       s.localVotacao.toLowerCase().includes(busca) ||
+                       s.zona.toString() === busca ||
+                       s.secao.toString() === busca ||
+                       s.motivoExtensao.toLowerCase().includes(busca);
+            });
+
+            const badge = document.getElementById("badgeContagemUrnasFiltradas");
+            if (badge) badge.innerText = `${filtradas.length} seções`;
+
+            const tbody = document.getElementById("tbodyUrnasPos17h");
+            if (!tbody) return;
+
+            if (filtradas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-secondary">Nenhuma seção encontrada com os filtros informados.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtradas.map(s => `
+                <tr class="border-bottom border-secondary border-opacity-10">
+                    <td><span class="badge bg-primary bg-opacity-25 text-primary">${s.uf}</span></td>
+                    <td><strong>${s.municipio}</strong><br><span class="text-secondary" style="font-size: 0.68rem;">${s.localVotacao}</span></td>
+                    <td class="text-center">${s.zona}ª</td>
+                    <td class="text-center font-monospace">${s.secao}</td>
+                    <td class="text-center"><span class="badge bg-warning bg-opacity-25 text-warning font-mono">${s.horarioFechamento}</span></td>
+                    <td class="text-end text-primary fw-bold">${s.votosCand1.toLocaleString('pt-BR')} <span class="small text-secondary font-monospace" style="font-size: 0.68rem;">(${s.percentualCand1.toFixed(1)}%)</span></td>
+                    <td class="text-end text-danger fw-bold">${s.votosCand2.toLocaleString('pt-BR')} <span class="small text-secondary font-monospace" style="font-size: 0.68rem;">(${s.percentualCand2.toFixed(1)}%)</span></td>
+                    <td class="text-end text-secondary font-monospace">${(s.votosBrancos + s.votosNulos).toLocaleString('pt-BR')}</td>
+                    <td class="text-end fw-bold font-monospace" style="color: var(--text-title);">${s.totalVotosApurados.toLocaleString('pt-BR')}</td>
+                    <td class="small text-secondary" style="font-size: 0.68rem; max-width: 220px;">${s.motivoExtensao}</td>
+                </tr>
+            `).join('');
+        };
 
         // Navegação fluida para município sem recarregar a tela (SPA) e subindo suavemente
         window.navegarParaCidadeSemReload = async function(nomeMun, cod, uf) {
@@ -1201,13 +1471,48 @@
                     if (elBadge) {
                         elBadge.innerText = data.finalizado 
                             ? "• 2º turno · Definido" 
-                            : (percTotal > 0 ? "• 2º turno · Ao vivo" : "• 2º turno · Aguardando totalização");
+                            : (data.matematicamenteEleito ? "• MATEMATICAMENTE ELEITO" : (percTotal > 0 ? "• 2º turno · Ao vivo" : "• 2º turno · Aguardando totalização"));
+                        if (data.matematicamenteEleito || data.finalizado) {
+                            elBadge.className = "badge bg-success text-white fw-bold shadow-sm small py-0 px-2 rounded-pill font-mono";
+                        }
+                    }
+
+                    // Atualizar Badges de Eleito Acima dos Nomes
+                    const b1 = document.getElementById("boxBadgeEleitoCand1");
+                    const b2 = document.getElementById("boxBadgeEleitoCand2");
+                    const isEleito1 = (data.matematicamenteEleito || (c1 && c1.eleito));
+                    const isEleito2 = (c2 && c2.eleito);
+
+                    if (b1) {
+                        if (isEleito1) {
+                            b1.style.display = "block";
+                            b1.innerHTML = `<span class="badge bg-success text-white fw-bold px-2 py-0 rounded-pill font-mono shadow-sm d-inline-flex align-items-center gap-1" style="font-size: 0.65rem; letter-spacing: 0.02em;"><i class="bi bi-check-circle-fill"></i> ELEITO</span>`;
+                        } else {
+                            b1.style.display = "none";
+                            b1.innerHTML = "";
+                        }
+                    }
+                    if (b2) {
+                        if (isEleito2) {
+                            b2.style.display = "block";
+                            b2.style.visibility = "visible";
+                            b2.innerHTML = `<span class="badge bg-success text-white fw-bold px-2 py-0 rounded-pill font-mono shadow-sm d-inline-flex align-items-center gap-1" style="font-size: 0.65rem; letter-spacing: 0.02em;"><i class="bi bi-check-circle-fill"></i> ELEITO</span>`;
+                        } else if (isEleito1) {
+                            b2.style.display = "block";
+                            b2.style.visibility = "hidden";
+                            b2.innerHTML = `<span class="badge px-2 py-0 rounded-pill font-mono" style="font-size: 0.65rem;">ELEITO</span>`;
+                        } else {
+                            b2.style.display = "none";
+                            b2.innerHTML = "";
+                        }
                     }
 
                     // Atualizar Headline Dinâmica
                     const elHeadline = document.getElementById("lblHeadlineDuelo");
                     if (elHeadline) {
-                        if (anoAtual === "2026") {
+                        if (data.matematicamenteEleito && c1) {
+                            elHeadline.innerHTML = `<span class="cand-headline-name-c1">${c1.nomeUrna}</span><span class="cand-headline-connector"> está matematicamente eleito Presidente da República</span>`;
+                        } else if (anoAtual === "2026") {
                             elHeadline.innerHTML = `<span class="cand-headline-name-c2">${c2 ? c2.nomeUrna : ''}</span><span class="cand-headline-connector"> e </span><span class="cand-headline-name-c1">${c1 ? c1.nomeUrna : ''}</span><span class="cand-headline-connector"> foram ao 2º turno</span>`;
                         } else if (data.finalizado && c1) {
                             elHeadline.innerHTML = `<span class="cand-headline-name-c1">${c1.nomeUrna}</span><span class="cand-headline-connector"> é eleito Presidente da República</span>`;
